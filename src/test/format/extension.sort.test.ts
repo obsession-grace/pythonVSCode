@@ -32,20 +32,34 @@ suite('Sorting', () => {
         await closeActiveWindows();
     });
     setup(async () => {
+        console.log('1a');
         await initializeTest();
+        console.log('1b');
         initializeDI();
+        console.log('1c');
         fs.writeFileSync(fileToFormatWithConfig, fs.readFileSync(originalFileToFormatWithConfig));
+        console.log('1d');
         fs.writeFileSync(fileToFormatWithoutConfig, fs.readFileSync(originalFileToFormatWithoutConfig));
+        console.log('1e');
         fs.writeFileSync(fileToFormatWithConfig1, fs.readFileSync(originalFileToFormatWithConfig1));
+        console.log('1f');
         await updateSetting('sortImports.args', [], Uri.file(sortingPath), configTarget);
+        console.log('1g');
         await closeActiveWindows();
+        console.log('1h');
         const pythonExecutionFactory = ioc.serviceContainer.get<IPythonExecutionFactory>(IPythonExecutionFactory);
+        console.log('1i');
         const processService = ioc.serviceContainer.get<IProcessService>(IProcessService);
+        console.log('1j');
         sorter = new PythonImportSortProvider(pythonExecutionFactory, processService);
+        console.log('1k');
     });
     teardown(async () => {
+        console.log('2a');
         ioc.dispose();
+        console.log('2b');
         await closeActiveWindows();
+        console.log('2c');
     });
     function initializeDI() {
         ioc = new UnitTestIocContainer();
