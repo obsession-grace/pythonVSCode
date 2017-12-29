@@ -25,11 +25,17 @@ suite('Sorting', () => {
     const configTarget = IS_MULTI_ROOT_TEST ? ConfigurationTarget.WorkspaceFolder : ConfigurationTarget.Workspace;
     suiteSetup(initialize);
     suiteTeardown(async () => {
+        console.log('3a');
         fs.writeFileSync(fileToFormatWithConfig, fs.readFileSync(originalFileToFormatWithConfig));
+        console.log('3b');
         fs.writeFileSync(fileToFormatWithConfig1, fs.readFileSync(originalFileToFormatWithConfig1));
+        console.log('3c');
         fs.writeFileSync(fileToFormatWithoutConfig, fs.readFileSync(originalFileToFormatWithoutConfig));
+        console.log('3d');
         await updateSetting('sortImports.args', [], Uri.file(sortingPath), configTarget);
+        console.log('3e');
         await closeActiveWindows();
+        console.log('3f');
     });
     setup(async () => {
         console.log('1a');
