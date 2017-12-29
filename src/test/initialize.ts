@@ -52,29 +52,10 @@ export async function wait(timeoutMilliseconds: number) {
     });
 }
 
-// tslint:disable-next-line:no-any
-export async function closeActiveWindows(): Promise<any> {
-    // https://github.com/Microsoft/vscode/blob/master/extensions/vscode-api-tests/src/utils.ts
-    // tslint:disable-next-line:promise-must-complete
-    return new Promise(resolve => {
-        const stopWatch = new StopWatch();
-        checkIfClosed();
-
-        function tryClosing() {
-            vscode.commands.executeCommand('workbench.action.closeAllEditors')
-                // tslint:disable-next-line:no-unnecessary-callback-wrapper
-                .then(() => checkIfClosed(), () => checkIfClosed());
-        }
-
-        function checkIfClosed() {
-            // No point waiting for more than 10 seconds, lets just try to carry on.
-            if (stopWatch.elapsedTime > 10000 || vscode.window.visibleTextEditors.length === 0) {
-                resolve();
-            } else {
-                setTimeout(tryClosing, 100);
-            }
-        }
-    });
+export async function closeActiveWindows(): Promise<void> {
+    return new Promise<void>((resolve, reject) => vscode.commands.executeCommand('workbench.action.closeAllEditors')
+        // tslint:disable-next-line:no-unnecessary-callback-wrapper
+        .then(() => resolve(), reject));
 }
 
 function getPythonPath(): string {
