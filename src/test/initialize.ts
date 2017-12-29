@@ -4,6 +4,7 @@ import * as vscode from 'vscode';
 import { PythonSettings } from '../client/common/configSettings';
 import { activated } from '../client/extension';
 import { clearPythonPathInWorkspaceFolder, resetGlobalPythonPathSetting, setPythonPathInWorkspaceRoot } from './common';
+import { StopWatch } from '../client/telemetry/stopWatch';
 
 const dummyPythonFile = path.join(__dirname, '..', '..', 'src', 'test', 'pythonFiles', 'dummy.py');
 const multirootPath = path.join(__dirname, '..', '..', 'src', 'testMultiRootWkspc');
@@ -56,6 +57,7 @@ export async function closeActiveWindows(): Promise<any> {
     // https://github.com/Microsoft/vscode/blob/master/extensions/vscode-api-tests/src/utils.ts
     // tslint:disable-next-line:promise-must-complete
     return new Promise(resolve => {
+        const stopWatch = new StopWatch();
         checkIfClosed();
 
         function tryClosing() {
@@ -65,6 +67,10 @@ export async function closeActiveWindows(): Promise<any> {
         }
 
         function checkIfClosed() {
+            // No point waiting for more than 10 seconds, lets just try to carry on.
+            if (stopWatch.elapsedTime > 10000) {
+                return resolve();
+            }
             if (vscode.window.visibleTextEditors.length === 0) {
                 resolve();
             } else {
