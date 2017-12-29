@@ -25,47 +25,27 @@ suite('Sorting', () => {
     const configTarget = IS_MULTI_ROOT_TEST ? ConfigurationTarget.WorkspaceFolder : ConfigurationTarget.Workspace;
     suiteSetup(initialize);
     suiteTeardown(async () => {
-        console.log('3a');
         fs.writeFileSync(fileToFormatWithConfig, fs.readFileSync(originalFileToFormatWithConfig));
-        console.log('3b');
         fs.writeFileSync(fileToFormatWithConfig1, fs.readFileSync(originalFileToFormatWithConfig1));
-        console.log('3c');
         fs.writeFileSync(fileToFormatWithoutConfig, fs.readFileSync(originalFileToFormatWithoutConfig));
-        console.log('3d');
         await updateSetting('sortImports.args', [], Uri.file(sortingPath), configTarget);
-        console.log('3e');
         await closeActiveWindows();
-        console.log('3f');
     });
     setup(async () => {
-        console.log('1a');
         await initializeTest();
-        console.log('1b');
         initializeDI();
-        console.log('1c');
         fs.writeFileSync(fileToFormatWithConfig, fs.readFileSync(originalFileToFormatWithConfig));
-        console.log('1d');
         fs.writeFileSync(fileToFormatWithoutConfig, fs.readFileSync(originalFileToFormatWithoutConfig));
-        console.log('1e');
         fs.writeFileSync(fileToFormatWithConfig1, fs.readFileSync(originalFileToFormatWithConfig1));
-        console.log('1f');
         await updateSetting('sortImports.args', [], Uri.file(sortingPath), configTarget);
-        console.log('1g');
         await closeActiveWindows();
-        console.log('1h');
         const pythonExecutionFactory = ioc.serviceContainer.get<IPythonExecutionFactory>(IPythonExecutionFactory);
-        console.log('1i');
         const processService = ioc.serviceContainer.get<IProcessService>(IProcessService);
-        console.log('1j');
         sorter = new PythonImportSortProvider(pythonExecutionFactory, processService);
-        console.log('1k');
     });
     teardown(async () => {
-        console.log('2a');
         ioc.dispose();
-        console.log('2b');
         await closeActiveWindows();
-        console.log('2c');
     });
     function initializeDI() {
         ioc = new UnitTestIocContainer();
@@ -108,37 +88,24 @@ suite('Sorting', () => {
     });
 
     test('With Changes and Config in Args', async () => {
-        console.log('1');
         await updateSetting('sortImports.args', ['-sp', path.join(sortingPath, 'withconfig')], Uri.file(sortingPath), ConfigurationTarget.Workspace);
-        console.log('2');
         const textDocument = await workspace.openTextDocument(fileToFormatWithConfig);
-        console.log('3');
         const editor = await window.showTextDocument(textDocument);
-        console.log('4');
         await editor.edit(builder => {
             builder.insert(new Position(0, 0), `from third_party import lib0${EOL}`);
         });
-        console.log('5');
         const edits = await sorter.sortImports(extensionDir, textDocument);
-        console.log('6');
         assert.notEqual(edits.length, 0, 'No edits');
     });
     test('With Changes and Config in Args (via Command)', async () => {
-        console.log('1');
         await updateSetting('sortImports.args', ['-sp', path.join(sortingPath, 'withconfig')], Uri.file(sortingPath), configTarget);
-        console.log('2');
         const textDocument = await workspace.openTextDocument(fileToFormatWithConfig);
-        console.log('3');
         const editor = await window.showTextDocument(textDocument);
-        console.log('4');
         await editor.edit(builder => {
             builder.insert(new Position(0, 0), `from third_party import lib0${EOL}`);
         });
-        console.log('5');
         const originalContent = textDocument.getText();
-        console.log('6');
         await commands.executeCommand('python.sortImports');
-        console.log('7');
         assert.notEqual(originalContent, textDocument.getText(), 'Contents have not changed');
     });
 });
