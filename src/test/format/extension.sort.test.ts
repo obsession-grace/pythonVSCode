@@ -88,13 +88,19 @@ suite('Sorting', () => {
     });
 
     test('With Changes and Config in Args', async () => {
+        console.log('1');
         await updateSetting('sortImports.args', ['-sp', path.join(sortingPath, 'withconfig')], Uri.file(sortingPath), ConfigurationTarget.Workspace);
+        console.log('2');
         const textDocument = await workspace.openTextDocument(fileToFormatWithConfig);
+        console.log('3');
         const editor = await window.showTextDocument(textDocument);
+        console.log('4');
         await editor.edit(builder => {
             builder.insert(new Position(0, 0), `from third_party import lib0${EOL}`);
         });
+        console.log('5');
         const edits = await sorter.sortImports(extensionDir, textDocument);
+        console.log('6');
         assert.notEqual(edits.length, 0, 'No edits');
     });
     test('With Changes and Config in Args (via Command)', async () => {
