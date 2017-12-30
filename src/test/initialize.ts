@@ -57,11 +57,18 @@ export async function closeActiveWindows(): Promise<any> {
     // tslint:disable-next-line:promise-must-complete
     return new Promise(resolve => {
         checkIfClosed();
-
+        let savedOnce = false;
         function tryClosing() {
-            vscode.commands.executeCommand('workbench.action.closeAllEditors')
-                // tslint:disable-next-line:no-unnecessary-callback-wrapper
-                .then(() => checkIfClosed(), () => checkIfClosed());
+            if (!savedOnce && vscode.window.visibleTextEditors.some(item => item.document.isDirty)) {
+                savedOnce = true;
+                vscode.commands.executeCommand('workbench.action.files.saveAll')
+                    // tslint:disable-next-line:no-unnecessary-callback-wrapper
+                    .then(() => tryClosing(), () => tryClosing());
+            } else {
+                vscode.commands.executeCommand('workbench.action.closeAllEditors')
+                    // tslint:disable-next-line:no-unnecessary-callback-wrapper
+                    .then(() => checkIfClosed(), () => checkIfClosed());
+            }
         }
 
         function checkIfClosed() {
