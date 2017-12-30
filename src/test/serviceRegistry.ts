@@ -86,7 +86,8 @@ export class IocContainer {
     public registerMockProcessTypes() {
         this.serviceManager.addSingleton<IBufferDecoder>(IBufferDecoder, BufferDecoder);
         this.serviceManager.addSingleton<IProcessService>(IOriginalProcessService, ProcessService);
-        this.serviceManager.addSingleton<IProcessService>(IProcessService, MockProcessService);
+        this.serviceManager.addSingleton<IProcessService>(IProcessService, MockProcessService, 'standard');
+        this.serviceManager.addSingleton<IProcessService>(IProcessService, MockProcessService, 'wsl');
         this.serviceManager.addSingleton<IPythonExecutionFactory>(IPythonExecutionFactory, PythonExecutionFactory);
         this.serviceManager.addSingleton<IProcessServiceFactory>(IProcessServiceFactory, ProcessServiceFactory);
         this.serviceManager.addSingleton<IPythonToolExecutionService>(IPythonToolExecutionService, PythonToolExecutionService);

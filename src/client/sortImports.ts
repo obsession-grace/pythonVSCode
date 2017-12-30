@@ -29,7 +29,7 @@ export function activate(context: vscode.ExtensionContext, outChannel: vscode.Ou
             });
         }
         return emptyLineAdded.then(() => {
-            const processService = serviceContainer.get<IProcessService>(IProcessService);
+            const processService = serviceContainer.get<IProcessService>(IProcessService, 'standard');
             const pythonExecutionFactory = serviceContainer.get<IPythonExecutionFactory>(IPythonExecutionFactory);
             return new sortProvider.PythonImportSortProvider(pythonExecutionFactory, processService).sortImports(rootDir, activeEditor.document);
         }).then(changes => {
@@ -37,7 +37,9 @@ export function activate(context: vscode.ExtensionContext, outChannel: vscode.Ou
                 return;
             }
 
-            return new Promise((resolve, reject) => activeEditor.edit(builder => changes.forEach(change => builder.replace(change.range, change.newText))).then(resolve, reject));
+            return new Promise<void>((resolve, reject) => activeEditor.edit(builder => changes.forEach(change => builder.replace(change.range, change.newText)))
+                // tslint:disable-next-line:no-unnecessary-callback-wrapper
+                .then(() => resolve(), reject));
         }).catch(error => {
             const message = typeof error === 'string' ? error : (error.message ? error.message : error);
             outChannel.appendLine(error);
