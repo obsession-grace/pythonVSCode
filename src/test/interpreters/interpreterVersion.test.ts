@@ -29,7 +29,7 @@ suite('Interpreters display version', () => {
     }
 
     test('Must return the Python Version', async () => {
-        const pythonProcess = ioc.serviceContainer.get<IProcessService>(IProcessService);
+        const pythonProcess = ioc.serviceContainer.get<IProcessService>(IProcessService, 'standard');
         const output = await pythonProcess.exec('python', ['--version'], { cwd: __dirname, mergeStdOutErr: true });
         const version = output.stdout.splitLines()[0];
         const interpreterVersion = ioc.serviceContainer.get<IInterpreterVersionService>(IInterpreterVersionService);
@@ -42,7 +42,7 @@ suite('Interpreters display version', () => {
         assert.equal(pyVersion, 'DEFAULT_TEST_VALUE', 'Incorrect version');
     });
     test('Must return the pip Version', async () => {
-        const pythonProcess = ioc.serviceContainer.get<IProcessService>(IProcessService);
+        const pythonProcess = ioc.serviceContainer.get<IProcessService>(IProcessService, 'standard');
         const result = await pythonProcess.exec('python', ['-m', 'pip', '--version'], { cwd: __dirname, mergeStdOutErr: true });
         const output = result.stdout.splitLines()[0];
         // Take the second part, see below example.

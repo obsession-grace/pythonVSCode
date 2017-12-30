@@ -40,7 +40,7 @@ suite('Sorting', () => {
         await updateSetting('sortImports.args', [], Uri.file(sortingPath), configTarget);
         await closeActiveWindows();
         const pythonExecutionFactory = ioc.serviceContainer.get<IPythonExecutionFactory>(IPythonExecutionFactory);
-        const processService = ioc.serviceContainer.get<IProcessService>(IProcessService);
+        const processService = ioc.serviceContainer.get<IProcessService>(IProcessService, 'standard');
         sorter = new PythonImportSortProvider(pythonExecutionFactory, processService);
     });
     teardown(async () => {
