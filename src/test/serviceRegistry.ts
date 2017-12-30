@@ -9,6 +9,7 @@ import { IS_64_BIT, IS_WINDOWS } from '../client/common/platform/constants';
 import { PathUtils } from '../client/common/platform/pathUtils';
 import { BufferDecoder } from '../client/common/process/decoder';
 import { ProcessService } from '../client/common/process/proc';
+import { IProcessServiceFactory, ProcessServiceFactory } from '../client/common/process/processServiceFactory';
 import { PythonExecutionFactory } from '../client/common/process/pythonExecutionFactory';
 import { PythonToolExecutionService } from '../client/common/process/pythonToolService';
 import { registerTypes as processRegisterTypes } from '../client/common/process/serviceRegistry';
@@ -87,6 +88,7 @@ export class IocContainer {
         this.serviceManager.addSingleton<IProcessService>(IOriginalProcessService, ProcessService);
         this.serviceManager.addSingleton<IProcessService>(IProcessService, MockProcessService);
         this.serviceManager.addSingleton<IPythonExecutionFactory>(IPythonExecutionFactory, PythonExecutionFactory);
+        this.serviceManager.addSingleton<IProcessServiceFactory>(IProcessServiceFactory, ProcessServiceFactory);
         this.serviceManager.addSingleton<IPythonToolExecutionService>(IPythonToolExecutionService, PythonToolExecutionService);
     }
 
