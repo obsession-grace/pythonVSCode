@@ -1,6 +1,7 @@
 import { assert, expect } from 'chai';
 import * as path from 'path';
 import { ConfigurationTarget, Uri, workspace } from 'vscode';
+import { ConfigurationService } from '../../client/common/config/configurationService';
 import { EnumEx } from '../../client/common/enumUtils';
 import { createDeferred } from '../../client/common/helpers';
 import { CondaInstaller } from '../../client/common/installer/condaInstaller';
@@ -13,7 +14,7 @@ import { PathUtils } from '../../client/common/platform/pathUtils';
 import { CurrentProcess } from '../../client/common/process/currentProcess';
 import { IProcessService } from '../../client/common/process/types';
 import { ITerminalService } from '../../client/common/terminal/types';
-import { ICurrentProcess, IInstaller, ILogger, IPathUtils, IPersistentStateFactory, IsWindows, ModuleNamePurpose, Product } from '../../client/common/types';
+import { IConfigurationService, ICurrentProcess, IInstaller, ILogger, IPathUtils, IPersistentStateFactory, IsWindows, ModuleNamePurpose, Product } from '../../client/common/types';
 import { ICondaLocatorService } from '../../client/interpreter/contracts';
 import { updateSetting } from '../common';
 import { rootWorkspaceUri } from '../common';
@@ -61,6 +62,7 @@ suite('Module Installer', () => {
         ioc.serviceManager.addSingleton<ICondaLocatorService>(ICondaLocatorService, MockCondaLocator);
         ioc.serviceManager.addSingleton<IPathUtils>(IPathUtils, PathUtils);
         ioc.serviceManager.addSingleton<ICurrentProcess>(ICurrentProcess, CurrentProcess);
+        ioc.serviceManager.addSingleton<IConfigurationService>(IConfigurationService, ConfigurationService);
 
         ioc.registerMockProcessTypes();
         ioc.serviceManager.addSingleton<ITerminalService>(ITerminalService, MockTerminalService);
