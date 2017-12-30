@@ -66,7 +66,7 @@ suite('Installer', () => {
 
     async function testCheckingIfProductIsInstalled(product: Product) {
         const installer = ioc.serviceContainer.get<Installer>(IInstaller);
-        const processService = ioc.serviceContainer.get<MockProcessService>(IProcessService);
+        const processService = ioc.serviceContainer.get<MockProcessService>(IProcessService, 'standard');
         const checkInstalledDef = createDeferred<boolean>();
         processService.onExec((file, args, options, callback) => {
             const moduleName = installer.translateProductToModuleName(product, ModuleNamePurpose.run);

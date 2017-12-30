@@ -76,7 +76,7 @@ suite('Module Installer', () => {
     test('Ensure pip is supported and conda is not', async () => {
         ioc.serviceManager.addSingletonInstance<IModuleInstaller>(IModuleInstaller, new MockModuleInstaller('mock', true));
         const installer = ioc.serviceContainer.get<Installer>(IInstaller);
-        const processService = ioc.serviceContainer.get<MockProcessService>(IProcessService);
+        const processService = ioc.serviceContainer.get<MockProcessService>(IProcessService, 'standard');
         const checkInstalledDef = createDeferred<boolean>();
         processService.onExec((file, args, options, callback) => {
             if (args.length > 1 && args[0] === '-c' && args[1] === 'import pip') {
@@ -105,7 +105,7 @@ suite('Module Installer', () => {
     test('Ensure pip and conda are supported', async () => {
         ioc.serviceManager.addSingletonInstance<IModuleInstaller>(IModuleInstaller, new MockModuleInstaller('mock', true));
         const installer = ioc.serviceContainer.get<Installer>(IInstaller);
-        const processService = ioc.serviceContainer.get<MockProcessService>(IProcessService);
+        const processService = ioc.serviceContainer.get<MockProcessService>(IProcessService, 'standard');
         const checkInstalledDef = createDeferred<boolean>();
         processService.onExec((file, args, options, callback) => {
             if (args.length > 1 && args[0] === '-c' && args[1] === 'import pip') {

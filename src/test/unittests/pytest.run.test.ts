@@ -44,7 +44,7 @@ suite('Unit Tests - pytest - run with mocked process output', () => {
     }
 
     function injectTestDiscoveryOutput(outputFileName: string) {
-        const procService = ioc.serviceContainer.get<MockProcessService>(IProcessService);
+        const procService = ioc.serviceContainer.get<MockProcessService>(IProcessService, 'standard');
         procService.onExecObservable((file, args, options, callback) => {
             if (args.indexOf('--collect-only') >= 0) {
                 callback({
@@ -56,7 +56,7 @@ suite('Unit Tests - pytest - run with mocked process output', () => {
     }
 
     function injectTestRunOutput(outputFileName: string, failedOutput: boolean = false) {
-        const procService = ioc.serviceContainer.get<MockProcessService>(IProcessService);
+        const procService = ioc.serviceContainer.get<MockProcessService>(IProcessService, 'standard');
         procService.onExecObservable((file, args, options, callback) => {
             if (failedOutput && args.indexOf('--last-failed') === -1) {
                 return;

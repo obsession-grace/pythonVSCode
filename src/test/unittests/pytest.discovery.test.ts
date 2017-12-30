@@ -45,7 +45,7 @@ suite('Unit Tests - pytest - discovery with mocked process output', () => {
     }
 
     function injectTestDiscoveryOutput(output: string) {
-        const procService = ioc.serviceContainer.get<MockProcessService>(IProcessService);
+        const procService = ioc.serviceContainer.get<MockProcessService>(IProcessService, 'standard');
         procService.onExecObservable((file, args, options, callback) => {
             if (args.indexOf('--collect-only') >= 0) {
                 callback({

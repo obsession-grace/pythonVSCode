@@ -60,7 +60,7 @@ suite('Unit Tests - unittest - discovery with mocked process output', () => {
     }
 
     function injectTestDiscoveryOutput(output: string) {
-        const procService = ioc.serviceContainer.get<MockProcessService>(IProcessService);
+        const procService = ioc.serviceContainer.get<MockProcessService>(IProcessService, 'standard');
         procService.onExecObservable((file, args, options, callback) => {
             if (args.length > 1 && args[0] === '-c' && args[1].includes('import unittest') && args[1].includes('loader = unittest.TestLoader()')) {
                 callback({

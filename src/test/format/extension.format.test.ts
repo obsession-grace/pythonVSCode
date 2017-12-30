@@ -71,7 +71,7 @@ suite('Formatting', () => {
     }
 
     function injectFormatOutput(outputFileName: string) {
-        const procService = ioc.serviceContainer.get<MockProcessService>(IProcessService);
+        const procService = ioc.serviceContainer.get<MockProcessService>(IProcessService, 'standard');
         procService.onExecObservable((file, args, options, callback) => {
             if (args.indexOf('--diff') >= 0) {
                 callback({
