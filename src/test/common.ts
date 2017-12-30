@@ -1,6 +1,6 @@
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import { ConfigurationTarget, Uri, workspace } from 'vscode';
+import { ConfigurationTarget, TextDocument, Uri, window, workspace } from 'vscode';
 import { PythonSettings } from '../client/common/configSettings';
 import { IS_MULTI_ROOT_TEST } from './initialize';
 
@@ -114,3 +114,10 @@ const globalPythonPathSetting = workspace.getConfiguration('python').inspect('py
 export const clearPythonPathInWorkspaceFolder = async (resource: string | Uri) => retryAsync(setPythonPathInWorkspace)(resource, ConfigurationTarget.WorkspaceFolder);
 export const setPythonPathInWorkspaceRoot = async (pythonPath: string) => retryAsync(setPythonPathInWorkspace)(undefined, ConfigurationTarget.Workspace, pythonPath);
 export const resetGlobalPythonPathSetting = async () => retryAsync(restoreGlobalPythonPathSetting)();
+
+export async function openDocument(file: string | Uri): Promise<TextDocument> {
+    const fileUri = typeof file === 'string' ? Uri.file(file) : file as Uri;
+    const document = await workspace.openTextDocument(fileUri);
+    await window.showTextDocument(document);
+    return document;
+}

@@ -15,7 +15,7 @@ process.env['VSC_PYTHON_CI_TEST'] = '1';
 
 const PYTHON_PATH = getPythonPath();
 // tslint:disable-next-line:no-string-literal prefer-template
-export const IS_TRAVIS = (process.env['TRAVIS'] + '') === 'true';
+export const IS_TRAVIS = ((process.env['TRAVIS'] as string) + '') === 'true';
 export const TEST_TIMEOUT = 25000;
 export const IS_MULTI_ROOT_TEST = isMultitrootTest();
 
@@ -53,32 +53,11 @@ export async function wait(timeoutMilliseconds: number) {
 
 // tslint:disable-next-line:no-any
 export async function closeActiveWindows(): Promise<any> {
-    // https://github.com/Microsoft/vscode/blob/master/extensions/vscode-api-tests/src/utils.ts
-    // tslint:disable-next-line:promise-must-complete
-    return new Promise(resolve => {
-        checkIfClosed();
-        let savedOnce = false;
-        function tryClosing() {
-            if (!savedOnce && vscode.window.visibleTextEditors.some(item => item.document.isDirty)) {
-                savedOnce = true;
-                vscode.commands.executeCommand('workbench.action.files.saveAll')
-                    // tslint:disable-next-line:no-unnecessary-callback-wrapper
-                    .then(() => tryClosing(), () => tryClosing());
-            } else {
-                vscode.commands.executeCommand('workbench.action.closeAllEditors')
-                    // tslint:disable-next-line:no-unnecessary-callback-wrapper
-                    .then(() => checkIfClosed(), () => checkIfClosed());
-            }
-        }
-
-        function checkIfClosed() {
-            if (vscode.window.visibleTextEditors.length === 0) {
-                resolve();
-            } else {
-                setTimeout(tryClosing, 100);
-            }
-        }
-    });
+    if (vscode.window.visibleTextEditors.length === 0) {
+        return;
+    } else {
+        await vscode.commands.executeCommand('workbench.action.closeAllEditors');
+    }
 }
 
 function getPythonPath(): string {
