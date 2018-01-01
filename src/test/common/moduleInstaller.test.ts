@@ -12,19 +12,21 @@ import { Logger } from '../../client/common/logger';
 import { PersistentStateFactory } from '../../client/common/persistentState';
 import { PathUtils } from '../../client/common/platform/pathUtils';
 import { CurrentProcess } from '../../client/common/process/currentProcess';
-import { IProcessService } from '../../client/common/process/types';
+import { IProcessService, IPythonExecutionFactory } from '../../client/common/process/types';
 import { ITerminalService } from '../../client/common/terminal/types';
 import { IConfigurationService, ICurrentProcess, IInstaller, ILogger, IPathUtils, IPersistentStateFactory, IsWindows, ModuleNamePurpose, Product } from '../../client/common/types';
-import { ICondaLocatorService } from '../../client/interpreter/contracts';
+import { ICondaLocatorService, IInterpreterLocatorService, INTERPRETER_LOCATOR_SERVICE, InterpreterType } from '../../client/interpreter/contracts';
 import { updateSetting } from '../common';
 import { rootWorkspaceUri } from '../common';
-import { MockCondaLocatorService } from '../interpreters/mocks';
+import { MockCondaLocatorService, MockProvider } from '../interpreters/mocks';
 import { MockCondaLocator } from '../mocks/condaLocator';
 import { MockModuleInstaller } from '../mocks/moduleInstaller';
 import { MockProcessService } from '../mocks/proc';
 import { MockTerminalService } from '../mocks/terminalService';
 import { UnitTestIocContainer } from '../unittests/serviceRegistry';
 import { closeActiveWindows, initializeTest, IS_MULTI_ROOT_TEST, IS_TRAVIS } from './../initialize';
+import { Architecture } from '../../client/common/platform/types';
+import { PythonSettings } from '../../client/common/configSettings';
 
 // tslint:disable-next-line:max-func-body-length
 suite('Module Installer', () => {
@@ -68,6 +70,16 @@ suite('Module Installer', () => {
         ioc.serviceManager.addSingleton<ITerminalService>(ITerminalService, MockTerminalService);
         ioc.serviceManager.addSingletonInstance<boolean>(IsWindows, false);
     }
+    async function getCurrentPythonPath(): Promise<string> {
+        const pythonPath = PythonSettings.getInstance(workspaceUri).pythonPath;
+        if (path.basename(pythonPath) === pythonPath) {
+            const pythonProc = await ioc.serviceContainer.get<IPythonExecutionFactory>(IPythonExecutionFactory).create(workspaceUri);
+            return pythonProc.getExecutablePath().catch(() => pythonPath);
+        } else {
+            return pythonPath;
+        }
+    }
+
     async function resetSettings() {
         await updateSetting('linting.enabledWithoutWorkspace', true, undefined, ConfigurationTarget.Global);
         await updateSetting('linting.pylintEnabled', true, rootWorkspaceUri, ConfigurationTarget.Workspace);
@@ -75,6 +87,9 @@ suite('Module Installer', () => {
 
     test('Ensure pip is supported and conda is not', async () => {
         ioc.serviceManager.addSingletonInstance<IModuleInstaller>(IModuleInstaller, new MockModuleInstaller('mock', true));
+        const mockInterpreterLocator = new MockProvider([]);
+        ioc.serviceManager.addSingletonInstance<IInterpreterLocatorService>(IInterpreterLocatorService, mockInterpreterLocator, INTERPRETER_LOCATOR_SERVICE);
+
         const installer = ioc.serviceContainer.get<Installer>(IInstaller);
         const processService = ioc.serviceContainer.get<MockProcessService>(IProcessService, 'standard');
         const checkInstalledDef = createDeferred<boolean>();
@@ -99,11 +114,15 @@ suite('Module Installer', () => {
 
         const mockInstaller = moduleInstallers.find(item => item.displayName === 'mock')!;
         expect(mockInstaller).not.to.be.an('undefined', 'mock installer not found');
-        await expect(mockInstaller.isSupported()).to.eventually.equal(false, 'mock is not supported');
+        await expect(mockInstaller.isSupported()).to.eventually.equal(true, 'mock is not supported');
     });
 
     test('Ensure pip and conda are supported', async () => {
         ioc.serviceManager.addSingletonInstance<IModuleInstaller>(IModuleInstaller, new MockModuleInstaller('mock', true));
+        const pythonPath = await getCurrentPythonPath();
+        const mockInterpreterLocator = new MockProvider([{ architecture: Architecture.Unknown, companyDisplayName: '', displayName: '', envName: '', path: pythonPath, type: InterpreterType.Conda, version: '' }]);
+        ioc.serviceManager.addSingletonInstance<IInterpreterLocatorService>(IInterpreterLocatorService, mockInterpreterLocator, INTERPRETER_LOCATOR_SERVICE);
+
         const installer = ioc.serviceContainer.get<Installer>(IInstaller);
         const processService = ioc.serviceContainer.get<MockProcessService>(IProcessService, 'standard');
         const checkInstalledDef = createDeferred<boolean>();
