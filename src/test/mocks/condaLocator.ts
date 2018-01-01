@@ -1,6 +1,8 @@
+import { injectable } from 'inversify';
 import { Uri } from 'vscode';
 import { ICondaLocatorService } from '../../client/interpreter/contracts';
 
+@injectable()
 export class MockCondaLocator implements ICondaLocatorService {
     constructor(private condaFile: string = 'conda', private available: boolean = true, private version: string = '1') { }
     public async getCondaFile(resource?: Uri): Promise<string> {
