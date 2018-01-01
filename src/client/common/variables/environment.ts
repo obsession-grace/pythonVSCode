@@ -10,15 +10,12 @@ import { EnvironmentVariables, IEnvironmentVariablesService } from './types';
 @injectable()
 export class EnvironmentVariablesService implements IEnvironmentVariablesService {
     private readonly pathVariable: 'PATH' | 'Path';
-    constructor( @inject(IPathUtils) pathUtils: IPathUtils) {
+    constructor( @inject(IPathUtils) private pathUtils: IPathUtils) {
         this.pathVariable = pathUtils.getPathVariableName();
     }
     public async parseFile(filePath: string): Promise<EnvironmentVariables | undefined> {
-        const exists = await fs.pathExists(filePath);
+        const exists = await this.pathUtils.fileExists(filePath);
         if (!exists) {
-            return undefined;
-        }
-        if (!fs.lstatSync(filePath).isFile()) {
             return undefined;
         }
         return new Promise<EnvironmentVariables | undefined>((resolve, reject) => {
