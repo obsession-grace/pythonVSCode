@@ -83,3 +83,12 @@ export const IChildProcess = Symbol('IChildProcess');
 export interface IChildProcess {
     spawn(command: string, args: string[], options: ChildProcessSpawnOptions): ChildProcess;
 }
+
+export const IWslUtils = Symbol('IWslUtils');
+
+export interface IWslUtils {
+    isSupported: boolean;
+    bashExecutablePath: string;
+    translateToWslPath(windowsPath: string): string;
+    translateToWindowsPath(wslPath: string): string;
+}
