@@ -83,6 +83,8 @@ export const IPathUtils = Symbol('IPathUtils');
 
 export interface IPathUtils {
     getPathVariableName(): 'Path' | 'PATH';
+    fileExists(fileName: string): Promise<boolean>;
+    pathExists(pathName: string): Promise<boolean>;
 }
 
 export const ICurrentProcess = Symbol('ICurrentProcess');
