@@ -77,3 +77,9 @@ export interface IPythonToolExecutionService {
     execObservable(executionInfo: ExecutionInfo, options: SpawnOptions, resource: Uri): Promise<ObservableExecutionResult<string>>;
     exec(executionInfo: ExecutionInfo, options: SpawnOptions, resource: Uri): Promise<ExecutionResult<string>>;
 }
+
+export const IChildProcess = Symbol('IChildProcess');
+
+export interface IChildProcess {
+    spawn(command: string, args: string[], options: ChildProcessSpawnOptions): ChildProcess;
+}
