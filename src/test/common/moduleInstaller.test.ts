@@ -91,15 +91,15 @@ suite('Module Installer', () => {
 
         const pipInstaller = moduleInstallers.find(item => item.displayName === 'Pip')!;
         expect(pipInstaller).not.to.be.an('undefined', 'Pip installer not found');
-        expect(pipInstaller.isSupported()).to.eventually.equal(true, 'Pip is not supported');
+        await expect(pipInstaller.isSupported()).to.eventually.equal(true, 'Pip is not supported');
 
         const condaInstaller = moduleInstallers.find(item => item.displayName === 'Conda')!;
         expect(condaInstaller).not.to.be.an('undefined', 'Conda installer not found');
-        expect(condaInstaller.isSupported()).to.eventually.equal(false, 'Conda is supported');
+        await expect(condaInstaller.isSupported()).to.eventually.equal(false, 'Conda is supported');
 
         const mockInstaller = moduleInstallers.find(item => item.displayName === 'mock')!;
         expect(mockInstaller).not.to.be.an('undefined', 'mock installer not found');
-        expect(mockInstaller.isSupported()).to.eventually.equal(false, 'mock is not supported');
+        await expect(mockInstaller.isSupported()).to.eventually.equal(false, 'mock is not supported');
     });
 
     test('Ensure pip and conda are supported', async () => {
@@ -120,11 +120,11 @@ suite('Module Installer', () => {
 
         const pipInstaller = moduleInstallers.find(item => item.displayName === 'Pip')!;
         expect(pipInstaller).not.to.be.an('undefined', 'Pip installer not found');
-        expect(pipInstaller.isSupported()).to.eventually.equal(true, 'Pip is not supported');
+        await expect(pipInstaller.isSupported()).to.eventually.equal(true, 'Pip is not supported');
 
         const condaInstaller = moduleInstallers.find(item => item.displayName === 'Conda')!;
         expect(condaInstaller).not.to.be.an('undefined', 'Conda installer not found');
-        expect(condaInstaller.isSupported()).to.eventually.equal(true, 'Conda is not supported');
+        await expect(condaInstaller.isSupported()).to.eventually.equal(true, 'Conda is not supported');
     });
 
     test('Validate pip install arguments', async () => {
