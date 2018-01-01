@@ -1,8 +1,8 @@
 import { Architecture, IRegistry, RegistryHive } from '../../client/common/platform/types';
+import { IProcessServiceFactory } from '../../client/common/process/processServiceFactory';
 import { IInterpreterLocatorService, IInterpreterVersionService, InterpreterType, PythonInterpreter } from '../../client/interpreter/contracts';
 import { CondaLocatorService } from '../../client/interpreter/locators/services/condaLocator';
 import { IVirtualEnvironmentIdentifier } from '../../client/interpreter/virtualEnvs/types';
-import { IProcessServiceFactory } from '../../client/common/process/processServiceFactory';
 
 export class MockProvider implements IInterpreterLocatorService {
     constructor(private suggestions: PythonInterpreter[]) {
