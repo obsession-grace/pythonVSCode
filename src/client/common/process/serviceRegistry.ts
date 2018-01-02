@@ -8,13 +8,16 @@ import { ProcessService } from './proc';
 import { IProcessServiceFactory, ProcessServiceFactory } from './processServiceFactory';
 import { PythonExecutionFactory } from './pythonExecutionFactory';
 import { PythonToolExecutionService } from './pythonToolService';
-import { IBufferDecoder, IChildProcess, IProcessService, IPythonExecutionFactory, IPythonToolExecutionService } from './types';
+import { IBufferDecoder, IChildProcess, IProcessService, IPythonExecutionFactory, IPythonToolExecutionService, IWslUtils } from './types';
+import { WslProcessService } from './wslProces';
+import { WslUtils } from './wslUtils';
 
 export function registerTypes(serviceManager: IServiceManager) {
     serviceManager.addSingleton<IBufferDecoder>(IBufferDecoder, BufferDecoder);
     serviceManager.addSingleton<IChildProcess>(IChildProcess, ChildProcess);
     serviceManager.addSingleton<IProcessService>(IProcessService, ProcessService, 'standard');
-    serviceManager.addSingleton<IProcessService>(IProcessService, ProcessService, 'wsl');
+    serviceManager.addSingleton<IProcessService>(IProcessService, WslProcessService, 'wsl');
+    serviceManager.addSingleton<IWslUtils>(IWslUtils, WslUtils);
     serviceManager.addSingleton<IProcessServiceFactory>(IProcessServiceFactory, ProcessServiceFactory);
     serviceManager.addSingleton<IPythonExecutionFactory>(IPythonExecutionFactory, PythonExecutionFactory);
     serviceManager.addSingleton<IPythonToolExecutionService>(IPythonToolExecutionService, PythonToolExecutionService);

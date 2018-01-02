@@ -138,11 +138,11 @@ export class WslProcessService implements IProcessService {
         return deferred.promise;
     }
     private spawn(file: string, args: string[], options: SpawnOptions) {
-
-        const bashCommand = [file].concat(args).map(element => {
+        const translatedFileName = this.wslUtils.translateToWslPath(file);
+        const bashCommand = [translatedFileName].concat(args).map(element => {
             // When passing paths as arguments, ensure they are translated as well.
             if (this.isFile(element)) {
-                element = element.replace(/\\/g, '/');
+                element = this.wslUtils.translateToWslPath(element);
             }
             return element.indexOf(' ') > 0 ? `'${element}'` : element;
         }).join(' ');

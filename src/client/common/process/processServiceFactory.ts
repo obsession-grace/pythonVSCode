@@ -25,7 +25,8 @@ export class ProcessServiceFactory implements IProcessServiceFactory {
                 return this.wslProcService;
             }
             default: {
-                return this.procService;
+                return this.wslProcService;
+                // return this.procService;
             }
         }
     }
