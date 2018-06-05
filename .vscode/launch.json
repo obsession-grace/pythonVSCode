@@ -16,7 +16,7 @@
             "outFiles": [
                 "${workspaceFolder}/out/**/*"
             ],
-            "preLaunchTask": "Compile"
+            "xpreLaunchTask": "Compile"
         },
         {
             "name": "Launch Extension as debugServer", // https://code.visualstudio.com/docs/extensions/example-debuggers

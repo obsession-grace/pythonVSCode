@@ -1894,6 +1894,7 @@
         "vscode-extension-telemetry": "0.0.15",
         "vscode-languageclient": "3.5.1",
         "vscode-languageserver": "3.5.1",
+        "vscode-nls": "^3.2.2",
         "winreg": "1.2.4",
         "xml2js": "0.4.19"
     },
@@ -1954,7 +1955,8 @@
         "typescript": "2.8.3",
         "typescript-formatter": "^7.1.0",
         "vscode": "^1.1.5",
-        "vscode-debugadapter-testsupport": "^1.27.0"
+        "vscode-debugadapter-testsupport": "^1.27.0",
+        "vscode-nls-dev": "^3.0.9"
     },
     "__metadata": {
         "id": "f1f59ae4-9318-4f3c-a9b5-81b2eaa5f8a5",

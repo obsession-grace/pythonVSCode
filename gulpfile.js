@@ -20,7 +20,7 @@ const debounce = require('debounce');
 const jeditor = require("gulp-json-editor");
 const del = require('del');
 const sourcemaps = require('gulp-sourcemaps');
-const fs = require('fs');
+const fs = require('fs-extra');
 const remapIstanbul = require('remap-istanbul');
 const istanbul = require('istanbul');
 const glob = require('glob');
@@ -28,7 +28,10 @@ const os = require('os');
 const _ = require('lodash');
 const nativeDependencyChecker = require('node-has-native-dependencies');
 const flat = require('flat');
-
+const nls = require('vscode-nls-dev');
+console.log(nls.coreLanguages);
+const languages = [{ id: 'ja', folderName: 'ja' }, { id: 'de', folderName: 'de' }, { id: 'fr', folderName: 'fr' }]
+// const languages = [{ id: 'ja', folderName: 'ja' }];
 /**
 * Hygiene works by creating cascading subsets of all our files and
 * passing them through a sequence of checks. Here are the current subsets,
@@ -98,6 +101,8 @@ gulp.task('output:clean', () => del(['coverage', 'debug_coverage*']));
 gulp.task('cover:clean', () => del(['coverage', 'debug_coverage*']));
 
 gulp.task('clean:ptvsd', () => del(['coverage', 'pythonFiles/experimental/ptvsd*']));
+gulp.task('runCompiler', () => runCompiler(true, false));
+gulp.task('i18n', () => i18n());
 
 gulp.task('checkNativeDependencies', () => {
     if (hasNativeDependencies()) {
@@ -122,6 +127,54 @@ gulp.task('cover:disable', () => {
         }))
         .pipe(gulp.dest("./out", { 'overwrite': true }));
 });
+
+function i18n() {
+    glob('out/**/*.nls.metadata.json', (err, files) => {
+        for (const lang of ['ja']) {
+            const translation = JSON.parse(fs.readFileSync(`package.nls.${lang}.json`));
+            for (const file of files) {
+                const sourceFile = path.join(path.dirname(file), path.basename(file, 'nls.metadata.json') + 'js');
+                const sourcePath = path.dirname(sourceFile);
+                const i18nFile = path.join('i18n', lang, sourcePath, path.basename(sourceFile, 'js') + 'i18n.json');
+                console.log(sourceFile);
+                console.log(i18nFile);
+                const metadata = JSON.parse(fs.readFileSync(file));
+                const messages = metadata.messages;
+                const keys = metadata.keys;
+                const i18n = {};
+                keys.forEach((key, index) => {
+                    i18n[key] = translation[key] ? translation[key] : messages[index];
+                });
+                fs.ensureDirSync(path.dirname(i18nFile));
+                fs.writeFileSync(i18nFile, JSON.stringify(i18n, undefined, 4));
+            }
+        }
+    });
+}
+
+function updatePackageNls() {
+    glob('out/**/*.nls.metadata.json', (err, files) => {
+        for (const lang of ['ja']) {
+            const translation = JSON.parse(fs.readFileSync(`package.nls.${lang}.json`));
+            for (const file of files) {
+                const sourceFile = path.join(path.dirname(file), path.basename(file, 'nls.metadata.json') + 'js');
+                const sourcePath = path.dirname(sourceFile);
+                const i18nFile = path.join('i18n', lang, sourcePath, path.basename(sourceFile, 'js') + 'i18n.json');
+                console.log(sourceFile);
+                console.log(i18nFile);
+                const metadata = JSON.parse(fs.readFileSync(file));
+                const messages = metadata.messages;
+                const keys = metadata.keys;
+                const i18n = {};
+                keys.forEach((key, index) => {
+                    i18n[key] = translation[key] ? translation[key] : messages[index];
+                });
+                fs.ensureDirSync(path.dirname(i18nFile));
+                fs.writeFileSync(i18nFile, JSON.stringify(i18n, undefined, 4));
+            }
+        }
+    });
+}
 
 function hasNativeDependencies() {
     let nativeDependencies = nativeDependencyChecker.check(path.join(__dirname, 'node_modules'));
@@ -188,6 +241,28 @@ function getLinter(options) {
     const program = tslint.Linter.createProgram('./tsconfig.json');
     const linter = new tslint.Linter({ formatter: 'json' }, program);
     return { linter, configuration };
+}
+function runCompiler(inlineMap, inlineSource) {
+    const tsProject = ts.createProject('tsconfig.json');
+    var r = tsProject.src()
+        .pipe(sourcemaps.init())
+        .pipe(tsProject()).js
+        .pipe(nls.rewriteLocalizeCalls())
+        .pipe(nls.createAdditionalLanguageFiles(languages, '/Users/donjayamanne/.vscode-insiders/extensions/pythonVSCode/i18n', '/Users/donjayamanne/.vscode-insiders/extensions/pythonVSCode/out'));
+    // .pipe(nls.bundleLanguageFiles());
+
+    // if (inlineMap && inlineSource) {
+    //     r = r.pipe(sourcemaps.write());
+    // } else {
+    //     r = r.pipe(sourcemaps.write("./outx", {
+    //         // no inlined source
+    //         includeContent: inlineSource,
+    //         // Return relative source map root directories per file.
+    //         sourceRoot: "./src"
+    //     }));
+    // }
+
+    return r.pipe(gulp.dest('outx'));
 }
 let compilationInProgress = false;
 let reRunCompilation = false;
@@ -318,6 +393,52 @@ const hygiene = (options) => {
         this.emit('data', file);
     });
 
+    const translations = {};
+    function ensureTranslationFile(language) {
+        const file = path.join(__dirname, `package.nls.${language}.json`);
+        if (!fs.existsSync(file)) {
+            fs.copyFileSync('package.nls.json', file);
+        }
+    }
+    function getTranslations(language) {
+        ensureTranslationFile(language);
+        const translationFile = path.join(__dirname, `package.nls.${language}.json`);
+        return translations[language] = JSON.parse(fs.readFileSync(translationFile));
+    }
+    function updateTranslation(language, translation) {
+        ensureTranslationFile(language);
+        const translationFile = path.join(__dirname, `package.nls.${language}.json`);
+        const currentTranslations = JSON.parse(fs.readFileSync(translationFile))
+        if (Object.keys(translation).length !== Object.keys(currentTranslations).length ||
+            JSON.stringify(Object.keys(translation)) !== JSON.stringify(Object.keys(currentTranslations))) {
+            fs.writeFileSync(translationFile, JSON.stringify(translation, undefined, 4));
+        }
+    }
+    const processNls = es.through(function (file) {
+        if (file.path.endsWith('.nls.metadata.json')) {
+            for (const lang of languages) {
+                const filePath = file.path;
+                const translation = getTranslations(lang.id);
+
+                const sourceFile = path.join(path.dirname(filePath), path.basename(filePath, 'nls.metadata.json') + 'js');
+                const sourcePath = path.dirname(sourceFile);
+                const i18nFile = path.join('i18n', lang.folderName, path.relative(__dirname, sourcePath), path.basename(sourceFile, 'js') + 'i18n.json');
+
+                const metadata = JSON.parse(fs.readFileSync(filePath));
+                const messages = metadata.messages;
+                const keys = metadata.keys;
+                const i18n = {};
+                keys.forEach((key, index) => {
+                    translation[key] = i18n[key] = translation[key] ? translation[key] : messages[index];
+                });
+                fs.ensureDirSync(path.dirname(i18nFile));
+                fs.writeFileSync(i18nFile, JSON.stringify(i18n, undefined, 4));
+                updateTranslation(lang.id, translation);
+            }
+        }
+        this.emit('data', file);
+    });
+
     const tsFiles = [];
     const tscFilesTracker = es.through(function (file) {
         tsFiles.push(file.path.replace(/\\/g, '/'));
@@ -375,10 +496,16 @@ const hygiene = (options) => {
             .pipe(tsl);
     }
     let totalTime = 0;
+    nls.bundleMetaDataFiles('ja', 'out');
     result = result
         .pipe(tscFilesTracker)
         .pipe(sourcemaps.init())
-        .pipe(tsc())
+        .pipe(tsc()).js
+        .pipe(true ? nls.rewriteLocalizeCalls() : es.through())
+        // .pipe(true ? nls.createAdditionalLanguageFiles(languages, 'i18n', 'out') : es.through())
+        .pipe(processNls)
+        // .pipe(true ? nls.bundleMetaDataFiles('python', 'out') : es.through())
+        // .pipe(nls.bundleLanguageFiles())
         .pipe(sourcemaps.mapSources(function (sourcePath, file) {
             const tsFileName = path.basename(file.path).replace(/js$/, 'ts');
             const qualifiedSourcePath = path.dirname(file.path).replace('out/', 'src/').replace('out\\', 'src\\');

@@ -1,14 +1,18 @@
 import * as os from 'os';
 import * as vscode from 'vscode';
+import * as nls from 'vscode-nls';
 import { IServiceContainer } from './ioc/types';
 import * as sortProvider from './providers/importSortProvider';
+
+const localize = nls.loadMessageBundle();
 
 export function activate(context: vscode.ExtensionContext, outChannel: vscode.OutputChannel, serviceContainer: IServiceContainer) {
     const rootDir = context.asAbsolutePath('.');
     const disposable = vscode.commands.registerCommand('python.sortImports', () => {
         const activeEditor = vscode.window.activeTextEditor;
         if (!activeEditor || activeEditor.document.languageId !== 'python') {
-            vscode.window.showErrorMessage('Please open a Python source file to sort the imports.');
+            vscode.window.showErrorMessage(localize('OpenSourceFile', 'Please open a Python source file to sort the imports.'));
+            vscode.window.showErrorMessage(localize('AnotherMessage', 'Please open a Python source file to sort the imports {0}. and {1}', '1', '2'));
             return Promise.resolve();
         }
         if (activeEditor.document.lineCount <= 1) {

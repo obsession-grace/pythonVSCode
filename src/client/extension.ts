@@ -9,12 +9,13 @@ import { Container } from 'inversify';
 import {
     debug, Disposable, ExtensionContext,
     extensions, IndentAction, languages, Memento,
-    OutputChannel, window
+    OutputChannel, window, env
 } from 'vscode';
+import * as nls from 'vscode-nls';
 import { registerTypes as activationRegisterTypes } from './activation/serviceRegistry';
 import { IExtensionActivationService } from './activation/types';
 import { PythonSettings } from './common/configSettings';
-import { PYTHON, PYTHON_LANGUAGE, STANDARD_OUTPUT_CHANNEL } from './common/constants';
+import { PYTHON, PYTHON_LANGUAGE, STANDARD_OUTPUT_CHANNEL, THIS_IS_A_SAMPLE } from './common/constants';
 import { FeatureDeprecationManager } from './common/featureDeprecationManager';
 import { createDeferred } from './common/helpers';
 import { PythonInstaller } from './common/installer/pythonInstallation';
@@ -64,6 +65,21 @@ export const activated = activationDeferred.promise;
 
 // tslint:disable-next-line:max-func-body-length
 export async function activate(context: ExtensionContext) {
+    // const localize = nls.config({ locale: env.language })();
+
+    // console.log(localize('python.command.python.sortImports.title'));
+    // try {
+    //     const localize = nls.config({ locale: 'ja', messageFormat: nls.MessageFormat.file })();
+    //     console.log(localize('python.command.python.sortImports.title', 'no idea'));
+    // } catch (ex) {
+    //     console.error(ex);
+    // }
+    // try {
+    //     const localize2 = nls.config({ locale: 'ja', messageFormat: nls.MessageFormat.file })('/Users/donjayamanne/.vscode-insiders/extensions/pythonVSCode/package.nls');
+    //     console.log(localize2('python.command.python.sortImports.title', 'no idea'));
+    // } catch (ex) {
+    //     console.error(ex);
+    // }
     const cont = new Container();
     const serviceManager = new ServiceManager(cont);
     const serviceContainer = new ServiceContainer(cont);
@@ -165,9 +181,15 @@ function registerServices(context: ExtensionContext, serviceManager: ServiceMana
     serviceManager.addSingletonInstance<Memento>(IMemento, context.globalState, GLOBAL_MEMENTO);
     serviceManager.addSingletonInstance<Memento>(IMemento, context.workspaceState, WORKSPACE_MEMENTO);
     serviceManager.addSingletonInstance<IExtensionContext>(IExtensionContext, context);
-
-    const standardOutputChannel = window.createOutputChannel('Python');
-    const unitTestOutChannel = window.createOutputChannel('Python Test Log');
+    // const localize = nls.config({ locale: env.language })();
+    // tslint:disable-next-line:no-any
+    const locale = (JSON.parse(process.env.VSCODE_NLS_CONFIG) as any).locale;
+    console.log(`env.language = ${env.language}`);
+    console.log(`locale = ${locale}`);
+    const localize = nls.config({ locale: 'ja' })();
+    const pythonTestLog = localize('pythonTestLog.text', 'Python Test Log');
+    const standardOutputChannel = window.createOutputChannel(pythonTestLog);
+    const unitTestOutChannel = window.createOutputChannel('pythonTestLog');
     serviceManager.addSingletonInstance<OutputChannel>(IOutputChannel, standardOutputChannel, STANDARD_OUTPUT_CHANNEL);
     serviceManager.addSingletonInstance<OutputChannel>(IOutputChannel, unitTestOutChannel, TEST_OUTPUT_CHANNEL);
 

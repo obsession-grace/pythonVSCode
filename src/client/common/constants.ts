@@ -78,3 +78,5 @@ export function isPythonAnalysisEngineTest(): boolean {
 }
 
 export const EXTENSION_ROOT_DIR = path.join(__dirname, '..', '..', '..');
+
+export const THIS_IS_A_SAMPLE = 'This_is_a_sample_key';
