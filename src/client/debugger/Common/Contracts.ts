@@ -68,6 +68,12 @@ export interface AdditionalAttachDebugOptions {
     gevent?: boolean;
     jinja?: boolean;
     debugStdLib?: boolean;
+    useSsh?: boolean;
+    sshUserName?: string;
+    sshPassword?: string;
+    sshConnectionId?: string;
+    sshRemoteHost?: string;
+    sshRemotePort?: number;
 }
 
 export interface BaseLaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {

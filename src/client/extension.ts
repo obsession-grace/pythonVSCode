@@ -60,6 +60,7 @@ import { BlockFormatProviders } from './typeFormatters/blockFormatProvider';
 import { OnEnterFormatter } from './typeFormatters/onEnterFormatter';
 import { TEST_OUTPUT_CHANNEL } from './unittests/common/constants';
 import { registerTypes as unitTestsRegisterTypes } from './unittests/serviceRegistry';
+import { registerTypes as sshRegisterTypes } from './debugger/ssh/serviceRegistry';
 
 const activationDeferred = createDeferred<void>();
 export const activated = activationDeferred.promise;
@@ -188,6 +189,7 @@ function registerServices(context: ExtensionContext, serviceManager: ServiceMana
     debugConfigurationRegisterTypes(serviceManager);
     debuggerRegisterTypes(serviceManager);
     appRegisterTypes(serviceManager);
+    sshRegisterTypes(serviceManager);
 }
 
 async function sendStartupTelemetry(activatedPromise: Promise<void>, serviceContainer: IServiceContainer) {

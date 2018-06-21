@@ -1,0 +1,200 @@
+2:34:18 PM, 6/19/2018
+Started @ Tue Jun 19 2018 14:34:18 GMT-0700 (PDT)
+From Client:
+Content-Length: 336
+
+{"command":"initialize","arguments":{"clientID":"vscode","clientName":"Visual Studio Code - Insiders","adapterID":"pythonExperimental","pathFormat":"path","linesStartAt1":true,"columnsStartAt1":true,"supportsVariableType":true,"supportsVariablePaging":true,"supportsRunInTerminalRequest":true,"locale":"en-us"},"type":"request","seq":1}
+To Client:
+Content-Length: 653
+
+{"seq":1,"type":"response","request_seq":1,"command":"initialize","success":true,"body":{"supportsExceptionInfoRequest":true,"supportsConfigurationDoneRequest":true,"supportsConditionalBreakpoints":true,"supportsSetVariable":true,"supportsExceptionOptions":true,"supportsEvaluateForHovers":true,"supportsModulesRequest":true,"supportsValueFormattingOptions":true,"supportsHitConditionalBreakpoints":true,"supportsSetExpression":true,"supportsLogPoints":true,"supportTerminateDebuggee":true,"exceptionBreakpointFilters":[{"filter":"raised","label":"Raised Exceptions","default":false},{"filter":"uncaught","label":"Uncaught Exceptions","default":true}]}}
+From Client:
+Content-Length: 609
+
+{"command":"launch","arguments":{"name":"Python Experimental: Terminal (integrated)","type":"pythonExperimental","request":"launch","program":"/Users/don/Desktop/Development/temp/throwaway/one.py","console":"integratedTerminal","logToFile":true,"pythonPath":"/Users/don/Desktop/Development/temp/throwaway/venv/bin/python","cwd":"/Users/don/Desktop/Development/temp/throwaway","envFile":"/Users/don/Desktop/Development/temp/throwaway/.env","stopOnEntry":false,"internalConsoleOptions":"neverOpen","debugOptions":["RedirectOutput"],"__sessionId":"43d6d449-158a-4590-98f8-33adb97d00dd"},"type":"request","seq":2}
+To Client:
+Content-Length: 506
+
+{"command":"runInTerminal","arguments":{"kind":"integrated","title":"Python Debug Console","cwd":"/Users/don/Desktop/Development/temp/throwaway","args":["/Users/don/Desktop/Development/temp/throwaway/venv/bin/python","-m","ptvsd","--host","localhost","--port","58439","/Users/don/Desktop/Development/temp/throwaway/one.py"],"env":{"PYTHONIOENCODING":"UTF-8","PYTHONUNBUFFERED":"1","PYTHONPATH":"/Users/don/.vscode-insiders/extensions/pythonVSCode/pythonFiles/experimental/ptvsd"}},"type":"request","seq":2}
+From Client:
+Content-Length: 94
+
+{"type":"response","seq":3,"command":"runInTerminal","request_seq":2,"success":true,"body":{}}
+To Client:
+Content-Length: 609
+
+
+To Client:
+{"command":"launch","arguments":{"name":"Python Experimental: Terminal (integrated)","type":"pythonExperimental","request":"launch","program":"/Users/don/Desktop/Development/temp/throwaway/one.py","console":"integratedTerminal","logToFile":true,"pythonPath":"/Users/don/Desktop/Development/temp/throwaway/venv/bin/python","cwd":"/Users/don/Desktop/Development/temp/throwaway","envFile":"/Users/don/Desktop/Development/temp/throwaway/.env","stopOnEntry":false,"internalConsoleOptions":"neverOpen","debugOptions":["RedirectOutput"],"__sessionId":"43d6d449-158a-4590-98f8-33adb97d00dd"},"type":"request","seq":2}
+To Client:
+Content-Length: 336
+
+
+To Client:
+{"command":"initialize","arguments":{"clientID":"vscode","clientName":"Visual Studio Code - Insiders","adapterID":"pythonExperimental","pathFormat":"path","linesStartAt1":true,"columnsStartAt1":true,"supportsVariableType":true,"supportsVariablePaging":true,"supportsRunInTerminalRequest":true,"locale":"en-us"},"type":"request","seq":1}
+To Client:
+Content-Length: 132
+
+{"type": "event", "seq": 0, "event": "output", "body": {"category": "telemetry", "output": "ptvsd", "data": {"version": "4.1.1a7"}}}Content-Length: 113
+
+{"type": "response", "seq": 1, "request_seq": 2, "success": true, "command": "launch", "message": "", "body": {}}
+To Client:
+Content-Length: 751
+
+{"type": "response", "seq": 2, "request_seq": 1, "success": true, "command": "initialize", "message": "", "body": {"supportsConditionalBreakpoints": true, "supportsConfigurationDoneRequest": true, "supportsDebuggerProperties": true, "supportsEvaluateForHovers": true, "supportsExceptionInfoRequest": true, "supportsExceptionOptions": true, "supportsHitConditionalBreakpoints": true, "supportsLogPoints": true, "supportsModulesRequest": true, "supportsSetExpression": true, "supportsSetVariable": true, "supportsValueFormattingOptions": true, "supportTerminateDebuggee": true, "exceptionBreakpointFilters": [{"filter": "raised", "label": "Raised Exceptions", "default": false}, {"filter": "uncaught", "label": "Uncaught Exceptions", "default": true}]}}Content-Length: 63
+
+
+To Client:
+{"type": "event", "seq": 3, "event": "initialized", "body": {}}
+From Client:
+Content-Length: 218
+
+{"command":"setBreakpoints","arguments":{"source":{"name":"one.py","path":"/Users/don/Desktop/Development/temp/throwaway/one.py"},"lines":[1],"breakpoints":[{"line":1}],"sourceModified":false},"type":"request","seq":4}
+To Client:
+Content-Length: 176
+
+
+To Client:
+{"type": "response", "seq": 4, "request_seq": 4, "success": true, "command": "setBreakpoints", "message": "", "body": {"breakpoints": [{"id": 1, "verified": true, "line": 1}]}}
+From Client:
+Content-Length: 99
+
+{"command":"setExceptionBreakpoints","arguments":{"filters":["uncaught"]},"type":"request","seq":5}
+To Client:
+Content-Length: 130
+
+
+To Client:
+{"type": "response", "seq": 5, "request_seq": 5, "success": true, "command": "setExceptionBreakpoints", "message": "", "body": {}}
+From Client:
+Content-Length: 56
+
+{"command":"configurationDone","type":"request","seq":6}
+From Client:
+Content-Length: 46
+
+{"command":"threads","type":"request","seq":7}
+To Client:
+Content-Length: 124
+
+{"type": "response", "seq": 6, "request_seq": 6, "success": true, "command": "configurationDone", "message": "", "body": {}}
+To Client:
+Content-Length: 92
+
+{"type": "event", "seq": 7, "event": "thread", "body": {"reason": "started", "threadId": 1}}
+To Client:
+Content-Length: 158
+
+{"type": "response", "seq": 8, "request_seq": 7, "success": true, "command": "threads", "message": "", "body": {"threads": [{"id": 1, "name": "MainThread"}]}}
+To Client:
+Content-Length: 196
+
+{"type": "event", "seq": 9, "event": "process", "body": {"name": "/Users/don/Desktop/Development/temp/throwaway/one.py", "systemProcessId": 53993, "isLocalProcess": true, "startMethod": "launch"}}
+To Client:
+Content-Length: 93
+
+{"type": "event", "seq": 10, "event": "thread", "body": {"reason": "started", "threadId": 1}}
+To Client:
+Content-Length: 132
+
+{"type": "event", "seq": 11, "event": "stopped", "body": {"reason": "breakpoint", "threadId": 1, "text": null, "description": null}}
+From Client:
+Content-Length: 46
+
+{"command":"threads","type":"request","seq":8}
+To Client:
+Content-Length: 159
+
+{"type": "response", "seq": 12, "request_seq": 8, "success": true, "command": "threads", "message": "", "body": {"threads": [{"id": 1, "name": "MainThread"}]}}
+From Client:
+Content-Length: 103
+
+{"command":"stackTrace","arguments":{"threadId":1,"startFrame":0,"levels":20},"type":"request","seq":9}
+To Client:
+Content-Length: 196
+
+{"type": "event", "seq": 13, "event": "module", "body": {"reason": "new", "module": {"id": 1, "package": null, "path": "/Users/don/Desktop/Development/temp/throwaway/one.py", "name": "__main__"}}}
+To Client:
+Content-Length: 182
+
+
+To Client:
+{"type": "event", "seq": 14, "event": "module", "body": {"reason": "new", "module": {"id": 2, "package": "", "path": "/Users/don/anaconda3/lib/python3.6/runpy.py", "name": "runpy"}}}Content-Length: 609
+
+{"type": "response", "seq": 15, "request_seq": 9, "success": true, "command": "stackTrace", "message": "", "body": {"stackFrames": [{"id": 1, "name": "<module>", "source": {"path": "/Users/don/Desktop/Development/temp/throwaway/one.py", "sourceReference": 0}, "line": 1, "column": 1}, {"id": 11, "name": "_run_code", "source": {"path": "/Users/don/anaconda3/lib/python3.6/runpy.py", "sourceReference": 0}, "line": 85, "column": 1}, {"id": 12, "name": "_run_module_as_main", "source": {"path": "/Users/don/anaconda3/lib/python3.6/runpy.py", "sourceReference": 0}, "line": 193, "column": 1}], "totalFrames": 3}}
+From Client:
+Content-Length: 72
+
+{"command":"scopes","arguments":{"frameId":1},"type":"request","seq":10}
+To Client:
+Content-Length: 190
+
+{"type": "response", "seq": 16, "request_seq": 10, "success": true, "command": "scopes", "message": "", "body": {"scopes": [{"name": "Locals", "expensive": false, "variablesReference": 1}]}}
+From Client:
+Content-Length: 86
+
+{"command":"variables","arguments":{"variablesReference":1},"type":"request","seq":11}
+To Client:
+Content-Length: 1490
+
+{"type": "response", "seq": 17, "request_seq": 11, "success": true, "command": "variables", "message": "", "body": {"variables": [{"name": "__builtins__", "type": "dict", "value": "{'ArithmeticError': <class 'ArithmeticError'>, 'AssertionError': <class 'AssertionError'>, 'AttributeError': <class 'AttributeError'>, 'BaseException': <class 'BaseException'>, 'BlockingIOError': <class 'BlockingIOError'>, 'BrokenPipeError': <class 'BrokenPipeError'>, 'BufferError': <class 'BufferError'>, 'BytesWarning': <class 'BytesWarning'>, 'ChildProcessError': <class 'ChildProcessError'>, 'ConnectionAbortedError': <class 'ConnectionAb...tedError'>, 'ConnectionError': <class 'ConnectionError'>, 'ConnectionRefusedError': <class 'ConnectionRe...sedError'>, 'ConnectionResetError': <class 'ConnectionResetError'>, 'DeprecationWarning': <class 'DeprecationWarning'>, ...}", "variablesReference": 2}, {"name": "__doc__", "type": "NoneType", "value": "None"}, {"name": "__file__", "type": "str", "value": "'/Users/don/Desktop/Development/temp/throwaway/one.py'", "presentationHint": {"attributes": ["rawString"]}}, {"name": "__loader__", "type": "SourceFileLoader", "value": "<_frozen_importlib_external.SourceFileLoader object at 0x1024e0ac8>", "variablesReference": 3}, {"name": "__name__", "type": "str", "value": "'__main__'", "presentationHint": {"attributes": ["rawString"]}}, {"name": "__package__", "type": "NoneType", "value": "None"}, {"name": "__spec__", "type": "NoneType", "value": "None"}]}}
+From Client:
+Content-Length: 47
+
+{"command":"threads","type":"request","seq":12}
+To Client:
+Content-Length: 160
+
+{"type": "response", "seq": 18, "request_seq": 12, "success": true, "command": "threads", "message": "", "body": {"threads": [{"id": 1, "name": "MainThread"}]}}
+From Client:
+Content-Length: 75
+
+{"command":"continue","arguments":{"threadId":1},"type":"request","seq":13}
+To Client:
+Content-Length: 117
+
+
+To Client:
+{"type": "response", "seq": 19, "request_seq": 13, "success": true, "command": "continue", "message": "", "body": {}}
+To Client:
+Content-Length: 75
+
+{"type": "event", "seq": 20, "event": "continued", "body": {"threadId": 1}}
+To Client:
+Content-Length: 210
+
+
+To Client:
+{"type": "event", "seq": 21, "event": "output", "body": {"category": "stdout", "output": "3.6.4 |Anaconda, Inc.| (default, Jan 16 2018, 12:04:33) \n[GCC 4.2.1 Compatible Clang 4.0.1 (tags/RELEASE_401/final)]"}}
+To Client:
+Content-Length: 95
+
+
+To Client:
+{"type": "event", "seq": 22, "event": "output", "body": {"category": "stdout", "output": "\n"}}Content-Length: 100
+
+{"type": "event", "seq": 23, "event": "output", "body": {"category": "stdout", "output": "4.1.1a7"}}
+To Client:
+Content-Length: 95
+
+{"type": "event", "seq": 24, "event": "output", "body": {"category": "stdout", "output": "\n"}}Content-Length: 92
+
+{"type": "event", "seq": 25, "event": "thread", "body": {"reason": "exited", "threadId": 1}}
+To Client:
+Content-Length: 72
+
+{"type": "event", "seq": 26, "event": "exited", "body": {"exitCode": 0}}Content-Length: 63
+
+
+onEventTerminated
+To Client:
+{"type": "event", "seq": 27, "event": "terminated", "body": {}}
+From Client:
+Content-Length: 80
+
+{"command":"disconnect","arguments":{"restart":false},"type":"request","seq":14}
+check and shutdown
+shutdown
+killing process
+Shutting down debug session
+disposing
