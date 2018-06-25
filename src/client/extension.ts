@@ -32,6 +32,7 @@ import { AttachRequestArguments, LaunchRequestArguments } from './debugger/Commo
 import { BaseConfigurationProvider } from './debugger/configProviders/baseProvider';
 import { registerTypes as debugConfigurationRegisterTypes } from './debugger/configProviders/serviceRegistry';
 import { registerTypes as debuggerRegisterTypes } from './debugger/serviceRegistry';
+import { registerTypes as sshRegisterTypes } from './debugger/ssh/serviceRegistry';
 import { IDebugConfigurationProvider, IExperimentalDebuggerBanner } from './debugger/types';
 import { registerTypes as formattersRegisterTypes } from './formatters/serviceRegistry';
 import { IInterpreterSelector } from './interpreter/configuration/types';
@@ -60,7 +61,6 @@ import { BlockFormatProviders } from './typeFormatters/blockFormatProvider';
 import { OnEnterFormatter } from './typeFormatters/onEnterFormatter';
 import { TEST_OUTPUT_CHANNEL } from './unittests/common/constants';
 import { registerTypes as unitTestsRegisterTypes } from './unittests/serviceRegistry';
-import { registerTypes as sshRegisterTypes } from './debugger/ssh/serviceRegistry';
 
 const activationDeferred = createDeferred<void>();
 export const activated = activationDeferred.promise;

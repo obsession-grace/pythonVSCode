@@ -7,12 +7,19 @@
 
 import { injectable, unmanaged } from 'inversify';
 import * as path from 'path';
-import { CancellationToken, DebugConfiguration, DebugConfigurationProvider, Uri, WorkspaceFolder } from 'vscode';
+import { CancellationToken, DebugConfigurationProvider, Uri, WorkspaceFolder } from 'vscode';
 import { IDocumentManager, IWorkspaceService } from '../../common/application/types';
 import { PYTHON_LANGUAGE } from '../../common/constants';
 import { IConfigurationService } from '../../common/types';
 import { IServiceContainer } from '../../ioc/types';
 import { BaseAttachRequestArguments, BaseLaunchRequestArguments, DebuggerType } from '../Common/Contracts';
+
+export type DebugConfiguration = {
+    type: string;
+    name: string;
+    request: string;
+    internalConsoleOptions: 'neverOpen' | 'openOnFirstSessionStart' | 'openOnSessionStart';
+};
 
 export type PythonLaunchDebugConfiguration<T extends BaseLaunchRequestArguments> = DebugConfiguration & T;
 export type PythonAttachDebugConfiguration<T extends BaseAttachRequestArguments> = DebugConfiguration & T;

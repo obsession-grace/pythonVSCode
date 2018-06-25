@@ -3,15 +3,18 @@
 
 'use strict';
 
+import { EventEmitter } from 'events';
+import { ConnectConfig } from 'ssh2';
 import { Disposable } from 'vscode';
-import { createDeferred } from '../../common/helpers';
-import { ConnectConfig } from 'ssh2'
 import { injectable } from '../../../../node_modules/inversify';
+import { createDeferred } from '../../common/helpers';
+// tslint:disable-next-line:no-require-imports no-var-requires
 const tunnel = require('tunnel-ssh');
 
 export const ISshConnection = Symbol('ISshConnection');
 export interface ISshConnection extends Disposable {
     readonly id: string;
+    on(event: 'error', listener: Function): void;
 }
 
 export const ISshConnections = Symbol('ISshConnections');
@@ -42,13 +45,22 @@ export class SshConnections implements ISshConnections {
     }
 }
 
-export type SshTunnelConnectionConfig = ConnectConfig & { dstPort: number, localPort: number };
+export type SshTunnelConnectionConfig = ConnectConfig & { dstPort: number; localPort: number };
 
 export const ISshTunnelService = Symbol('ISshTunnelService');
 export interface ISshTunnelService {
     connect(config: SshTunnelConnectionConfig): Promise<ISshConnection>;
 }
 
+export class SshConnection extends EventEmitter implements ISshConnection {
+    constructor(public readonly id: string, private server: { close: Function; on(event: 'error', listener: Function): void }) {
+        super();
+        this.server.on('error', error => this.emit('error', error));
+    }
+    public dispose() {
+        this.server.close();
+    }
+}
 @injectable()
 export class SshTunnelService implements ISshTunnelService {
     public connect(config: SshTunnelConnectionConfig): Promise<ISshConnection> {
@@ -58,12 +70,8 @@ export class SshTunnelService implements ISshTunnelService {
                 return deferred.reject(error);
             }
 
-            deferred.resolve({
-                id: new Date().getTime().toString(),
-                dispose: () => {
-                    server.close();
-                }
-            })
+            const connectionId = new Date().getTime().toString();
+            deferred.resolve(new SshConnection(connectionId, server));
         });
 
         return deferred.promise;

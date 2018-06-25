@@ -60,7 +60,17 @@ export interface AdditionalLaunchDebugOptions {
     debugStdLib?: boolean;
     sudo?: boolean;
     pyramid?: boolean;
+    ssh?: SshConfiguration;
 }
+
+export type SshConfiguration = {
+    userName?: string;
+    connectionId?: string;
+    host?: string;
+    port?: number;
+    keyFile?: string;
+    passPhrase?: string;
+};
 
 export interface AdditionalAttachDebugOptions {
     redirectOutput?: boolean;
@@ -68,12 +78,8 @@ export interface AdditionalAttachDebugOptions {
     gevent?: boolean;
     jinja?: boolean;
     debugStdLib?: boolean;
-    useSsh?: boolean;
-    sshUserName?: string;
-    sshPassword?: string;
-    sshConnectionId?: string;
-    sshRemoteHost?: string;
-    sshRemotePort?: number;
+    ssh?: SshConfiguration;
+    pyramid?: boolean;
 }
 
 export interface BaseLaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {

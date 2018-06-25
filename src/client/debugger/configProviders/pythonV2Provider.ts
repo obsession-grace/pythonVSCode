@@ -11,9 +11,9 @@ import { sendTelemetryEvent } from '../../telemetry';
 import { DEBUGGER } from '../../telemetry/constants';
 import { DebuggerTelemetryV2 } from '../../telemetry/types';
 import { AttachRequestArguments, DebugOptions, LaunchRequestArguments } from '../Common/Contracts';
+import { ConnectionDebugConfigurationProvider } from '../ssh/connectionDebugProvider';
 import { BaseConfigurationProvider, PythonAttachDebugConfiguration, PythonLaunchDebugConfiguration } from './baseProvider';
 import { IConfigurationProviderUtils } from './types';
-import { ConnectionDebugConfigurationProvider } from '../ssh/connectionDebugProvider';
 
 @injectable()
 export class PythonV2DebugConfigurationProvider extends BaseConfigurationProvider<LaunchRequestArguments, AttachRequestArguments> {
@@ -105,9 +105,6 @@ export class PythonV2DebugConfigurationProvider extends BaseConfigurationProvide
             });
         }
         this.sendTelemetry('attach', debugConfiguration);
-
-        const sshProvider = new ConnectionDebugConfigurationProvider(this.serviceContainer);
-        await sshProvider.provideAttachDefaults(workspaceFolder, debugConfiguration);
     }
     private debugOption(debugOptions: DebugOptions[], debugOption: DebugOptions) {
         if (debugOptions.indexOf(debugOption) >= 0) {
