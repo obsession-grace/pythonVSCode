@@ -1,13 +1,12 @@
-import { CancellationToken, CancellationTokenSource, Diagnostic, DiagnosticCollection, DiagnosticRelatedInformation, DiagnosticSeverity, Disposable, languages, OutputChannel, Uri } from 'vscode';
+import { CancellationToken, CancellationTokenSource, Diagnostic, DiagnosticCollection, DiagnosticRelatedInformation, Disposable, languages, OutputChannel, Uri } from 'vscode';
 import { IWorkspaceService } from '../../../common/application/types';
-import { DiagnosticMessagePrefixTypes } from '../../../common/diagnosticMessagePrefixTypes';
 import { isNotInstalledError } from '../../../common/helpers';
 import { IConfigurationService, IDisposableRegistry, IInstaller, IOutputChannel, IPythonSettings, Product } from '../../../common/types';
 import { IServiceContainer } from '../../../ioc/types';
 import { UNITTEST_DISCOVER, UNITTEST_RUN } from '../../../telemetry/constants';
 import { sendTelemetryEvent } from '../../../telemetry/index';
 import { TestDiscoverytTelemetry, TestRunTelemetry } from '../../../telemetry/types';
-import { IPythonUnitTestMessage, PythonUnitTestMessageSeverity } from '../../types';
+import { IPythonUnitTestMessage, IUnitTestDiagnosticService } from '../../types';
 import { CANCELLATION_REASON, CommandSource, TEST_OUTPUT_CHANNEL } from './../constants';
 import { ITestCollectionStorageService, ITestDiscoveryService, ITestManager, ITestResultsService, ITestsHelper, TestDiscoveryOptions, TestProvider, Tests, TestStatus, TestsToRun } from './../types';
 
@@ -16,14 +15,10 @@ enum CancellationTokenType {
     testRunner
 }
 
-const PUTSeverityToVSSeverity = new Map<PythonUnitTestMessageSeverity, DiagnosticSeverity>();
-PUTSeverityToVSSeverity.set(PythonUnitTestMessageSeverity.Error, DiagnosticSeverity.Error);
-PUTSeverityToVSSeverity.set(PythonUnitTestMessageSeverity.Failure, DiagnosticSeverity.Error);
-PUTSeverityToVSSeverity.set(PythonUnitTestMessageSeverity.Skip, DiagnosticSeverity.Information);
-
 export abstract class BaseTestManager implements ITestManager {
     public diagnosticCollection: DiagnosticCollection;
     protected readonly settings: IPythonSettings;
+    private readonly unitTestDiagnosticService: IUnitTestDiagnosticService;
     public abstract get enabled(): boolean;
     protected get outputChannel() {
         return this._outputChannel;
@@ -58,6 +53,7 @@ export abstract class BaseTestManager implements ITestManager {
         this._testResultsService = this.serviceContainer.get<ITestResultsService>(ITestResultsService);
         this.workspaceService = this.serviceContainer.get<IWorkspaceService>(IWorkspaceService);
         this.diagnosticCollection = languages.createDiagnosticCollection(this.testProvider);
+        this.unitTestDiagnosticService = serviceContainer.get<IUnitTestDiagnosticService>(IUnitTestDiagnosticService);
         disposables.push(this);
     }
     protected get testDiscoveryCancellationToken(): CancellationToken | undefined {
@@ -346,8 +342,8 @@ export abstract class BaseTestManager implements ITestManager {
 
     private createDiagnostics(message: IPythonUnitTestMessage): Diagnostic {
         const stackStart = message.locationStack[0];
-        const diagPrefix = DiagnosticMessagePrefixTypes.get(message.status);
-        const severity = PUTSeverityToVSSeverity.get(message.severity!)!;
+        const diagPrefix = this.unitTestDiagnosticService.getMessagePrefix(message.status);
+        const severity = this.unitTestDiagnosticService.getSeverity(message.severity);
         const diagnostic = new Diagnostic(stackStart.location.range, `${diagPrefix}: ${message.message}`, severity);
         diagnostic.code = message.code;
         diagnostic.source = message.provider;

@@ -64,6 +64,7 @@ suite('Unit Tests - debugging', () => {
         ioc.registerTestParsers();
         ioc.registerTestVisitors();
         ioc.registerTestDiscoveryServices();
+        ioc.registerTestDiagnosticServices();
         ioc.registerTestResultsHelper();
         ioc.registerTestStorage();
         ioc.registerTestsHelper();

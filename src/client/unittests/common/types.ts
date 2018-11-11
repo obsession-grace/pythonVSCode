@@ -118,11 +118,6 @@ export enum TestStatus {
     Skipped,
     Pass
 }
-export enum DiagnosticMessagePrefixes {
-    Failure = 'Failure',
-    Error = 'Error',
-    Skipped = 'Skipped'
-}
 
 export type TestsToRun = {
     testFolder?: TestFolder[];

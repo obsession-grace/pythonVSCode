@@ -6,9 +6,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { EXTENSION_ROOT_DIR } from '../../../client/common/constants';
-import { DiagnosticMessagePrefixTypes } from '../../../client/common/diagnosticMessagePrefixTypes';
 import { IProcessServiceFactory } from '../../../client/common/process/types';
 import { CommandSource } from '../../../client/unittests/common/constants';
+import { UnitTestDiagnosticService } from '../../../client/unittests/common/services/unitTestDiagnosticService';
 import { FlattenedTestFunction, ITestManager, ITestManagerFactory, Tests, TestStatus, TestsToRun } from '../../../client/unittests/common/types';
 import { rootWorkspaceUri, updateSetting } from '../../common';
 import { MockProcessService } from '../../mocks/proc';
@@ -286,7 +286,7 @@ async function getExpectedDiagnosticFromTestDetails(testDetails: ITestDetails): 
         expectedSourceTestFilePath = path.join(UNITTEST_TEST_FILES_PATH, testDetails.sourceFileName);
     }
     const expectedSourceTestFileUri = vscode.Uri.file(expectedSourceTestFilePath);
-    const diagMsgPrefix = DiagnosticMessagePrefixTypes.get(testDetails.status);
+    const diagMsgPrefix = new UnitTestDiagnosticService().getMessagePrefix(testDetails.status);
     const expectedDiagMsg = `${diagMsgPrefix}: ${testDetails.message}`;
     let expectedDiagRange = testDetails.testDefRange;
     let expectedSeverity = vscode.DiagnosticSeverity.Error;

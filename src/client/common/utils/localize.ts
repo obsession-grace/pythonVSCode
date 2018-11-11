@@ -64,6 +64,12 @@ export namespace DataScience {
     export const clearAll = localize('DataScience.clearAll', 'Remove All Cells');
 }
 
+export namespace UnitTests {
+    export const testErrorDiagnosticMessage = localize('UnitTests.testErrorDiagnosticMessage', 'Error');
+    export const testFailDiagnosticMessage = localize('UnitTests.testFailDiagnosticMessage', 'Fail');
+    export const testSkippedDiagnosticMessage = localize('UnitTests.testSkippedDiagnosticMessage', 'Skipped');
+}
+
 // Skip using vscode-nls and instead just compute our strings based on key values. Key values
 // can be loaded out of the nls.<locale>.json files
 let loadedCollection: { [index: string]: string } | undefined;

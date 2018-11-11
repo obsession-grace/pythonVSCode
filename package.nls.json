@@ -96,5 +96,8 @@
     "DataScience.restartServer" : "Restart iPython Kernel",
     "DataScience.undo" : "Undo",
     "DataScience.redo" : "Redo",
-    "DataScience.clearAll" : "Remove All Cells"
+    "DataScience.clearAll" : "Remove All Cells",
+    "UnitTests.testErrorMessage": "Error",
+    "UnitTests.testFailMessage": "Fail",
+    "UnitTests.testSkippedMessage": "Skipped"
 }

@@ -3,7 +3,7 @@
 
 'use strict';
 
-import { Disposable, DocumentSymbolProvider, Event, Location, TextDocument, Uri } from 'vscode';
+import { DiagnosticSeverity, Disposable, DocumentSymbolProvider, Event, Location, TextDocument, Uri } from 'vscode';
 import { Product } from '../common/types';
 import { CommandSource } from './common/constants';
 import { FlattenedTestFunction, ITestManager, ITestResultsService, TestFile, TestFunction, TestRunOptions, Tests, TestStatus, TestsToRun, UnitTestProduct } from './common/types';
@@ -102,6 +102,12 @@ export interface IUnitTestHelper {
     getIdsOfTestsToRun(tests: Tests, testsToRun: TestsToRun): string[];
 }
 
+export const IUnitTestDiagnosticService = Symbol('IUnitTestDiagnosticService');
+export interface IUnitTestDiagnosticService {
+    getMessagePrefix(status: TestStatus): string;
+    getSeverity(unitTestSeverity: PythonUnitTestMessageSeverity): DiagnosticSeverity;
+}
+
 export interface IPythonUnitTestMessage {
     code: string | undefined;
     message?: string;
@@ -119,6 +125,11 @@ export enum PythonUnitTestMessageSeverity {
     Failure,
     Skip,
     Pass
+}
+export enum DiagnosticMessageType {
+    Error,
+    Fail,
+    Skipped
 }
 
 export interface ILocationStackFrameDetails {
