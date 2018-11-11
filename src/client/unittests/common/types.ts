@@ -1,4 +1,4 @@
-import { CancellationToken, Disposable, OutputChannel, Uri } from 'vscode';
+import { CancellationToken, DiagnosticCollection, Disposable, OutputChannel, Uri } from 'vscode';
 import { IUnitTestSettings, Product } from '../../common/types';
 import { CommandSource } from './constants';
 
@@ -66,6 +66,7 @@ export type TestResult = Node & {
     passed?: boolean;
     time: number;
     line?: number;
+    file?: string;
     message?: string;
     traceback?: string;
     functionsPassed?: number;
@@ -116,6 +117,11 @@ export enum TestStatus {
     Error,
     Skipped,
     Pass
+}
+export enum DiagnosticMessagePrefixes {
+    Failure = 'Failure',
+    Error = 'Error',
+    Skipped = 'Skipped'
 }
 
 export type TestsToRun = {
@@ -223,6 +229,7 @@ export interface ITestManager extends Disposable {
     readonly enabled: boolean;
     readonly workingDirectory: string;
     readonly workspaceFolder: Uri;
+    diagnosticCollection: DiagnosticCollection;
     stop(): void;
     resetTestResults(): void;
     discoverTests(cmdSource: CommandSource, ignoreCache?: boolean, quietMode?: boolean, userInitiated?: boolean): Promise<Tests>;
