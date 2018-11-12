@@ -249,7 +249,7 @@ export abstract class BaseTestManager implements ITestManager {
             });
     }
     public async updateDiagnostics(messages: IPythonUnitTestMessage[]): Promise<void> {
-        this.stripStaleDiagnostics(messages);
+        await this.stripStaleDiagnostics(messages);
 
         // Update relevant file diagnostics for tests that have problems.
         const uniqueMsgFiles = messages.reduce((filtered, msg) => {
