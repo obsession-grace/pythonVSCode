@@ -127,7 +127,7 @@ export class TestManager extends BaseTestManager {
     private async getLocationStack(testFunction: FlattenedTestFunction): Promise<ILocationStackFrameDetails[]> {
         const locationStack: ILocationStackFrameDetails[] = [];
         if (testFunction.testFunction.traceback) {
-            const fileMatches = testFunction.testFunction.traceback.match(/^((\.\.\/)*.+\.py)\:(\d+)\:.*$/gim);
+            const fileMatches = testFunction.testFunction.traceback.match(/^((\.\.[\\\/])*.+\.py)\:(\d+)\:.*$/gim);
             for (const fileDetailsMatch of fileMatches) {
                 const fileDetails = fileDetailsMatch.split(':');
                 let filePath = fileDetails[0];
@@ -136,9 +136,6 @@ export class TestManager extends BaseTestManager {
                 const file = await workspace.openTextDocument(fileUri);
                 const fileLineNum = parseInt(fileDetails[1], 10);
                 const line = file.lineAt(fileLineNum - 1);
-                // const lineStart = new Position((fileLineNum - 1), line.firstNonWhitespaceCharacterIndex);
-                // const lineEnd = new Position((fileLineNum - 1), line.text.length);
-                // const lineRange = new Range(lineStart, lineEnd);
                 const location = new Location(fileUri, new Range(
                     new Position((fileLineNum - 1), line.firstNonWhitespaceCharacterIndex),
                     new Position((fileLineNum - 1), line.text.length)

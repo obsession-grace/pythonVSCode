@@ -471,7 +471,7 @@ suite('Unit Tests - pytest - run with mocked process output', () => {
                                     if (td.status !== TestStatus.Pass && !(failedRun && td.passOnFailedRun)) {
                                         suite('Diagnostic', async () => {
                                             suiteSetup(async () => {
-                                                diagnostic = getDiagnosticForTestFunc(diagnostics, testFunc);
+                                                diagnostic = getDiagnosticForTestFunc(diagnostics, testFunc)!;
                                                 expectedDiagnostic = await getExpectedDiagnosticFromTestDetails(td);
                                             });
                                             test('Test Diagnostic', async () => { await testDiagnostic(diagnostic, expectedDiagnostic); });
