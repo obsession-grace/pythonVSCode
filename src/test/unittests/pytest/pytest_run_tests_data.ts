@@ -3,6 +3,7 @@
 
 'use strict';
 
+import * as path from 'path';
 import * as vscode from 'vscode';
 import { TestStatus } from '../../../client/unittests/common/types';
 
@@ -29,7 +30,7 @@ export const allTestDetails: ITestDetails[] = [
     {
         className: 'test_root.Test_Root_test1',
         nameToRun: 'test_root.py::Test_Root_test1::test_Root_A',
-        fileName: 'test_root.py',
+        fileName: path.join(...'test_root.py'.split('/')),
         testName: 'test_Root_A',
         sourceTestName: 'test_Root_A',
         testDefRange: new vscode.Range(6, 8, 6, 19),
@@ -42,7 +43,7 @@ export const allTestDetails: ITestDetails[] = [
     {
         className: 'test_root.Test_Root_test1',
         nameToRun: 'test_root.py::Test_Root_test1::test_Root_B',
-        fileName: 'test_root.py',
+        fileName: path.join(...'test_root.py'.split('/')),
         testName: 'test_Root_B',
         sourceTestName: 'test_Root_B',
         imported: false,
@@ -51,7 +52,7 @@ export const allTestDetails: ITestDetails[] = [
     {
         className: 'test_root.Test_Root_test1',
         nameToRun: 'test_root.py::Test_Root_test1::test_Root_c',
-        fileName: 'test_root.py',
+        fileName: path.join(...'test_root.py'.split('/')),
         testName: 'test_Root_c',
         sourceTestName: 'test_Root_c',
         testDefRange: new vscode.Range(13, 8, 13, 19),
@@ -62,7 +63,7 @@ export const allTestDetails: ITestDetails[] = [
     {
         className: 'tests.test_another_pytest',
         nameToRun: 'tests/test_another_pytest.py::test_username',
-        fileName: 'tests/test_another_pytest.py',
+        fileName: path.join(...'tests/test_another_pytest.py'.split('/')),
         testName: 'test_username',
         sourceTestName: 'test_username',
         imported: false,
@@ -71,7 +72,7 @@ export const allTestDetails: ITestDetails[] = [
     {
         className: 'tests.test_another_pytest',
         nameToRun: 'tests/test_another_pytest.py::test_parametrized_username[one]',
-        fileName: 'tests/test_another_pytest.py',
+        fileName: path.join(...'tests/test_another_pytest.py'.split('/')),
         testName: 'test_parametrized_username[one]',
         sourceTestName: 'test_parametrized_username',
         imported: false,
@@ -80,7 +81,7 @@ export const allTestDetails: ITestDetails[] = [
     {
         className: 'tests.test_another_pytest',
         nameToRun: 'tests/test_another_pytest.py::test_parametrized_username[two]',
-        fileName: 'tests/test_another_pytest.py',
+        fileName: path.join(...'tests/test_another_pytest.py'.split('/')),
         testName: 'test_parametrized_username[two]',
         sourceTestName: 'test_parametrized_username',
         imported: false,
@@ -89,7 +90,7 @@ export const allTestDetails: ITestDetails[] = [
     {
         className: 'tests.test_another_pytest',
         nameToRun: 'tests/test_another_pytest.py::test_parametrized_username[three]',
-        fileName: 'tests/test_another_pytest.py',
+        fileName: path.join(...'tests/test_another_pytest.py'.split('/')),
         testName: 'test_parametrized_username[three]',
         sourceTestName: 'test_parametrized_username',
         testDefRange: new vscode.Range(15, 4, 15, 30),
@@ -103,10 +104,10 @@ export const allTestDetails: ITestDetails[] = [
         className: 'tests.test_foreign_nested_tests.TestNestedForeignTests.TestInheritingHere.().TestExtraNestedForeignTests.()',
         nameToRun: 'tests/test_foreign_nested_tests.py::TestNestedForeignTests::TestInheritingHere::TestExtraNestedForeignTests::test_super_deep_foreign',
         simpleClassName: 'TestInheritingHere',
-        fileName: 'tests/test_foreign_nested_tests.py',
+        fileName: path.join(...'tests/test_foreign_nested_tests.py'.split('/')),
         testName: 'test_super_deep_foreign',
         sourceTestName: 'test_super_deep_foreign',
-        sourceFileName: 'tests/external.py',
+        sourceFileName: path.join(...'tests/external.py'.split('/')),
         classDefRange: new vscode.Range(4, 10, 4, 28),
         testDefRange: new vscode.Range(2, 12, 2, 35),
         issueRange: new vscode.Range(3, 12, 3, 24),
@@ -119,10 +120,10 @@ export const allTestDetails: ITestDetails[] = [
         className: 'tests.test_foreign_nested_tests.TestNestedForeignTests.TestInheritingHere.()',
         nameToRun: 'tests/test_foreign_nested_tests.py::TestNestedForeignTests::TestInheritingHere::test_foreign_test',
         simpleClassName: 'TestInheritingHere',
-        fileName: 'tests/test_foreign_nested_tests.py',
+        fileName: path.join(...'tests/test_foreign_nested_tests.py'.split('/')),
         testName: 'test_foreign_test',
         sourceTestName: 'test_foreign_test',
-        sourceFileName: 'tests/external.py',
+        sourceFileName: path.join(...'tests/external.py'.split('/')),
         classDefRange: new vscode.Range(4, 10, 4, 28),
         testDefRange: new vscode.Range(4, 8, 4, 25),
         issueRange: new vscode.Range(5, 8, 5, 20),
@@ -134,7 +135,7 @@ export const allTestDetails: ITestDetails[] = [
     {
         className: 'tests.test_foreign_nested_tests.TestNestedForeignTests.TestInheritingHere.()',
         nameToRun: 'tests/test_foreign_nested_tests.py::TestNestedForeignTests::TestInheritingHere::test_nested_normal',
-        fileName: 'tests/test_foreign_nested_tests.py',
+        fileName: path.join(...'tests/test_foreign_nested_tests.py'.split('/')),
         testName: 'test_nested_normal',
         sourceTestName: 'test_nested_normal',
         imported: false,
@@ -143,7 +144,7 @@ export const allTestDetails: ITestDetails[] = [
     {
         className: 'tests.test_foreign_nested_tests.TestNestedForeignTests',
         nameToRun: 'tests/test_foreign_nested_tests.py::TestNestedForeignTests::test_normal',
-        fileName: 'tests/test_foreign_nested_tests.py',
+        fileName: path.join(...'tests/test_foreign_nested_tests.py'.split('/')),
         testName: 'test_normal',
         sourceTestName: 'test_normal',
         imported: false,
@@ -152,7 +153,7 @@ export const allTestDetails: ITestDetails[] = [
     {
         className: 'tests.test_pytest.Test_CheckMyApp',
         nameToRun: 'tests/test_pytest.py::Test_CheckMyApp::test_simple_check',
-        fileName: 'tests/test_pytest.py',
+        fileName: path.join(...'tests/test_pytest.py'.split('/')),
         testName: 'test_simple_check',
         sourceTestName: 'test_simple_check',
         testDefRange: new vscode.Range(7, 8, 7, 25),
@@ -163,7 +164,7 @@ export const allTestDetails: ITestDetails[] = [
     {
         className: 'tests.test_pytest.Test_CheckMyApp',
         nameToRun: 'tests/test_pytest.py::Test_CheckMyApp::test_complex_check',
-        fileName: 'tests/test_pytest.py',
+        fileName: path.join(...'tests/test_pytest.py'.split('/')),
         testName: 'test_complex_check',
         sourceTestName: 'test_complex_check',
         imported: false,
@@ -172,7 +173,7 @@ export const allTestDetails: ITestDetails[] = [
     {
         className: 'tests.test_pytest.Test_CheckMyApp.Test_NestedClassA.()',
         nameToRun: 'tests/test_pytest.py::Test_CheckMyApp::Test_NestedClassA::test_nested_class_methodB',
-        fileName: 'tests/test_pytest.py',
+        fileName: path.join(...'tests/test_pytest.py'.split('/')),
         testName: 'test_nested_class_methodB',
         sourceTestName: 'test_nested_class_methodB',
         imported: false,
@@ -181,7 +182,7 @@ export const allTestDetails: ITestDetails[] = [
     {
         className: 'tests.test_pytest.Test_CheckMyApp.Test_NestedClassA.().Test_nested_classB_Of_A.()',
         nameToRun: 'tests/test_pytest.py::Test_CheckMyApp::Test_NestedClassA::Test_nested_classB_Of_A::test_d',
-        fileName: 'tests/test_pytest.py',
+        fileName: path.join(...'tests/test_pytest.py'.split('/')),
         testName: 'test_d',
         sourceTestName: 'test_d',
         imported: false,
@@ -190,7 +191,7 @@ export const allTestDetails: ITestDetails[] = [
     {
         className: 'tests.test_pytest.Test_CheckMyApp.Test_NestedClassA.()',
         nameToRun: 'tests/test_pytest.py::Test_CheckMyApp::Test_NestedClassA::test_nested_class_methodC',
-        fileName: 'tests/test_pytest.py',
+        fileName: path.join(...'tests/test_pytest.py'.split('/')),
         testName: 'test_nested_class_methodC',
         sourceTestName: 'test_nested_class_methodC',
         imported: false,
@@ -199,7 +200,7 @@ export const allTestDetails: ITestDetails[] = [
     {
         className: 'tests.test_pytest.Test_CheckMyApp',
         nameToRun: 'tests/test_pytest.py::Test_CheckMyApp::test_simple_check2',
-        fileName: 'tests/test_pytest.py',
+        fileName: path.join(...'tests/test_pytest.py'.split('/')),
         testName: 'test_simple_check2',
         sourceTestName: 'test_simple_check2',
         imported: false,
@@ -208,7 +209,7 @@ export const allTestDetails: ITestDetails[] = [
     {
         className: 'tests.test_pytest.Test_CheckMyApp',
         nameToRun: 'tests/test_pytest.py::Test_CheckMyApp::test_complex_check2',
-        fileName: 'tests/test_pytest.py',
+        fileName: path.join(...'tests/test_pytest.py'.split('/')),
         testName: 'test_complex_check2',
         sourceTestName: 'test_complex_check2',
         imported: false,
@@ -217,7 +218,7 @@ export const allTestDetails: ITestDetails[] = [
     {
         className: 'tests.test_pytest',
         nameToRun: 'tests/test_pytest.py::test_username',
-        fileName: 'tests/test_pytest.py',
+        fileName: path.join(...'tests/test_pytest.py'.split('/')),
         testName: 'test_username',
         sourceTestName: 'test_username',
         imported: false,
@@ -226,7 +227,7 @@ export const allTestDetails: ITestDetails[] = [
     {
         className: 'tests.test_pytest',
         nameToRun: 'tests/test_pytest.py::test_parametrized_username[one]',
-        fileName: 'tests/test_pytest.py',
+        fileName: path.join(...'tests/test_pytest.py'.split('/')),
         testName: 'test_parametrized_username[one]',
         sourceTestName: 'test_parametrized_username',
         imported: false,
@@ -235,7 +236,7 @@ export const allTestDetails: ITestDetails[] = [
     {
         className: 'tests.test_pytest',
         nameToRun: 'tests/test_pytest.py::test_parametrized_username[two]',
-        fileName: 'tests/test_pytest.py',
+        fileName: path.join(...'tests/test_pytest.py'.split('/')),
         testName: 'test_parametrized_username[two]',
         sourceTestName: 'test_parametrized_username',
         imported: false,
@@ -244,7 +245,7 @@ export const allTestDetails: ITestDetails[] = [
     {
         className: 'tests.test_pytest',
         nameToRun: 'tests/test_pytest.py::test_parametrized_username[three]',
-        fileName: 'tests/test_pytest.py',
+        fileName: path.join(...'tests/test_pytest.py'.split('/')),
         testName: 'test_parametrized_username[three]',
         sourceTestName: 'test_parametrized_username',
         testDefRange: new vscode.Range(38, 4, 38, 30),
@@ -257,7 +258,7 @@ export const allTestDetails: ITestDetails[] = [
     {
         className: 'tests.test_unittest_one.Test_test1',
         nameToRun: 'tests/test_unittest_one.py::Test_test1::test_A',
-        fileName: 'tests/test_unittest_one.py',
+        fileName: path.join(...'tests/test_unittest_one.py'.split('/')),
         testName: 'test_A',
         sourceTestName: 'test_A',
         testDefRange: new vscode.Range(6, 8, 6, 14),
@@ -270,7 +271,7 @@ export const allTestDetails: ITestDetails[] = [
     {
         className: 'tests.test_unittest_one.Test_test1',
         nameToRun: 'tests/test_unittest_one.py::Test_test1::test_B',
-        fileName: 'tests/test_unittest_one.py',
+        fileName: path.join(...'tests/test_unittest_one.py'.split('/')),
         testName: 'test_B',
         sourceTestName: 'test_B',
         imported: false,
@@ -279,7 +280,7 @@ export const allTestDetails: ITestDetails[] = [
     {
         className: 'tests.test_unittest_one.Test_test1',
         nameToRun: 'tests/test_unittest_one.py::Test_test1::test_c',
-        fileName: 'tests/test_unittest_one.py',
+        fileName: path.join(...'tests/test_unittest_one.py'.split('/')),
         testName: 'test_c',
         sourceTestName: 'test_c',
         testDefRange: new vscode.Range(13, 8, 13, 14),
@@ -290,7 +291,7 @@ export const allTestDetails: ITestDetails[] = [
     {
         className: 'tests.test_unittest_two.Test_test2',
         nameToRun: 'tests/test_unittest_two.py::Test_test2::test_A2',
-        fileName: 'tests/test_unittest_two.py',
+        fileName: path.join(...'tests/test_unittest_two.py'.split('/')),
         testName: 'test_A2',
         sourceTestName: 'test_A2',
         testDefRange: new vscode.Range(3, 8, 3, 15),
@@ -303,7 +304,7 @@ export const allTestDetails: ITestDetails[] = [
     {
         className: 'tests.test_unittest_two.Test_test2',
         nameToRun: 'tests/test_unittest_two.py::Test_test2::test_B2',
-        fileName: 'tests/test_unittest_two.py',
+        fileName: path.join(...'tests/test_unittest_two.py'.split('/')),
         testName: 'test_B2',
         sourceTestName: 'test_B2',
         imported: false,
@@ -312,7 +313,7 @@ export const allTestDetails: ITestDetails[] = [
     {
         className: 'tests.test_unittest_two.Test_test2',
         nameToRun: 'tests/test_unittest_two.py::Test_test2::test_C2',
-        fileName: 'tests/test_unittest_two.py',
+        fileName: path.join(...'tests/test_unittest_two.py'.split('/')),
         testName: 'test_C2',
         sourceTestName: 'test_C2',
         testDefRange: new vscode.Range(9, 8, 9, 15),
@@ -325,7 +326,7 @@ export const allTestDetails: ITestDetails[] = [
     {
         className: 'tests.test_unittest_two.Test_test2',
         nameToRun: 'tests/test_unittest_two.py::Test_test2::test_D2',
-        fileName: 'tests/test_unittest_two.py',
+        fileName: path.join(...'tests/test_unittest_two.py'.split('/')),
         testName: 'test_D2',
         sourceTestName: 'test_D2',
         testDefRange: new vscode.Range(12, 8, 12, 15),
@@ -338,7 +339,7 @@ export const allTestDetails: ITestDetails[] = [
     {
         className: 'tests.test_unittest_two.Test_test2a',
         nameToRun: 'tests/test_unittest_two.py::Test_test2a::test_222A2',
-        fileName: 'tests/test_unittest_two.py',
+        fileName: path.join(...'tests/test_unittest_two.py'.split('/')),
         testName: 'test_222A2',
         sourceTestName: 'test_222A2',
         testDefRange: new vscode.Range(17, 8, 17, 18),
@@ -352,7 +353,7 @@ export const allTestDetails: ITestDetails[] = [
     {
         className: 'tests.test_unittest_two.Test_test2a',
         nameToRun: 'tests/test_unittest_two.py::Test_test2a::test_222B2',
-        fileName: 'tests/test_unittest_two.py',
+        fileName: path.join(...'tests/test_unittest_two.py'.split('/')),
         testName: 'test_222B2',
         sourceTestName: 'test_222B2',
         imported: false,
@@ -361,7 +362,7 @@ export const allTestDetails: ITestDetails[] = [
     {
         className: 'tests.unittest_three_test.Test_test3',
         nameToRun: 'tests/unittest_three_test.py::Test_test3::test_A',
-        fileName: 'tests/unittest_three_test.py',
+        fileName: path.join(...'tests/unittest_three_test.py'.split('/')),
         testName: 'test_A',
         sourceTestName: 'test_A',
         testDefRange: new vscode.Range(4, 8, 4, 14),
@@ -374,7 +375,7 @@ export const allTestDetails: ITestDetails[] = [
     {
         className: 'tests.unittest_three_test.Test_test3',
         nameToRun: 'tests/unittest_three_test.py::Test_test3::test_B',
-        fileName: 'tests/unittest_three_test.py',
+        fileName: path.join(...'tests/unittest_three_test.py'.split('/')),
         testName: 'test_B',
         sourceTestName: 'test_B',
         imported: false,

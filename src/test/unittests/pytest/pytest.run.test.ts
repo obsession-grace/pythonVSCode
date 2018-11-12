@@ -45,7 +45,7 @@ const testScenarios: ITestScenarioDetails[] = [
         runOutput: 'three.xml',
         testsToRun: {
             testFile: [{
-                fullPath: path.join(UNITTEST_TEST_FILES_PATH, 'tests/test_another_pytest.py'),
+                fullPath: path.join(UNITTEST_TEST_FILES_PATH, ...'tests/test_another_pytest.py'.split('/')),
                 name: 'tests/test_another_pytest.py',
                 nameToRun: 'tests/test_another_pytest.py',
                 xmlName: 'tests/test_another_pytest.py',
@@ -57,7 +57,7 @@ const testScenarios: ITestScenarioDetails[] = [
             testFunction: [],
             testSuite: []
         },
-        testDetails: allTestDetails.filter(td => {return td.fileName === 'tests/test_another_pytest.py'; })
+        testDetails: allTestDetails.filter(td => {return td.fileName === path.join(...'tests/test_another_pytest.py'.split('/')); })
     },
     {
         scenarioName: 'Run Specific Test Suite',
