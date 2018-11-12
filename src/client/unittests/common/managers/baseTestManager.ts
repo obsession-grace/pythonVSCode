@@ -273,7 +273,7 @@ export abstract class BaseTestManager implements ITestManager {
                 newDiagnostics.push(diagnostic);
             }
             for (const msg of messages) {
-                if (fileUri.fsPath.indexOf(msg.testFilePath) > -1 && msg.status !== TestStatus.Pass) {
+                if (fileUri.fsPath.indexOf(Uri.file(msg.testFilePath).fsPath) > -1 && msg.status !== TestStatus.Pass) {
                     const diagnostic = this.createDiagnostics(msg);
                     newDiagnostics.push(diagnostic);
                 }

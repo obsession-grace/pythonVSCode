@@ -266,7 +266,7 @@ function getRelevantSkippedIssuesFromTestDetailsForFile(testDetails: ITestDetail
  */
 function getTestFuncFromResultsByTestFileAndName(results: Tests, testFileUri: vscode.Uri, testDetails: ITestDetails): FlattenedTestFunction {
     return results.testFunctions.find(test => {
-        return test.parentTestFile.fullPath === testFileUri.fsPath && test.testFunction.name === testDetails.testName;
+        return vscode.Uri.file(test.parentTestFile.fullPath).fsPath === testFileUri.fsPath && test.testFunction.name === testDetails.testName;
     });
 }
 

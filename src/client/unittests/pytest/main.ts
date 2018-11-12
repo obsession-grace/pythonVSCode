@@ -180,7 +180,7 @@ export class TestManager extends BaseTestManager {
         // Put the class declaration at the top of the stack if the test was imported.
         if (testFunction.parentTestSuite !== undefined) {
             // This could be an imported test method
-            if (testFunction.parentTestFile.fullPath !== locationStack[0].location.uri.fsPath) {
+            if (Uri.file(testFunction.parentTestFile.fullPath).fsPath !== locationStack[0].location.uri.fsPath) {
                 // test method was imported, so reference class declaration line.
                 // this should be the first thing in the stack to show where the failure/error originated.
                 locationStack.unshift(await this.getParentSuiteLocation(testFunction));
