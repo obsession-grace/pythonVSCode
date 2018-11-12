@@ -30,7 +30,7 @@ export const allTestDetails: ITestDetails[] = [
     {
         className: 'test_root.Test_Root_test1',
         nameToRun: 'test_root.py::Test_Root_test1::test_Root_A',
-        fileName: path.join(...'test_root.py'.split('/')),
+        fileName: 'test_root.py',
         testName: 'test_Root_A',
         sourceTestName: 'test_Root_A',
         testDefRange: new vscode.Range(6, 8, 6, 19),
@@ -43,7 +43,7 @@ export const allTestDetails: ITestDetails[] = [
     {
         className: 'test_root.Test_Root_test1',
         nameToRun: 'test_root.py::Test_Root_test1::test_Root_B',
-        fileName: path.join(...'test_root.py'.split('/')),
+        fileName: 'test_root.py',
         testName: 'test_Root_B',
         sourceTestName: 'test_Root_B',
         imported: false,
@@ -52,7 +52,7 @@ export const allTestDetails: ITestDetails[] = [
     {
         className: 'test_root.Test_Root_test1',
         nameToRun: 'test_root.py::Test_Root_test1::test_Root_c',
-        fileName: path.join(...'test_root.py'.split('/')),
+        fileName: 'test_root.py',
         testName: 'test_Root_c',
         sourceTestName: 'test_Root_c',
         testDefRange: new vscode.Range(13, 8, 13, 19),

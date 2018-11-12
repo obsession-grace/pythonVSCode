@@ -45,7 +45,7 @@ const testScenarios: ITestScenarioDetails[] = [
         runOutput: 'three.xml',
         testsToRun: {
             testFile: [{
-                fullPath: path.join(UNITTEST_TEST_FILES_PATH, ...'tests/test_another_pytest.py'.split('/')),
+                fullPath: path.join(UNITTEST_TEST_FILES_PATH, 'tests', 'test_another_pytest.py'),
                 name: 'tests/test_another_pytest.py',
                 nameToRun: 'tests/test_another_pytest.py',
                 xmlName: 'tests/test_another_pytest.py',
@@ -57,7 +57,7 @@ const testScenarios: ITestScenarioDetails[] = [
             testFunction: [],
             testSuite: []
         },
-        testDetails: allTestDetails.filter(td => {return td.fileName === path.join(...'tests/test_another_pytest.py'.split('/')); })
+        testDetails: allTestDetails.filter(td => {return td.fileName === path.join('tests', 'test_another_pytest.py'); })
     },
     {
         scenarioName: 'Run Specific Test Suite',
@@ -329,6 +329,8 @@ async function getExpectedDiagnosticFromTestDetails(testDetails: ITestDetails): 
 }
 
 async function testResultsSummary(results: Tests, expectedSummaryCount: IResultsSummaryCount) {
+    const totalTests = results.summary.passed + results.summary.skipped + results.summary.failures + results.summary.errors;
+    assert.notEqual(totalTests, 0);
     assert.equal(results.summary.passed, expectedSummaryCount.passes, 'Passed');
     assert.equal(results.summary.skipped, expectedSummaryCount.skips, 'Skipped');
     assert.equal(results.summary.failures, expectedSummaryCount.failures, 'Failures');
@@ -447,7 +449,7 @@ suite('Unit Tests - pytest - run with mocked process output', () => {
                             const relevantSkippedIssues = getRelevantSkippedIssuesFromTestDetailsForFile(scenario.testDetails, fileName);
                             suiteSetup(async () => {
                                 testFileUri = vscode.Uri.file(path.join(UNITTEST_TEST_FILES_PATH, fileName));
-                                diagnostics = testManager.diagnosticCollection.get(testFileUri);
+                                diagnostics = testManager.diagnosticCollection.get(testFileUri)!;
                                 expectedDiagnosticCount = getIssueCountFromRelevantTestDetails(relevantTestDetails, relevantSkippedIssues, failedRun);
                             });
                             test('Test DiagnosticCollection', async () => { assert.equal(diagnostics.length, expectedDiagnosticCount, 'Diagnostics count'); });
@@ -458,7 +460,7 @@ suite('Unit Tests - pytest - run with mocked process output', () => {
                                     let diagnostic: vscode.Diagnostic;
                                     let expectedDiagnostic: vscode.Diagnostic;
                                     suiteSetup(async () => {
-                                        testFunc = getTestFuncFromResultsByTestFileAndName(results, testFileUri, td);
+                                        testFunc = getTestFuncFromResultsByTestFileAndName(results, testFileUri, td)!;
                                         expectedStatus = (failedRun && td.passOnFailedRun) ? TestStatus.Pass : td.status;
                                     });
                                     suite('TestFunction', async () => {
