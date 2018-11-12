@@ -97,7 +97,7 @@
     "DataScience.undo" : "Undo",
     "DataScience.redo" : "Redo",
     "DataScience.clearAll" : "Remove All Cells",
-    "UnitTests.testErrorMessage": "Error",
-    "UnitTests.testFailMessage": "Fail",
-    "UnitTests.testSkippedMessage": "Skipped"
+    "UnitTests.testErrorDiagnosticMessage": "Error",
+    "UnitTests.testFailDiagnosticMessage": "Fail",
+    "UnitTests.testSkippedDiagnosticMessage": "Skipped"
 }
