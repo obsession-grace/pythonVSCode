@@ -66,12 +66,15 @@ suite('Interpreters - Workspace VirtualEnv Service', function () {
         }
         serviceContainer = (await initialize()).serviceContainer;
         locator = serviceContainer.get<IInterpreterLocatorService>(IInterpreterLocatorService, WORKSPACE_VIRTUAL_ENV_SERVICE);
+        locator.getInterpreters(workspaceUri).ignoreErrors();
 
         await deleteFiles(path.join(workspaceUri.fsPath, `${venvPrefix}*`));
     });
 
     suiteTeardown(() => deleteFiles(path.join(workspaceUri.fsPath, `${venvPrefix}*`)));
     teardown(() => deleteFiles(path.join(workspaceUri.fsPath, `${venvPrefix}*`)));
+
+    test('Completion of interpreter detection', () => locator.getInterpreters(workspaceUri));
 
     test('Detect Virtual Environment', async () => {
         setTimeout(() => {
