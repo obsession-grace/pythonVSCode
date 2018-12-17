@@ -37,18 +37,23 @@ suite('Interpreters - Workspace VirtualEnv Service', function () {
         // Ensure env is random to avoid conflicts in tests (currupting test data).
         const envName = `${venvPrefix}${envSuffix}${new Date().getTime().toString()}`;
         return new Promise<string>((resolve, reject) => {
+            // tslint:disable-next-line:no-console
             console.log(`Starting to create ${envSuffix} with name ${envName}`);
             exec(`${PYTHON_PATH.fileToCommandArgument()} -m venv ${envName}`, { cwd: workspaceUri.fsPath }, (ex, stdout, stderr) => {
+                // tslint:disable-next-line:no-console
                 console.log(stdout);
                 if (ex) {
+                    // tslint:disable-next-line:no-console
                     console.error(ex);
                     return reject(ex);
                 }
                 if (stderr && stderr.length > 0) {
+                    // tslint:disable-next-line:no-console
                     console.error(stderr);
                     const err = new Error(`Failed to create Env ${envName}, ${PYTHON_PATH}, Error: ${stderr}`);
                     reject(err);
                 } else {
+                    // tslint:disable-next-line:no-console
                     console.log(`Created ${envSuffix} with name ${envName}`);
                     resolve(envName);
                 }
