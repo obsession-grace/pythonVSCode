@@ -5,9 +5,10 @@
 
 // tslint:disable:no-any max-classes-per-file max-func-body-length no-invalid-this
 import { expect } from 'chai';
-import { spawn } from 'child_process';
+import { exec } from 'child_process';
 import * as path from 'path';
 import { Uri } from 'vscode';
+import '../../../client/common/extensions';
 import { IInterpreterLocatorService, WORKSPACE_VIRTUAL_ENV_SERVICE } from '../../../client/interpreter/contracts';
 import { IServiceContainer } from '../../../client/ioc/types';
 import { deleteFiles, isPythonVersionInProcess, PYTHON_PATH, rootWorkspaceUri, waitForCondition } from '../../common';
@@ -37,18 +38,20 @@ suite('Interpreters - Workspace VirtualEnv Service', function () {
         const envName = `${venvPrefix}${envSuffix}${new Date().getTime().toString()}`;
         return new Promise<string>((resolve, reject) => {
             console.log(`Starting to create ${envSuffix} with name ${envName}`);
-            const proc = spawn(PYTHON_PATH, ['-m', 'venv', envName], { cwd: workspaceUri.fsPath });
-            let stdErr = '';
-            proc.stderr.on('data', data => stdErr += data.toString());
-            proc.on('exit', () => {
-                console.log(`Created ${envSuffix} with name ${envName}`);
-                if (stdErr.length === 0) {
-                    console.error(stdErr);
-                    return resolve(envName);
+            exec(`${PYTHON_PATH.fileToCommandArgument()} -m venv ${envName}`, { cwd: workspaceUri.fsPath }, (ex, stdout, stderr) => {
+                console.log(stdout);
+                if (ex) {
+                    console.error(ex);
+                    return reject(ex);
                 }
-                console.error(stdErr);
-                const err = new Error(`Failed to create Env ${envName}, ${PYTHON_PATH}, Error: ${stdErr.toString()}`);
-                reject(err);
+                if (stderr && stderr.length > 0) {
+                    console.error(stderr);
+                    const err = new Error(`Failed to create Env ${envName}, ${PYTHON_PATH}, Error: ${stderr}`);
+                    reject(err);
+                } else {
+                    console.log(`Created ${envSuffix} with name ${envName}`);
+                    resolve(envName);
+                }
             });
         });
     }
