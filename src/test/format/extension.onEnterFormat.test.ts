@@ -23,41 +23,41 @@ suite('Formatting - OnEnter provider', () => {
     });
     suiteTeardown(closeActiveWindows);
 
-    test('Simple statement', () => formatAtPosition(1, 0, 'x = 1'));
+    test('Simple statement', () => testFormattingAtPosition(1, 0, 'x = 1'));
 
-    test('No formatting inside strings', () => {
-        formatAtPosition(2, 0);
-        formatAtPosition(3, 0);
-    });
+    test('No formatting inside strings (2)', () => doesNotFormat(2, 0));
 
-    test('Whitespace before comment', () => formatAtPosition(4, 0));
+    test('No formatting inside strings (3)', () => doesNotFormat(3, 0));
 
-    test('No formatting of comment', () => formatAtPosition(5, 0));
+    test('Whitespace before comment', () => doesNotFormat(4, 0));
 
-    test('Formatting line ending in comment', () => formatAtPosition(6, 0, 'x + 1  #'));
+    test('No formatting of comment', () => doesNotFormat(5, 0));
 
-    test('Formatting line with @', () => formatAtPosition(7, 0));
+    test('Formatting line ending in comment', () => testFormattingAtPosition(6, 0, 'x + 1  # '));
 
-    test('Formatting line with @', () => formatAtPosition(8, 0));
+    test('Formatting line with @', () => doesNotFormat(7, 0));
 
-    test('Formatting line with unknown neighboring tokens', () => formatAtPosition(9, 0, 'if x <= 1:'));
+    test('Formatting line with @', () => doesNotFormat(8, 0));
 
-    test('Formatting line with unknown neighboring tokens', () => formatAtPosition(10, 0, 'if 1 <= x:'));
+    test('Formatting line with unknown neighboring tokens', () => testFormattingAtPosition(9, 0, 'if x <= 1:'));
 
-    test('Formatting method definition with arguments', () => formatAtPosition(11, 0, 'def __init__(self, age=23)'));
+    test('Formatting line with unknown neighboring tokens', () => testFormattingAtPosition(10, 0, 'if 1 <= x:'));
 
-    test('Formatting space after open brace', () => formatAtPosition(12, 0, 'while (1)'));
+    test('Formatting method definition with arguments', () => testFormattingAtPosition(11, 0, 'def __init__(self, age=23)'));
 
-    test('Formatting line ending in string', () => formatAtPosition(13, 0, 'x + """'));
+    test('Formatting space after open brace', () => testFormattingAtPosition(12, 0, 'while (1)'));
 
-    function formatAtPosition(line: number, character: number, expectedFormattedString?: string): void {
+    test('Formatting line ending in string', () => testFormattingAtPosition(13, 0, 'x + """'));
+
+    function testFormattingAtPosition(line: number, character: number, expectedFormattedString?: string): void {
         const token = new CancellationTokenSource().token;
         const edits = formatter.provideOnTypeFormattingEdits(document, new Position(line, character), '\n', { insertSpaces: true, tabSize: 2 }, token);
-        if (expectedFormattedString) {
-            expect(edits).to.be.lengthOf(1);
-            expect(edits[0].newText).to.be.equal(expectedFormattedString);
-        } else {
-            expect(edits).to.be.lengthOf(0);
-        }
+        expect(edits).to.be.lengthOf(1);
+        expect(edits[0].newText).to.be.equal(expectedFormattedString);
+    }
+    function doesNotFormat(line: number, character: number): void {
+        const token = new CancellationTokenSource().token;
+        const edits = formatter.provideOnTypeFormattingEdits(document, new Position(line, character), '\n', { insertSpaces: true, tabSize: 2 }, token);
+        expect(edits).to.be.lengthOf(0);
     }
 });
