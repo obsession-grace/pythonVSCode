@@ -36,13 +36,17 @@ suite('Interpreters - Workspace VirtualEnv Service', function () {
         // Ensure env is random to avoid conflicts in tests (currupting test data).
         const envName = `${venvPrefix}${envSuffix}${new Date().getTime().toString()}`;
         return new Promise<string>((resolve, reject) => {
+            console.log(`Starting to create ${envSuffix} with name ${envName}`);
             const proc = spawn(PYTHON_PATH, ['-m', 'venv', envName], { cwd: workspaceUri.fsPath });
             let stdErr = '';
             proc.stderr.on('data', data => stdErr += data.toString());
             proc.on('exit', () => {
+                console.log(`Created ${envSuffix} with name ${envName}`);
                 if (stdErr.length === 0) {
+                    console.error(stdErr);
                     return resolve(envName);
                 }
+                console.error(stdErr);
                 const err = new Error(`Failed to create Env ${envName}, ${PYTHON_PATH}, Error: ${stdErr.toString()}`);
                 reject(err);
             });
