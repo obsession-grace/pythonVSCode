@@ -3,7 +3,7 @@
 
 'use strict';
 
-// tslint:disable:no-any max-classes-per-file max-func-body-length no-invalid-this
+// tslint:disable:no-any max-classes-per-file max-func-body-length no-invalid-this no-console
 import { expect } from 'chai';
 import { exec } from 'child_process';
 import * as path from 'path';
@@ -37,7 +37,6 @@ suite('Interpreters - Workspace VirtualEnv Service', function () {
         // Ensure env is random to avoid conflicts in tests (currupting test data).
         const envName = `${venvPrefix}${envSuffix}${new Date().getTime().toString()}`;
         return new Promise<string>((resolve, reject) => {
-            // tslint:disable-next-line:no-console
             console.log(`Starting to create ${envSuffix} with name ${envName}`);
             exec(`${PYTHON_PATH.fileToCommandArgument()} -m venv ${envName}`, { cwd: workspaceUri.fsPath }, (ex, stdout, stderr) => {
                 // tslint:disable-next-line:no-console
@@ -75,17 +74,28 @@ suite('Interpreters - Workspace VirtualEnv Service', function () {
     teardown(() => deleteFiles(path.join(workspaceUri.fsPath, `${venvPrefix}*`)));
 
     test('Detect Virtual Environment', async () => {
+        setTimeout(() => {
+            console.error('About to fail test due to timeout');
+        }, timeoutMs - 30);
+        console.log('start test');
         const envName = await createVirtualEnvironment('one');
-
+        console.log('created env & waiting');
         await waitForInterpreterToBeDetected(envName);
     });
 
     test('Detect a new Virtual Environment', async () => {
+        setTimeout(() => {
+            console.error('About to fail test due to timeout');
+        }, (timeoutMs * 2) - 30);
+        console.log('start test');
         const env1 = await createVirtualEnvironment('first');
+        console.log('created env & waiting');
 
         await waitForInterpreterToBeDetected(env1);
+        console.log('start test with second env');
 
         // Ensure second environment in our workspace folder is detected when created.
+        console.log('created env 2 & waiting');
         const env2 = await createVirtualEnvironment('second');
         await waitForInterpreterToBeDetected(env2);
     }).timeout(timeoutMs * 2);
@@ -94,6 +104,9 @@ suite('Interpreters - Workspace VirtualEnv Service', function () {
         if (!IS_MULTI_ROOT_TEST) {
             return this.skip();
         }
+        setTimeout(() => {
+            console.error('About to fail test due to timeout');
+        }, (timeoutMs * 2) - 30);
         // There should be nothing in workspacec4.
         let items4 = await locator.getInterpreters(workspace4);
         expect(items4).to.be.lengthOf(0);
