@@ -13,7 +13,7 @@ import { EXTENSION_ROOT_DIR } from '../../client/common/constants';
 import { IS_WINDOWS } from '../../client/common/platform/constants';
 import { IPlatformService } from '../../client/common/platform/types';
 import { DebuggerTypeName, PTVSD_PATH } from '../../client/debugger/constants';
-import { PythonV2DebugConfigurationProvider } from '../../client/debugger/extension/configProviders/pythonV2Provider';
+import { PythonV2DebugConfigurationProvider } from '../../client/debugger/extension/configuration/pythonV2Provider';
 import { AttachRequestArguments, DebugOptions } from '../../client/debugger/types';
 import { IServiceContainer } from '../../client/ioc/types';
 import { PYTHON_PATH, sleep } from '../common';

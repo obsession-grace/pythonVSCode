@@ -6,9 +6,9 @@
 import { DebugConfigurationProvider } from 'vscode';
 import { IServiceManager } from '../../ioc/types';
 import { DebuggerBanner } from './banner';
-import { ConfigurationProviderUtils } from './configProviders/configurationProviderUtils';
-import { PythonV2DebugConfigurationProvider } from './configProviders/pythonV2Provider';
-import { IConfigurationProviderUtils } from './configProviders/types';
+import { ConfigurationProviderUtils } from './configuration/configurationProviderUtils';
+import { PythonV2DebugConfigurationProvider } from './configuration/pythonV2Provider';
+import { IConfigurationProviderUtils } from './configuration/types';
 import { ChildProcessAttachEventHandler } from './hooks/childProcessAttachHandler';
 import { ChildProcessAttachService } from './hooks/childProcessAttachService';
 import { IChildProcessAttachService, IDebugSessionEventHandlers } from './hooks/types';
