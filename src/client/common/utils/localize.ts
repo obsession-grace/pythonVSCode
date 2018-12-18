@@ -105,6 +105,23 @@ export namespace DataScience {
     export const sysInfoURILabel = localize('DataScience.sysInfoURILabel', 'Jupyter Server URI: ');
 }
 
+export namespace Debug {
+    export const selectConfiguration = localize('debug.selectConfiguration', 'Select Debug Configuration');
+    export const debugFileConfigurationLabel = localize('debug.debugFileConfigurationLabel', 'Debug Python File');
+    export const attachConfigurationLabel = localize('debug.attachConfigurationLabel', 'Attach debugger to remote application');
+    export const debugDjangoConfigurationLabel = localize('debug.debugDjangoConfigurationLabel', 'Debug Django');
+    export const debugFlaskConfigurationLabel = localize('debug.debugFlaskConfigurationLabel', 'Debug Flask');
+    export const attachRemotePortPlaceholder = localize('debug.attachRemotePortPlaceholder', 'Port');
+    export const attachRemotePortPrompt = localize('debug.attachRemotePortPrompt', 'Enter Port Number');
+    export const attachRemotePortValidationError = localize('debug.attachRemotePortValidationError', 'Enter a valid Port Number');
+
+    export const attachRemoteHostPlaceholder = localize('debug.attachRemoteHostPlaceholder', 'Host');
+    export const attachRemoteHostPrompt = localize('debug.attachRemoteHostPrompt', 'Enter Host Name');
+    export const attachRemoteHostValidationError = localize('debug.attachRemoteHostValidationError', 'Enter a Host Name');
+    export const debugDjangoSelectManagePyOpenDialogLabel = localize('debug.debugDjangoSelectManagePyOpenDialogLabel', 'Select \'manage.py\' file');
+    export const debugFlaskSelectAppOpenDialogLabel = localize('debug.debugFlaskSelectAppOpenDialogLabel', 'Select Flask Application file/package');
+}
+
 // Skip using vscode-nls and instead just compute our strings based on key values. Key values
 // can be loaded out of the nls.<locale>.json files
 let loadedCollection: { [index: string]: string } | undefined;

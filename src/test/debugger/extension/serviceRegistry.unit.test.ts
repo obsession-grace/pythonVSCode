@@ -9,7 +9,7 @@ import { expect } from 'chai';
 import * as typemoq from 'typemoq';
 import { DebuggerBanner } from '../../../client/debugger/extension/banner';
 import { ConfigurationProviderUtils } from '../../../client/debugger/extension/configuration/configurationProviderUtils';
-import { PythonDebugConfigurationProvider } from '../../../client/debugger/extension/configuration/debugConfigurationProvider';
+import { PythonDebugConfigurationService } from '../../../client/debugger/extension/configuration/debugConfigurationService';
 import { AttachConfigurationResolver } from '../../../client/debugger/extension/configuration/resolvers/attach';
 import { LaunchConfigurationResolver } from '../../../client/debugger/extension/configuration/resolvers/launch';
 import { IConfigurationProviderUtils, IDebugConfigurationResolver } from '../../../client/debugger/extension/configuration/types';
@@ -17,7 +17,7 @@ import { ChildProcessAttachEventHandler } from '../../../client/debugger/extensi
 import { ChildProcessAttachService } from '../../../client/debugger/extension/hooks/childProcessAttachService';
 import { IChildProcessAttachService, IDebugSessionEventHandlers } from '../../../client/debugger/extension/hooks/types';
 import { registerTypes } from '../../../client/debugger/extension/serviceRegistry';
-import { IDebugConfigurationProvider, IDebuggerBanner } from '../../../client/debugger/extension/types';
+import { IDebugConfigurationService, IDebuggerBanner } from '../../../client/debugger/extension/types';
 import { IServiceManager } from '../../../client/ioc/types';
 
 suite('Debugging - Service Registry', () => {
@@ -25,7 +25,7 @@ suite('Debugging - Service Registry', () => {
         const serviceManager = typemoq.Mock.ofType<IServiceManager>();
 
         [
-            [IDebugConfigurationProvider, PythonDebugConfigurationProvider],
+            [IDebugConfigurationService, PythonDebugConfigurationService],
             [IConfigurationProviderUtils, ConfigurationProviderUtils],
             [IDebuggerBanner, DebuggerBanner],
             [IChildProcessAttachService, ChildProcessAttachService],

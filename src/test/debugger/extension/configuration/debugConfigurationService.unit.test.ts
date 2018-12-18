@@ -8,19 +8,20 @@
 import { expect } from 'chai';
 import * as typemoq from 'typemoq';
 import { Uri } from 'vscode';
-import { PythonDebugConfigurationProvider } from '../../../../client/debugger/extension/configuration/debugConfigurationProvider';
+import { PythonDebugConfigurationService } from '../../../../client/debugger/extension/configuration/debugConfigurationService';
 import { IDebugConfigurationResolver } from '../../../../client/debugger/extension/configuration/types';
+import { IDebugConfigurationPicker } from '../../../../client/debugger/extension/types';
 import { AttachRequestArguments, LaunchRequestArguments } from '../../../../client/debugger/types';
 
 suite('xDebugging - Configuration Provider', () => {
     let attachResolver: typemoq.IMock<IDebugConfigurationResolver<AttachRequestArguments>>;
     let launchResolver: typemoq.IMock<IDebugConfigurationResolver<LaunchRequestArguments>>;
-    let provider: PythonDebugConfigurationProvider;
+    let configService: PythonDebugConfigurationService;
 
     setup(() => {
         attachResolver = typemoq.Mock.ofType<IDebugConfigurationResolver<AttachRequestArguments>>();
         launchResolver = typemoq.Mock.ofType<IDebugConfigurationResolver<LaunchRequestArguments>>();
-        provider = new PythonDebugConfigurationProvider(attachResolver.object, launchResolver.object);
+        configService = new PythonDebugConfigurationService(attachResolver.object, launchResolver.object, typemoq.Mock.ofType<IDebugConfigurationPicker>().object, []);
     });
     test('Should use attach resolver when passing attach config', async () => {
         const config = {
@@ -37,7 +38,7 @@ suite('xDebugging - Configuration Provider', () => {
             .setup(a => a.resolveDebugConfiguration(typemoq.It.isAny(), typemoq.It.isAny(), typemoq.It.isAny()))
             .verifiable(typemoq.Times.never());
 
-        const resolvedConfig = await provider.resolveDebugConfiguration(folder, config as any);
+        const resolvedConfig = await configService.resolveDebugConfiguration(folder, config as any);
 
         expect(resolvedConfig).to.deep.equal(expectedConfig);
         attachResolver.verifyAll();
@@ -58,7 +59,7 @@ suite('xDebugging - Configuration Provider', () => {
                 .setup(a => a.resolveDebugConfiguration(typemoq.It.isAny(), typemoq.It.isAny(), typemoq.It.isAny()))
                 .verifiable(typemoq.Times.never());
 
-            const resolvedConfig = await provider.resolveDebugConfiguration(folder, config as any);
+            const resolvedConfig = await configService.resolveDebugConfiguration(folder, config as any);
 
             expect(resolvedConfig).to.deep.equal(expectedConfig);
             attachResolver.verifyAll();

@@ -6,6 +6,7 @@
 import { inject, injectable, named } from 'inversify';
 import * as path from 'path';
 import { CancellationToken, Uri, WorkspaceFolder } from 'vscode';
+import { InvalidPythonPathInDebuggerServiceId } from '../../../../application/diagnostics/checks/invalidPythonPathInDebugger';
 import { IDiagnosticsService, IInvalidPythonPathInDebuggerService } from '../../../../application/diagnostics/types';
 import { IDocumentManager, IWorkspaceService } from '../../../../common/application/types';
 import { IPlatformService } from '../../../../common/platform/types';
@@ -20,7 +21,7 @@ export class LaunchConfigurationResolver extends BaseConfigurationResolver<Launc
     constructor(@inject(IWorkspaceService) workspaceService: IWorkspaceService,
         @inject(IDocumentManager) documentManager: IDocumentManager,
         @inject(IConfigurationProviderUtils) private readonly configurationProviderUtils: IConfigurationProviderUtils,
-        @inject(IDiagnosticsService) @named(IInvalidPythonPathInDebuggerService) private readonly invalidPythonPathInDebuggerService: IInvalidPythonPathInDebuggerService,
+        @inject(IDiagnosticsService) @named(InvalidPythonPathInDebuggerServiceId) private readonly invalidPythonPathInDebuggerService: IInvalidPythonPathInDebuggerService,
         @inject(IPlatformService) private readonly platformService: IPlatformService,
         @inject(IConfigurationService) configurationService: IConfigurationService) {
         super(workspaceService, documentManager, configurationService);
