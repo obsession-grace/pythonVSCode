@@ -3,7 +3,9 @@
 
 'use strict';
 
-import { CancellationToken, DebugConfiguration, DebugConfigurationProvider, ProviderResult, WorkspaceFolder } from 'vscode';
+import { CancellationToken, DebugConfigurationProvider, WorkspaceFolder } from 'vscode';
+import { InputStep, MultiStepInput } from '../../common/utils/multiStepInput';
+import { DebugConfigurationArguments } from '../types';
 
 export const IDebugConfigurationService = Symbol('IDebugConfigurationService');
 export interface IDebugConfigurationService extends DebugConfigurationProvider { }
@@ -13,21 +15,9 @@ export interface IDebuggerBanner {
 }
 
 export const IDebugConfigurationProvider = Symbol('IDebugConfigurationProvider');
+export type DebugConfigurationState = { config: Partial<DebugConfigurationArguments>; folder?: WorkspaceFolder; token?: CancellationToken };
 export interface IDebugConfigurationProvider {
-    isSupported(debugConfigurationType: DebugConfigurationType): boolean;
-    /**
-     * Provides initial [debug configuration](#DebugConfiguration). If more than one debug configuration provider is
-     * registered for the same type, debug configurations are concatenated in arbitrary order.
-     *
-     * @param folder The workspace folder for which the configurations are used or undefined for a folderless setup.
-     * @param token A cancellation token.
-     * @return An array of [debug configurations](#DebugConfiguration).
-     */
-    provideDebugConfigurations(folder: WorkspaceFolder | undefined, token?: CancellationToken): ProviderResult<DebugConfiguration[]>;
-}
-export const IDebugConfigurationPicker = Symbol('IDebugConfigurationPicker');
-export interface IDebugConfigurationPicker {
-    getSelectedConfiguration(folder: WorkspaceFolder | undefined, token?: CancellationToken): Promise<DebugConfigurationType | undefined>;
+    buildConfiguration(input: MultiStepInput<DebugConfigurationState>, state: DebugConfigurationState): Promise<InputStep<DebugConfigurationState> | void>;
 }
 
 export enum DebugConfigurationType {
@@ -35,5 +25,6 @@ export enum DebugConfigurationType {
     remoteAttach = 'remoteAttach',
     launchDjango = 'launchDjango',
     launchFlask = 'launchFlask',
-    launchModule = 'launchModule'
+    launchModule = 'launchModule',
+    launchPyramid = 'launchPyramid'
 }

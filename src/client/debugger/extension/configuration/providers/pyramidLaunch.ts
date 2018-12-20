@@ -20,53 +20,54 @@ import { DebugConfigurationState, IDebugConfigurationProvider } from '../../type
 const workspaceFolderToken = '${workspaceFolder}';
 
 @injectable()
-export class DjangoLaunchDebugConfigurationProvider implements IDebugConfigurationProvider {
+export class PyramidLaunchDebugConfigurationProvider implements IDebugConfigurationProvider {
     constructor(@inject(IFileSystem) private fs: IFileSystem,
         @inject(IWorkspaceService) private readonly workspace: IWorkspaceService,
         @inject(IPathUtils) private pathUtils: IPathUtils) { }
     public async buildConfiguration(input: MultiStepInput<DebugConfigurationState>, state: DebugConfigurationState) {
-        const program = await this.getManagePyPath(state.folder);
+        const iniPath = await this.getDevelopmentIniPath(state.folder);
+        const defaultIni = `${workspaceFolderToken}${this.pathUtils.separator}development.ini`;
 
-        const defaultProgram = `${workspaceFolderToken}${this.pathUtils.separator}manage.py`;
         const config: Partial<LaunchRequestArguments> = {
-            name: localize('python.snippet.launch.django.label', 'Python: Django')(),
+            name: localize('python.snippet.launch.pyramid.label', 'Python: Pyramid Application')(),
             type: DebuggerTypeName,
             request: 'launch',
-            program: program || defaultProgram,
             args: [
-                'runserver',
-                '--noreload',
-                '--nothreading'
+                iniPath || defaultIni
             ],
-            django: true
+            pyramid: true,
+            jinja: true
         };
-        if (!program) {
-            const selectedProgram = await input.showInputBox({
-                title: Debug.djangoEnterManagePyPathTitle(),
-                value: defaultProgram,
-                prompt: Debug.djangoEnterManagePyPathPrompt(),
-                validate: value => this.validateManagePy(state.folder, defaultProgram, value)
+
+        if (!iniPath) {
+            const selectedIniPath = await input.showInputBox({
+                title: Debug.pyramidEnterDevelopmentIniPathTitle(),
+                value: defaultIni,
+                prompt: Debug.pyramidEnterDevelopmentIniPathPrompt(),
+                validate: value => this.validateIniPath(state ? state.folder : undefined, defaultIni, value)
             });
-            if (selectedProgram) {
-                config.program = selectedProgram;
+            if (selectedIniPath) {
+                config.args = [selectedIniPath];
             }
         }
 
         Object.assign(state.config, config);
     }
-    public async validateManagePy(folder: WorkspaceFolder | undefined, defaultValue: string, selected?: string): Promise<string | undefined> {
-        const error = Debug.djangoEnterManagePyPathInvalidFilePathError();
+    public async validateIniPath(folder: WorkspaceFolder | undefined, defaultValue: string, selected?: string): Promise<string | undefined> {
+        if (!folder) {
+            return;
+        }
+        const error = Debug.pyramidEnterDevelopmentIniPathInvalidFilePathError();
         if (!selected || selected.trim().length === 0) {
             return error;
         }
-        const resolvedPath = this.resolveVariables(selected, folder ? folder.uri : undefined);
+        const resolvedPath = this.resolveVariables(selected, folder.uri);
         if (selected !== defaultValue && !await this.fs.fileExists(resolvedPath)) {
             return error;
         }
-        if (!resolvedPath.trim().toLowerCase().endsWith('.py')) {
+        if (!resolvedPath.trim().toLowerCase().endsWith('.ini')) {
             return error;
         }
-        return;
     }
     protected resolveVariables(pythonPath: string, resource: Uri | undefined): string {
         const workspaceFolder = resource ? this.workspace.getWorkspaceFolder(resource) : undefined;
@@ -74,13 +75,13 @@ export class DjangoLaunchDebugConfigurationProvider implements IDebugConfigurati
         return systemVariables.resolveAny(pythonPath);
     }
 
-    protected async getManagePyPath(folder: WorkspaceFolder | undefined): Promise<string | undefined> {
+    protected async getDevelopmentIniPath(folder: WorkspaceFolder | undefined): Promise<string | undefined> {
         if (!folder) {
             return;
         }
-        const defaultLocationOfManagePy = path.join(folder.uri.fsPath, 'manage.py');
+        const defaultLocationOfManagePy = path.join(folder.uri.fsPath, 'development.ini');
         if (await this.fs.fileExists(defaultLocationOfManagePy)) {
-            return `${workspaceFolderToken}${this.pathUtils.separator}manage.py`;
+            return `${workspaceFolderToken}${this.pathUtils.separator}development.ini`;
         }
     }
 }

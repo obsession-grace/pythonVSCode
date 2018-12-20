@@ -3,56 +3,53 @@
 
 'use strict';
 
-import { inject, injectable } from 'inversify';
-import { CancellationToken, DebugConfiguration, InputBoxOptions, WorkspaceFolder } from 'vscode';
-import { IApplicationShell } from '../../../../common/application/types';
+import { injectable } from 'inversify';
 import { Debug, localize } from '../../../../common/utils/localize';
-import { DebugConfigurationType, IDebugConfigurationProvider } from '../../types';
+import { InputStep, MultiStepInput } from '../../../../common/utils/multiStepInput';
+import { DebuggerTypeName } from '../../../constants';
+import { AttachRequestArguments } from '../../../types';
+import { DebugConfigurationState, IDebugConfigurationProvider } from '../../types';
 
 @injectable()
-export class AttachDebugConfigurationProvider implements IDebugConfigurationProvider {
-    constructor(@inject(IApplicationShell) private shell: IApplicationShell) { }
-    public isSupported(debugConfigurationType: DebugConfigurationType): boolean {
-        return debugConfigurationType === DebugConfigurationType.remoteAttach;
+export class RemoteAttachDebugConfigurationProvider implements IDebugConfigurationProvider {
+    public async buildConfiguration(input: MultiStepInput<DebugConfigurationState>, state: DebugConfigurationState): Promise<InputStep<DebugConfigurationState> | void> {
+        const config: Partial<AttachRequestArguments> = {
+            name: localize('python.snippet.launch.attach.label', 'Python: Attach')(),
+            type: DebuggerTypeName,
+            request: 'attach',
+            port: 5678,
+            host: 'localhost'
+        };
+
+        config.host = await input.showInputBox({
+            title: Debug.attachRemoteHostTitle(),
+            step: 1,
+            totalSteps: 2,
+            value: config.host || 'localhost',
+            prompt: Debug.attachRemoteHostPrompt(),
+            validate: value => Promise.resolve((value && value.trim().length > 0) ? undefined : Debug.attachRemoteHostValidationError())
+        });
+        if (!config.host) {
+            config.host = 'localhost';
+        }
+
+        Object.assign(state.config, config);
+        return _ => this.configurePort(input, state.config);
     }
-    public async provideDebugConfigurations(_folder: WorkspaceFolder, token?: CancellationToken): Promise<DebugConfiguration[]> {
-        const host = await this.getHost(token);
-        const port = await this.getPort(token);
-        return [
-            {
-                name: localize('python.snippet.launch.attach.label', 'Python: Attach')(),
-                type: 'python',
-                request: 'attach',
-                port: port,
-                host: host
-            }
-        ];
-    }
-    protected async getHost(token?: CancellationToken): Promise<string | undefined> {
-        const validateHost = (selection?: string | undefined) => {
-            return (selection && selection.trim().length > 0) ? undefined : Debug.attachRemoteHostValidationError();
-        };
-        const options: InputBoxOptions = {
-            placeHolder: Debug.attachRemoteHostPlaceholder(),
-            value: 'localhost',
-            validateInput: validateHost,
-            ignoreFocusOut: true,
-            prompt: Debug.attachRemoteHostPrompt()
-        };
-        return this.shell.showInputBox(options, token);
-    }
-    protected async getPort(token?: CancellationToken): Promise<number | undefined> {
-        const validatePort = (selection?: string | undefined) => {
-            return (selection && /^\d+$/.test(selection.trim())) ? undefined : Debug.attachRemotePortValidationError();
-        };
-        const options: InputBoxOptions = {
-            placeHolder: Debug.attachRemotePortPlaceholder(),
-            value: '5678',
-            validateInput: validatePort,
-            ignoreFocusOut: true,
-            prompt: Debug.attachRemotePortPrompt()
-        };
-        const port = await this.shell.showInputBox(options, token);
-        return port ? parseInt(port.trim(), 10) : undefined;
+    protected async configurePort(input: MultiStepInput<DebugConfigurationState>, config: Partial<AttachRequestArguments>) {
+        const port = await input.showInputBox({
+            title: Debug.attachRemotePortTitle(),
+            step: 2,
+            totalSteps: 2,
+            value: (config.port || 5678).toString(),
+            prompt: Debug.attachRemotePortPrompt(),
+            validate: value => Promise.resolve((value && /^\d+$/.test(value.trim())) ? undefined : Debug.attachRemotePortValidationError())
+        });
+        if (port && /^\d+$/.test(port.trim())) {
+            config.port = parseInt(port, 10);
+        }
+        if (!config.port) {
+            config.port = 5678;
+        }
     }
 }

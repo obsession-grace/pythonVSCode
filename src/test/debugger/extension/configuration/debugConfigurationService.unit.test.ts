@@ -6,22 +6,36 @@
 // tslint:disable:no-any
 
 import { expect } from 'chai';
+import { instance, mock } from 'ts-mockito';
 import * as typemoq from 'typemoq';
 import { Uri } from 'vscode';
+import { IMultiStepInput, IMultiStepInputFactory } from '../../../../client/common/utils/multiStepInput';
 import { PythonDebugConfigurationService } from '../../../../client/debugger/extension/configuration/debugConfigurationService';
+import { DebugConfigurationProviderFactory } from '../../../../client/debugger/extension/configuration/providers/providerFactory';
 import { IDebugConfigurationResolver } from '../../../../client/debugger/extension/configuration/types';
-import { IDebugConfigurationPicker } from '../../../../client/debugger/extension/types';
+import { DebugConfigurationState } from '../../../../client/debugger/extension/types';
 import { AttachRequestArguments, LaunchRequestArguments } from '../../../../client/debugger/types';
 
-suite('xDebugging - Configuration Provider', () => {
+// tslint:disable-next-line:max-func-body-length
+suite('Debugging - Configuration Provider', () => {
     let attachResolver: typemoq.IMock<IDebugConfigurationResolver<AttachRequestArguments>>;
     let launchResolver: typemoq.IMock<IDebugConfigurationResolver<LaunchRequestArguments>>;
-    let configService: PythonDebugConfigurationService;
+    let configService: TestPythonDebugConfigurationService;
+    let multiStepFactory: typemoq.IMock<IMultiStepInputFactory>;
+    let providerFactory: DebugConfigurationProviderFactory;
 
+    class TestPythonDebugConfigurationService extends PythonDebugConfigurationService {
+        // tslint:disable-next-line:no-unnecessary-override
+        public async  pickDebugConfiguration(input: IMultiStepInput<DebugConfigurationState>, state: DebugConfigurationState) {
+            return super.pickDebugConfiguration(input, state);
+        }
+    }
     setup(() => {
         attachResolver = typemoq.Mock.ofType<IDebugConfigurationResolver<AttachRequestArguments>>();
         launchResolver = typemoq.Mock.ofType<IDebugConfigurationResolver<LaunchRequestArguments>>();
-        configService = new PythonDebugConfigurationService(attachResolver.object, launchResolver.object, typemoq.Mock.ofType<IDebugConfigurationPicker>().object, []);
+        multiStepFactory = typemoq.Mock.ofType<IMultiStepInputFactory>();
+        providerFactory = mock(DebugConfigurationProviderFactory);
+        configService = new TestPythonDebugConfigurationService(attachResolver.object, launchResolver.object, instance(providerFactory), multiStepFactory.object);
     });
     test('Should use attach resolver when passing attach config', async () => {
         const config = {
@@ -65,5 +79,32 @@ suite('xDebugging - Configuration Provider', () => {
             attachResolver.verifyAll();
             launchResolver.verifyAll();
         });
+    });
+    test('Picker should be displayed', async () => {
+        // tslint:disable-next-line:no-object-literal-type-assertion
+        const state = { configs: [], folder: {}, token: undefined } as any as DebugConfigurationState;
+        const multStepInput = typemoq.Mock.ofType<IMultiStepInput<DebugConfigurationState>>();
+        multStepInput
+            .setup(i => i.showQuickPick(typemoq.It.isAny()))
+            .returns(() => Promise.resolve(undefined as any))
+            .verifiable(typemoq.Times.once());
+
+        await configService.pickDebugConfiguration(multStepInput.object, state);
+
+        multStepInput.verifyAll();
+    });
+    test('Existing Configuration items must be removed before displaying picker', async () => {
+        // tslint:disable-next-line:no-object-literal-type-assertion
+        const state = { configs: [1, 2, 3], folder: {}, token: undefined } as any as DebugConfigurationState;
+        const multStepInput = typemoq.Mock.ofType<IMultiStepInput<DebugConfigurationState>>();
+        multStepInput
+            .setup(i => i.showQuickPick(typemoq.It.isAny()))
+            .returns(() => Promise.resolve(undefined as any))
+            .verifiable(typemoq.Times.once());
+
+        await configService.pickDebugConfiguration(multStepInput.object, state);
+
+        multStepInput.verifyAll();
+        expect(Object.keys(state.config)).to.be.lengthOf(0);
     });
 });

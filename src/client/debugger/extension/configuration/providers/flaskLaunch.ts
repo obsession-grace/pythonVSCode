@@ -5,58 +5,61 @@
 
 import { inject, injectable } from 'inversify';
 import * as path from 'path';
-import { CancellationToken, DebugConfiguration, OpenDialogOptions, WorkspaceFolder } from 'vscode';
-import { IApplicationShell } from '../../../../common/application/types';
+import { WorkspaceFolder } from 'vscode';
 import { IFileSystem } from '../../../../common/platform/types';
 import { Debug, localize } from '../../../../common/utils/localize';
-import { DebugConfigurationType, IDebugConfigurationProvider } from '../../types';
+import { MultiStepInput } from '../../../../common/utils/multiStepInput';
+import { DebuggerTypeName } from '../../../constants';
+import { LaunchRequestArguments } from '../../../types';
+import { DebugConfigurationState, DebugConfigurationType, IDebugConfigurationProvider } from '../../types';
 
 @injectable()
 export class FlaskLaunchDebugConfigurationProvider implements IDebugConfigurationProvider {
-    constructor(@inject(IApplicationShell) private shell: IApplicationShell,
-        @inject(IFileSystem) private fs: IFileSystem) { }
-        public isSupported(debugConfigurationType: DebugConfigurationType): boolean {
-            return debugConfigurationType === DebugConfigurationType.launchFlask;
-        }
-        public async provideDebugConfigurations(folder: WorkspaceFolder, token?: CancellationToken): Promise<DebugConfiguration[]> {
-        const application = await this.getApplicationPath(folder);
-        return [
-            {
-                name: localize('python.snippet.launch.flask.label', 'Python: Flask')(),
-                type: 'python',
-                request: 'launch',
-                module: 'flask',
-                env: {
-                    FLASK_APP: application
-                },
-                args: [
-                    'run',
-                    '--no-debugger',
-                    '--no-reload'
-                ],
-                jinja: true
-            }
-        ];
+    constructor(@inject(IFileSystem) private fs: IFileSystem) { }
+    public isSupported(debugConfigurationType: DebugConfigurationType): boolean {
+        return debugConfigurationType === DebugConfigurationType.launchFlask;
     }
-    protected async getApplicationPath(folder: WorkspaceFolder): Promise<string | undefined> {
+    public async buildConfiguration(input: MultiStepInput<DebugConfigurationState>, state: DebugConfigurationState) {
+        const application = await this.getApplicationPath(state.folder);
+        const config: Partial<LaunchRequestArguments> = {
+            name: localize('python.snippet.launch.flask.label', 'Python: Flask')(),
+            type: DebuggerTypeName,
+            request: 'launch',
+            module: 'flask',
+            env: {
+                FLASK_APP: application || 'app.py',
+                FLASK_ENV: 'development',
+                FLASK_DEBUG: '0'
+            },
+            args: [
+                'run',
+                '--no-debugger',
+                '--no-reload'
+            ],
+            jinja: true
+        };
+
+        if (!application) {
+            const selectedApp = await input.showInputBox({
+                title: Debug.flaskEnterAppPathOrNamePathTitle(),
+                value: 'app.py',
+                prompt: Debug.debugFlaskConfigurationDescription(),
+                validate: value => Promise.resolve((value && value.trim().length > 0) ? undefined : Debug.flaskEnterAppPathOrNamePathInvalidNameError())
+            });
+            if (selectedApp) {
+                config.env!.FLASK_APP = selectedApp;
+            }
+        }
+
+        Object.assign(state.config, config);
+    }
+    protected async getApplicationPath(folder: WorkspaceFolder | undefined): Promise<string | undefined> {
+        if (!folder) {
+            return;
+        }
         const defaultLocationOfManagePy = path.join(folder.uri.fsPath, 'app.py');
         if (await this.fs.fileExists(defaultLocationOfManagePy)) {
             return 'app.py';
         }
-
-        const options: OpenDialogOptions = {
-            canSelectFiles: true,
-            canSelectFolders: true,
-            canSelectMany: false,
-            defaultUri: folder.uri,
-            filters: { Python: ['py'] },
-            openLabel: Debug.debugFlaskSelectAppOpenDialogLabel()
-        };
-        const selections = await this.shell.showOpenDialog(options);
-        if (!Array.isArray(selections) || selections.length !== 1) {
-            return 'app.py';
-        }
-
-        return path.basename(selections[0].fsPath);
     }
 }

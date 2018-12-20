@@ -3,37 +3,31 @@
 
 'use strict';
 
-import { inject, injectable } from 'inversify';
-import { CancellationToken, DebugConfiguration, InputBoxOptions, WorkspaceFolder } from 'vscode';
-import { IApplicationShell } from '../../../../common/application/types';
-import { localize } from '../../../../common/utils/localize';
-import { DebugConfigurationType, IDebugConfigurationProvider } from '../../types';
+import { injectable } from 'inversify';
+import { Debug, localize } from '../../../../common/utils/localize';
+import { MultiStepInput } from '../../../../common/utils/multiStepInput';
+import { DebuggerTypeName } from '../../../constants';
+import { LaunchRequestArguments } from '../../../types';
+import { DebugConfigurationState, IDebugConfigurationProvider } from '../../types';
 
 @injectable()
 export class ModuleLaunchDebugConfigurationProvider implements IDebugConfigurationProvider {
-    constructor(@inject(IApplicationShell) private shell: IApplicationShell) { }
-    public isSupported(debugConfigurationType: DebugConfigurationType): boolean {
-        return debugConfigurationType === DebugConfigurationType.launchModule;
-    }
-    public async provideDebugConfigurations(_folder: WorkspaceFolder, token?: CancellationToken): Promise<DebugConfiguration[]> {
-        const moduleName = await this.getModuleName(token);
-        return [
-            {
-                name: localize('python.snippet.launch.standard.label', 'Python: Current File')(),
-                type: 'python',
-                request: 'launch',
-                module: moduleName
-            }
-        ];
-    }
-    protected async getModuleName(token): Promise<string | undefined> {
-        const options: InputBoxOptions = {
-            ignoreFocusOut: false,
-            placeHolder: 'my.module',
-            prompt: 'Enter Python Module/Package name',
-            value: ''
+    public async buildConfiguration(input: MultiStepInput<DebugConfigurationState>, state: DebugConfigurationState) {
+        const config: Partial<LaunchRequestArguments> = {
+            name: localize('python.snippet.launch.module.label', 'Python: Module')(),
+            type: DebuggerTypeName,
+            request: 'launch',
+            module: 'enter-your-module-name-here'
         };
-        return this.shell.showInputBox(options, token);
+        const selectedModule = await input.showInputBox({
+            title: Debug.moduleEnterModuleTitle(),
+            value: config.module || 'enter-your-module-name-here',
+            prompt: Debug.moduleEnterModulePrompt(),
+            validate: value => Promise.resolve((value && value.trim().length > 0) ? undefined : Debug.moduleEnterModuleInvalidNameError())
+        });
+        if (selectedModule) {
+            config.module = selectedModule;
+        }
+        Object.assign(state.config, config);
     }
-
 }
