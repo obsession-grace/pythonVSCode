@@ -71,6 +71,7 @@ export abstract class BaseConfigurationResolver<T extends DebugConfiguration> im
     }
     protected sendTelemetry(trigger: 'launch' | 'attach', debugConfiguration: Partial<LaunchRequestArguments & AttachRequestArguments>) {
         const name = debugConfiguration.name || '';
+        const moduleName = debugConfiguration.module || '';
         const telemetryProps: DebuggerTelemetry = {
             trigger,
             console: debugConfiguration.console,
@@ -79,7 +80,7 @@ export abstract class BaseConfigurationResolver<T extends DebugConfiguration> im
             flask: this.isDebuggingFlask(debugConfiguration),
             hasArgs: Array.isArray(debugConfiguration.args) && debugConfiguration.args.length > 0,
             isLocalhost: this.isLocalHost(debugConfiguration.host),
-            isModule: typeof debugConfiguration.module === 'string' && debugConfiguration.module.length > 0,
+            isModule: moduleName.length > 0,
             isSudo: !!debugConfiguration.sudo,
             jinja: !!debugConfiguration.jinja,
             pyramid: !!debugConfiguration.pyramid,
@@ -89,7 +90,7 @@ export abstract class BaseConfigurationResolver<T extends DebugConfiguration> im
             watson: name.toLowerCase().indexOf('watson') >= 0,
             pyspark: name.toLowerCase().indexOf('pyspark') >= 0,
             gevent: name.toLowerCase().indexOf('gevent') >= 0,
-            scrapy: (debugConfiguration.module || '').toLowerCase() === 'scrapy'
+            scrapy: moduleName.toLowerCase() === 'scrapy'
         };
         sendTelemetryEvent(DEBUGGER, undefined, telemetryProps);
     }
