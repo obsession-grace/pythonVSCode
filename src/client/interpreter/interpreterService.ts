@@ -66,14 +66,14 @@ export class InterpreterService implements Disposable, IInterpreterService {
         }
         // Check pipenv first.
         const pipenvService = this.serviceContainer.get<IInterpreterLocatorService>(IInterpreterLocatorService, PIPENV_SERVICE);
-        let interpreters = await pipenvService.getInterpreters(activeWorkspace.folderUri);
+        let interpreters = await pipenvService.getInterpreters(activeWorkspace.folderUri, true);
         if (interpreters.length > 0) {
             await this.pythonPathUpdaterService.updatePythonPath(interpreters[0].path, activeWorkspace.configTarget, 'load', activeWorkspace.folderUri);
             return;
         }
         // Now check virtual environments under the workspace root
         const virtualEnvInterpreterProvider = this.serviceContainer.get<IInterpreterLocatorService>(IInterpreterLocatorService, WORKSPACE_VIRTUAL_ENV_SERVICE);
-        interpreters = await virtualEnvInterpreterProvider.getInterpreters(activeWorkspace.folderUri);
+        interpreters = await virtualEnvInterpreterProvider.getInterpreters(activeWorkspace.folderUri, true);
         const workspacePathUpper = activeWorkspace.folderUri.fsPath.toUpperCase();
 
         const interpretersInWorkspace = interpreters.filter(interpreter => Uri.file(interpreter.path).fsPath.toUpperCase().startsWith(workspacePathUpper));
@@ -173,11 +173,11 @@ export class InterpreterService implements Disposable, IInterpreterService {
      * @memberof InterpreterService
      */
     public async getDisplayName(info: Partial<PythonInterpreter>, resource?: Uri): Promise<string> {
-        const store = this.persistentStateFactory.createGlobalPersistentState<string>(`${info.path}.interpreter.displayName.v5`, undefined, EXPITY_DURATION);
-        if (store.value) {
-            return store.value;
+        const fileHash = (info.path ? await this.fs.getFileHash(info.path).catch(() => '') : '') || '';
+        const store = this.persistentStateFactory.createGlobalPersistentState<{ fileHash: string; displayName: string }>(`${info.path}${fileHash}.interpreter.displayName.v5`, undefined, EXPITY_DURATION);
+        if (store.value && store.value.fileHash === fileHash && store.value.displayName) {
+            return store.value.displayName;
         }
-
         const displayNameParts: string[] = ['Python'];
         const envSuffixParts: string[] = [];
 
@@ -211,7 +211,7 @@ export class InterpreterService implements Disposable, IInterpreterService {
 
         // If dealing with cached entry, then do not store the display name in cache.
         if (!info.cachedEntry) {
-            await store.updateValue(displayName);
+            await store.updateValue({ displayName, fileHash });
         }
 
         return displayName;
