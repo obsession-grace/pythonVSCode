@@ -9,6 +9,8 @@ import { WorkspaceFolder } from 'vscode';
 import { IFileSystem } from '../../../../common/platform/types';
 import { Debug, localize } from '../../../../common/utils/localize';
 import { MultiStepInput } from '../../../../common/utils/multiStepInput';
+import { sendTelemetryEvent } from '../../../../telemetry';
+import { DEBUGGER_CONFIGURATION_PROMPTS } from '../../../../telemetry/constants';
 import { DebuggerTypeName } from '../../../constants';
 import { LaunchRequestArguments } from '../../../types';
 import { DebugConfigurationState, DebugConfigurationType, IDebugConfigurationProvider } from '../../types';
@@ -21,6 +23,7 @@ export class FlaskLaunchDebugConfigurationProvider implements IDebugConfiguratio
     }
     public async buildConfiguration(input: MultiStepInput<DebugConfigurationState>, state: DebugConfigurationState) {
         const application = await this.getApplicationPath(state.folder);
+        let manuallyEnteredAValue: boolean | undefined;
         const config: Partial<LaunchRequestArguments> = {
             name: localize('python.snippet.launch.flask.label', 'Python: Flask')(),
             type: DebuggerTypeName,
@@ -47,10 +50,12 @@ export class FlaskLaunchDebugConfigurationProvider implements IDebugConfiguratio
                 validate: value => Promise.resolve((value && value.trim().length > 0) ? undefined : Debug.flaskEnterAppPathOrNamePathInvalidNameError())
             });
             if (selectedApp) {
+                manuallyEnteredAValue = true;
                 config.env!.FLASK_APP = selectedApp;
             }
         }
 
+        sendTelemetryEvent(DEBUGGER_CONFIGURATION_PROMPTS, undefined, { configurationType: DebugConfigurationType.launchFlask, autoDetectedFlaskAppPyPath: !!application, manuallyEnteredAValue });
         Object.assign(state.config, config);
     }
     protected async getApplicationPath(folder: WorkspaceFolder | undefined): Promise<string | undefined> {

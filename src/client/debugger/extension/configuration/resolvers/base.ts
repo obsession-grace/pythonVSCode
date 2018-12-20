@@ -70,6 +70,7 @@ export abstract class BaseConfigurationResolver<T extends DebugConfiguration> im
         return (debugConfiguration.module && debugConfiguration.module.toUpperCase() === 'FLASK') ? true : false;
     }
     protected sendTelemetry(trigger: 'launch' | 'attach', debugConfiguration: Partial<LaunchRequestArguments & AttachRequestArguments>) {
+        const name = debugConfiguration.name || '';
         const telemetryProps: DebuggerTelemetry = {
             trigger,
             console: debugConfiguration.console,
@@ -84,7 +85,11 @@ export abstract class BaseConfigurationResolver<T extends DebugConfiguration> im
             pyramid: !!debugConfiguration.pyramid,
             stopOnEntry: !!debugConfiguration.stopOnEntry,
             showReturnValue: !!debugConfiguration.showReturnValue,
-            subProcess: !!debugConfiguration.subProcess
+            subProcess: !!debugConfiguration.subProcess,
+            watson: name.toLowerCase().indexOf('watson') >= 0,
+            pyspark: name.toLowerCase().indexOf('pyspark') >= 0,
+            gevent: name.toLowerCase().indexOf('gevent') >= 0,
+            scrapy: (debugConfiguration.module || '').toLowerCase() === 'scrapy'
         };
         sendTelemetryEvent(DEBUGGER, undefined, telemetryProps);
     }

@@ -12,9 +12,11 @@ import { IPathUtils } from '../../../../common/types';
 import { Debug, localize } from '../../../../common/utils/localize';
 import { MultiStepInput } from '../../../../common/utils/multiStepInput';
 import { SystemVariables } from '../../../../common/variables/systemVariables';
+import { sendTelemetryEvent } from '../../../../telemetry';
+import { DEBUGGER_CONFIGURATION_PROMPTS } from '../../../../telemetry/constants';
 import { DebuggerTypeName } from '../../../constants';
 import { LaunchRequestArguments } from '../../../types';
-import { DebugConfigurationState, IDebugConfigurationProvider } from '../../types';
+import { DebugConfigurationState, DebugConfigurationType, IDebugConfigurationProvider } from '../../types';
 
 // tslint:disable-next-line:no-invalid-template-strings
 const workspaceFolderToken = '${workspaceFolder}';
@@ -27,6 +29,7 @@ export class PyramidLaunchDebugConfigurationProvider implements IDebugConfigurat
     public async buildConfiguration(input: MultiStepInput<DebugConfigurationState>, state: DebugConfigurationState) {
         const iniPath = await this.getDevelopmentIniPath(state.folder);
         const defaultIni = `${workspaceFolderToken}${this.pathUtils.separator}development.ini`;
+        let manuallyEnteredAValue: boolean | undefined;
 
         const config: Partial<LaunchRequestArguments> = {
             name: localize('python.snippet.launch.pyramid.label', 'Python: Pyramid Application')(),
@@ -47,10 +50,12 @@ export class PyramidLaunchDebugConfigurationProvider implements IDebugConfigurat
                 validate: value => this.validateIniPath(state ? state.folder : undefined, defaultIni, value)
             });
             if (selectedIniPath) {
+                manuallyEnteredAValue = true;
                 config.args = [selectedIniPath];
             }
         }
 
+        sendTelemetryEvent(DEBUGGER_CONFIGURATION_PROMPTS, undefined, { configurationType: DebugConfigurationType.launchPyramid, autoDetectedPyramidIniPath: !!iniPath, manuallyEnteredAValue });
         Object.assign(state.config, config);
     }
     public async validateIniPath(folder: WorkspaceFolder | undefined, defaultValue: string, selected?: string): Promise<string | undefined> {

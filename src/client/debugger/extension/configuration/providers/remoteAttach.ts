@@ -6,9 +6,14 @@
 import { injectable } from 'inversify';
 import { Debug, localize } from '../../../../common/utils/localize';
 import { InputStep, MultiStepInput } from '../../../../common/utils/multiStepInput';
+import { sendTelemetryEvent } from '../../../../telemetry';
+import { DEBUGGER_CONFIGURATION_PROMPTS } from '../../../../telemetry/constants';
 import { DebuggerTypeName } from '../../../constants';
 import { AttachRequestArguments } from '../../../types';
-import { DebugConfigurationState, IDebugConfigurationProvider } from '../../types';
+import { DebugConfigurationState, DebugConfigurationType, IDebugConfigurationProvider } from '../../types';
+
+const defaultHost = 'localhost';
+const defaultPort = 5678;
 
 @injectable()
 export class RemoteAttachDebugConfigurationProvider implements IDebugConfigurationProvider {
@@ -17,22 +22,23 @@ export class RemoteAttachDebugConfigurationProvider implements IDebugConfigurati
             name: localize('python.snippet.launch.attach.label', 'Python: Attach')(),
             type: DebuggerTypeName,
             request: 'attach',
-            port: 5678,
-            host: 'localhost'
+            port: defaultPort,
+            host: defaultHost
         };
 
         config.host = await input.showInputBox({
             title: Debug.attachRemoteHostTitle(),
             step: 1,
             totalSteps: 2,
-            value: config.host || 'localhost',
+            value: config.host || defaultHost,
             prompt: Debug.attachRemoteHostPrompt(),
             validate: value => Promise.resolve((value && value.trim().length > 0) ? undefined : Debug.attachRemoteHostValidationError())
         });
         if (!config.host) {
-            config.host = 'localhost';
+            config.host = defaultHost;
         }
 
+        sendTelemetryEvent(DEBUGGER_CONFIGURATION_PROMPTS, undefined, { configurationType: DebugConfigurationType.remoteAttach, manuallyEnteredAValue: config.host !== defaultHost });
         Object.assign(state.config, config);
         return _ => this.configurePort(input, state.config);
     }
@@ -41,7 +47,7 @@ export class RemoteAttachDebugConfigurationProvider implements IDebugConfigurati
             title: Debug.attachRemotePortTitle(),
             step: 2,
             totalSteps: 2,
-            value: (config.port || 5678).toString(),
+            value: (config.port || defaultPort).toString(),
             prompt: Debug.attachRemotePortPrompt(),
             validate: value => Promise.resolve((value && /^\d+$/.test(value.trim())) ? undefined : Debug.attachRemotePortValidationError())
         });
@@ -49,7 +55,8 @@ export class RemoteAttachDebugConfigurationProvider implements IDebugConfigurati
             config.port = parseInt(port, 10);
         }
         if (!config.port) {
-            config.port = 5678;
+            config.port = defaultPort;
         }
+        sendTelemetryEvent(DEBUGGER_CONFIGURATION_PROMPTS, undefined, { configurationType: DebugConfigurationType.remoteAttach, manuallyEnteredAValue: config.port !== defaultPort });
     }
 }

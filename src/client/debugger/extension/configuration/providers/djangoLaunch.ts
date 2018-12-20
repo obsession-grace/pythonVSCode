@@ -12,9 +12,11 @@ import { IPathUtils } from '../../../../common/types';
 import { Debug, localize } from '../../../../common/utils/localize';
 import { MultiStepInput } from '../../../../common/utils/multiStepInput';
 import { SystemVariables } from '../../../../common/variables/systemVariables';
+import { sendTelemetryEvent } from '../../../../telemetry';
+import { DEBUGGER_CONFIGURATION_PROMPTS } from '../../../../telemetry/constants';
 import { DebuggerTypeName } from '../../../constants';
 import { LaunchRequestArguments } from '../../../types';
-import { DebugConfigurationState, IDebugConfigurationProvider } from '../../types';
+import { DebugConfigurationState, DebugConfigurationType, IDebugConfigurationProvider } from '../../types';
 
 // tslint:disable-next-line:no-invalid-template-strings
 const workspaceFolderToken = '${workspaceFolder}';
@@ -26,7 +28,7 @@ export class DjangoLaunchDebugConfigurationProvider implements IDebugConfigurati
         @inject(IPathUtils) private pathUtils: IPathUtils) { }
     public async buildConfiguration(input: MultiStepInput<DebugConfigurationState>, state: DebugConfigurationState) {
         const program = await this.getManagePyPath(state.folder);
-
+        let manuallyEnteredAValue: boolean | undefined;
         const defaultProgram = `${workspaceFolderToken}${this.pathUtils.separator}manage.py`;
         const config: Partial<LaunchRequestArguments> = {
             name: localize('python.snippet.launch.django.label', 'Python: Django')(),
@@ -48,10 +50,12 @@ export class DjangoLaunchDebugConfigurationProvider implements IDebugConfigurati
                 validate: value => this.validateManagePy(state.folder, defaultProgram, value)
             });
             if (selectedProgram) {
+                manuallyEnteredAValue = true;
                 config.program = selectedProgram;
             }
         }
 
+        sendTelemetryEvent(DEBUGGER_CONFIGURATION_PROMPTS, undefined, { configurationType: DebugConfigurationType.launchDjango, autoDetectedDjangoManagePyPath: !!program, manuallyEnteredAValue });
         Object.assign(state.config, config);
     }
     public async validateManagePy(folder: WorkspaceFolder | undefined, defaultValue: string, selected?: string): Promise<string | undefined> {
