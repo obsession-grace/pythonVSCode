@@ -1,18 +1,17 @@
 import { inject, injectable } from 'inversify';
 import { CancellationToken, CodeLens, Command, Event, Position, Range, TextDocument, Uri, workspace } from 'vscode';
-import * as settings from '../../common/configSettings';
 import { IS_WINDOWS } from '../../common/platform/constants';
 import { IProcessServiceFactory } from '../../common/process/types';
-import { IServiceContainer } from '../../ioc/types';
+import { IConfigurationService } from '../../common/types';
 import { IShebangCodeLensProvider } from '../contracts';
 
 @injectable()
 export class ShebangCodeLensProvider implements IShebangCodeLensProvider {
     // tslint:disable-next-line:no-any
     public onDidChangeCodeLenses: Event<void> = workspace.onDidChangeConfiguration as any as Event<void>;
-    private readonly processServiceFactory: IProcessServiceFactory;
-    constructor(@inject(IServiceContainer) serviceContainer: IServiceContainer) {
-        this.processServiceFactory = serviceContainer.get<IProcessServiceFactory>(IProcessServiceFactory);
+    constructor(@inject(IProcessServiceFactory) private readonly processServiceFactory: IProcessServiceFactory,
+        @inject(IConfigurationService) private readonly configurationService: IConfigurationService) {
+
     }
     public async detectShebang(document: TextDocument): Promise<string | undefined> {
         const firstLine = document.lineAt(0);
@@ -48,7 +47,7 @@ export class ShebangCodeLensProvider implements IShebangCodeLensProvider {
     }
     private async createShebangCodeLens(document: TextDocument) {
         const shebang = await this.detectShebang(document);
-        const pythonPath = settings.PythonSettings.getInstance(document.uri).pythonPath;
+        const pythonPath = this.configurationService.getSettings(document.uri).pythonPath;
         const resolvedPythonPath = await this.getFullyQualifiedPathToInterpreter(pythonPath, document.uri);
         if (!shebang || shebang === resolvedPythonPath) {
             return [];
