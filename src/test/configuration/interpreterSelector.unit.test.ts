@@ -7,11 +7,11 @@ import { ConfigurationTarget, Uri } from 'vscode';
 import { IApplicationShell, ICommandManager, IDocumentManager, IWorkspaceService } from '../../client/common/application/types';
 import { PathUtils } from '../../client/common/platform/pathUtils';
 import { IFileSystem } from '../../client/common/platform/types';
+import { IConfigurationService, IPythonSettings } from '../../client/common/types';
 import { Architecture } from '../../client/common/utils/platform';
 import { IInterpreterQuickPickItem, InterpreterSelector } from '../../client/interpreter/configuration/interpreterSelector';
 import { IInterpreterComparer, IPythonPathUpdaterServiceManager } from '../../client/interpreter/configuration/types';
 import { IInterpreterService, InterpreterType, IShebangCodeLensProvider, PythonInterpreter } from '../../client/interpreter/contracts';
-import { IConfigurationService, IPythonSettings } from '../../client/common/types';
 
 const info: PythonInterpreter = {
     architecture: Architecture.Unknown,
