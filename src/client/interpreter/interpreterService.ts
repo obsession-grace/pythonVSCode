@@ -163,13 +163,13 @@ export class InterpreterService implements Disposable, IInterpreterService {
         const interpreterInfo = await Promise.race([option2, option1]) as PythonInterpreter;
 
         // tslint:disable-next-line:no-any
-        if ((interpreterInfo as any).__store) {
+        if (interpreterInfo && (interpreterInfo as any).__store) {
             await store.updateValue({ ...interpreterInfo, path: pythonPath, fileHash });
         } else {
             // If we got information from option1, then when option2 finishes cache it for later use (ignoring erors);
             option2.then(info => {
                 // tslint:disable-next-line:no-any
-                if ((info as any).__store) {
+                if (info && (info as any).__store) {
                     return store.updateValue({ ...info, path: pythonPath, fileHash });
                 }
             }).ignoreErrors();
