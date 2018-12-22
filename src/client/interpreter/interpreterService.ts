@@ -1,6 +1,7 @@
 import { inject, injectable } from 'inversify';
 import * as path from 'path';
 import { ConfigurationTarget, Disposable, Event, EventEmitter, Uri } from 'vscode';
+import '../../client/common/extensions';
 import { IDocumentManager, IWorkspaceService } from '../common/application/types';
 import { PythonSettings } from '../common/configSettings';
 import { getArchitectureDisplayName } from '../common/platform/registry';
@@ -139,8 +140,9 @@ export class InterpreterService implements Disposable, IInterpreterService {
         // Try to collect the infromation manually, that's faster.
         // Get from which ever comes first.
         const option1 = (async () => {
+            const result = this.collectInterpreterDetails(pythonPath, resource);
             await sleep(1000); // let the other option complete within 1s if possible.
-            return this.collectInterpreterDetails(pythonPath, resource);
+            return result;
         })();
 
         // This is the preferred approach, hence the delay in option 1.
