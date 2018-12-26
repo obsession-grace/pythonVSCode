@@ -1,7 +1,6 @@
 import { inject, injectable, named, optional } from 'inversify';
 import * as path from 'path';
 import { parse, SemVer } from 'semver';
-
 import { Logger } from '../../../common/logger';
 import { IFileSystem, IPlatformService } from '../../../common/platform/types';
 import { ExecutionResult, IProcessServiceFactory } from '../../../common/process/types';
