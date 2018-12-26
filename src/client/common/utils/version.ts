@@ -29,10 +29,10 @@ export function convertPythonVersionToSemver(version: string): semver.SemVer | u
         return;
     }
     const versionParts = (version || '')
-    .split('.')
-    .map(item => item.trim())
-    .filter(item => item.length > 0)
-    .filter((_, index) => index < 4);
+        .split('.')
+        .map(item => item.trim())
+        .filter(item => item.length > 0)
+        .filter((_, index) => index < 4);
 
     if (versionParts.length > 0 && versionParts[versionParts.length - 1].indexOf('-') > 0) {
         const lastPart = versionParts[versionParts.length - 1];
