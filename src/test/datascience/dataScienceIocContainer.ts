@@ -64,6 +64,7 @@ import {
     INotebookServer,
     IStatusProvider,
 } from '../../client/datascience/types';
+import { IInterpreterAutoSeletionService } from '../../client/interpreter/autoSelection/types';
 import { InterpreterComparer } from '../../client/interpreter/configuration/interpreterComparer';
 import { PythonPathUpdaterService } from '../../client/interpreter/configuration/pythonPathUpdaterService';
 import { PythonPathUpdaterServiceFactory } from '../../client/interpreter/configuration/pythonPathUpdaterServiceFactory';
@@ -96,7 +97,6 @@ import {
     WORKSPACE_VIRTUAL_ENV_SERVICE,
 } from '../../client/interpreter/contracts';
 import { InterpreterHelper } from '../../client/interpreter/helpers';
-import { IInterpreterAutoSeletionService } from '../../client/interpreter/interpreterSelection/types';
 import { InterpreterService } from '../../client/interpreter/interpreterService';
 import { InterpreterVersionService } from '../../client/interpreter/interpreterVersion';
 import { PythonInterpreterLocatorService } from '../../client/interpreter/locators';

@@ -25,7 +25,7 @@ import {
     Resource
 } from '../../client/common/types';
 import { noop } from '../../client/common/utils/misc';
-import { IInterpreterAutoSeletionService } from '../../client/interpreter/interpreterSelection/types';
+import { IInterpreterAutoSeletionService } from '../../client/interpreter/autoSelection/types';
 
 // tslint:disable-next-line:max-func-body-length
 suite('Python Settings', () => {

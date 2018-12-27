@@ -2,6 +2,13 @@
 // Licensed under the MIT License.
 
 import { IServiceManager } from '../ioc/types';
+import { InterpreterAutoSeletionService } from './autoSelection';
+import { InterpreterAutoSeletionProxyService } from './autoSelection/proxy';
+import { CurrentPathInterpreterSelectionStratergy } from './autoSelection/stratergies/currentPath';
+import { SystemInterpreterSelectionStratergy } from './autoSelection/stratergies/system';
+import { WindowsRegistryInterpreterSelectionStratergy } from './autoSelection/stratergies/windowsRegistry';
+import { WorkspaceInterpreterSelectionStratergy } from './autoSelection/stratergies/workspace';
+import { IBestAvailableInterpreterSelectorStratergy, IInterpreterAutoSeletionProxyService, IInterpreterAutoSeletionService } from './autoSelection/types';
 import { InterpreterComparer } from './configuration/interpreterComparer';
 import { InterpreterSelector } from './configuration/interpreterSelector';
 import { PythonPathUpdaterService } from './configuration/pythonPathUpdaterService';
@@ -38,13 +45,6 @@ import { InterpreterDisplay } from './display';
 import { InterpreterLocatorProgressStatubarHandler } from './display/progressDisplay';
 import { ShebangCodeLensProvider } from './display/shebangCodeLensProvider';
 import { InterpreterHelper } from './helpers';
-import { InterpreterAutoSeletionService } from './interpreterSelection';
-import { InterpreterAutoSeletionProxyService } from './interpreterSelection/proxy';
-import { CurrentPathInterpreterSelectionStratergy } from './interpreterSelection/stratergies/currentPath';
-import { SystemInterpreterSelectionStratergy } from './interpreterSelection/stratergies/system';
-import { WindowsRegistryInterpreterSelectionStratergy } from './interpreterSelection/stratergies/windowsRegistry';
-import { WorkspaceInterpreterSelectionStratergy } from './interpreterSelection/stratergies/workspace';
-import { IBestAvailableInterpreterSelectorStratergy, IInterpreterAutoSeletionProxyService, IInterpreterAutoSeletionService } from './interpreterSelection/types';
 import { InterpreterService } from './interpreterService';
 import { InterpreterVersionService } from './interpreterVersion';
 import { InterpreterLocatorHelper } from './locators/helpers';

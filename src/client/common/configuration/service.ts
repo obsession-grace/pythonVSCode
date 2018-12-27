@@ -3,7 +3,7 @@
 
 import { inject, injectable } from 'inversify';
 import { ConfigurationTarget, Uri, workspace, WorkspaceConfiguration } from 'vscode';
-import { IInterpreterAutoSeletionProxyService } from '../../interpreter/interpreterSelection/types';
+import { IInterpreterAutoSeletionProxyService } from '../../interpreter/autoSelection/types';
 import { IServiceContainer } from '../../ioc/types';
 import { PythonSettings } from '../configSettings';
 import { IConfigurationService, IPythonSettings } from '../types';

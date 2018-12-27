@@ -7,7 +7,7 @@ import {
     ConfigurationTarget, DiagnosticSeverity, Disposable, Uri,
     workspace, WorkspaceConfiguration
 } from 'vscode';
-import { IInterpreterAutoSeletionProxyService } from '../interpreter/interpreterSelection/types';
+import { IInterpreterAutoSeletionProxyService } from '../interpreter/autoSelection/types';
 import { sendTelemetryEvent } from '../telemetry';
 import { COMPLETION_ADD_BRACKETS, FORMAT_ON_TYPE } from '../telemetry/constants';
 import { isTestExecution } from './constants';

@@ -37,7 +37,7 @@ import { JupyterExecution } from '../../client/datascience/jupyterExecution';
 import { JupyterExporter } from '../../client/datascience/jupyterExporter';
 import { JupyterImporter } from '../../client/datascience/jupyterImporter';
 import { IHistory, INotebookServer, IStatusProvider } from '../../client/datascience/types';
-import { InterpreterAutoSeletionService } from '../../client/interpreter/interpreterSelection';
+import { InterpreterAutoSeletionService } from '../../client/interpreter/autoSelection';
 import { InterpreterService } from '../../client/interpreter/interpreterService';
 import { KnownSearchPathsForInterpreters } from '../../client/interpreter/locators/services/KnownPathsService';
 import { ServiceContainer } from '../../client/ioc/container';

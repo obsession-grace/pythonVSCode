@@ -15,7 +15,7 @@ import { createDeferred } from '../../../client/common/utils/async';
 import { EnvironmentVariablesService } from '../../../client/common/variables/environment';
 import { EnvironmentVariablesProvider } from '../../../client/common/variables/environmentVariablesProvider';
 import { EnvironmentVariables } from '../../../client/common/variables/types';
-import { IInterpreterAutoSeletionService } from '../../../client/interpreter/interpreterSelection/types';
+import { IInterpreterAutoSeletionService } from '../../../client/interpreter/autoSelection/types';
 import { clearPythonPathInWorkspaceFolder, updateSetting } from '../../common';
 import { closeActiveWindows, initialize, initializeTest, IS_MULTI_ROOT_TEST } from '../../initialize';
 import { MockProcess } from '../../mocks/process';
