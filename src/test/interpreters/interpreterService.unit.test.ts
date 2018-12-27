@@ -21,7 +21,6 @@ import { IConfigurationService, IDisposableRegistry, IPersistentStateFactory } f
 import * as EnumEx from '../../client/common/utils/enum';
 import { noop } from '../../client/common/utils/misc';
 import { Architecture } from '../../client/common/utils/platform';
-import { convertPythonVersionToSemver } from '../../client/common/utils/version';
 import { IPythonPathUpdaterServiceManager } from '../../client/interpreter/configuration/types';
 import {
     IInterpreterDisplay,
