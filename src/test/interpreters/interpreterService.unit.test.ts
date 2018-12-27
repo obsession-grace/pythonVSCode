@@ -52,7 +52,7 @@ const info: PythonInterpreter = {
     sysVersion: ''
 };
 
-suite('Interpreters service', () => {
+suite('xxInterpreters service', () => {
     let serviceManager: ServiceManager;
     let serviceContainer: ServiceContainer;
     let updater: TypeMoq.IMock<IPythonPathUpdaterServiceManager>;
@@ -238,76 +238,76 @@ suite('Interpreters service', () => {
 
     suite('Should Auto Set Interpreter', () => {
         setup(setupSuite);
-        test('Should not auto set interpreter if there is no workspace', async () => {
-            const service = new InterpreterService(serviceContainer);
-            helper
-                .setup(h => h.getActiveWorkspaceUri())
-                .returns(() => undefined)
-                .verifiable(TypeMoq.Times.once());
+        // test('Should not auto set interpreter if there is no workspace', async () => {
+        //     const service = new InterpreterService(serviceContainer);
+        //     helper
+        //         .setup(h => h.getActiveWorkspaceUri(undefined))
+        //         .returns(() => undefined)
+        //         .verifiable(TypeMoq.Times.once());
 
-            await expect(service.shouldAutoSetInterpreter()).to.eventually.equal(false, 'not false');
+        //     await expect(service.shouldAutoSetInterpreter()).to.eventually.equal(false, 'not false');
 
-            helper.verifyAll();
-        });
+        //     helper.verifyAll();
+        // });
 
-        test('Should not auto set interpreter if there is a value in global user settings (global value is not \'python\')', async () => {
-            const service = new InterpreterService(serviceContainer);
-            workspacePythonPath
-                .setup(w => w.folderUri)
-                .returns(() => Uri.file('w'))
-                .verifiable(TypeMoq.Times.once());
-            helper
-                .setup(h => h.getActiveWorkspaceUri())
-                .returns(() => workspacePythonPath.object)
-                .verifiable(TypeMoq.Times.once());
-            const pythonPathConfigValue = TypeMoq.Mock.ofType<ConfigValue<string>>();
-            config
-                .setup(w => w.inspect<string>(TypeMoq.It.isAny()))
-                .returns(() => pythonPathConfigValue.object)
-                .verifiable(TypeMoq.Times.once());
-            pythonPathConfigValue
-                .setup(p => p.globalValue)
-                .returns(() => path.join('a', 'bin', 'python'))
-                .verifiable(TypeMoq.Times.atLeastOnce());
+        // test('Should not auto set interpreter if there is a value in global user settings (global value is not \'python\')', async () => {
+        //     const service = new InterpreterService(serviceContainer);
+        //     workspacePythonPath
+        //         .setup(w => w.folderUri)
+        //         .returns(() => Uri.file('w'))
+        //         .verifiable(TypeMoq.Times.once());
+        //     helper
+        //         .setup(h => h.getActiveWorkspaceUri(undefined))
+        //         .returns(() => workspacePythonPath.object)
+        //         .verifiable(TypeMoq.Times.once());
+        //     const pythonPathConfigValue = TypeMoq.Mock.ofType<ConfigValue<string>>();
+        //     config
+        //         .setup(w => w.inspect<string>(TypeMoq.It.isAny()))
+        //         .returns(() => pythonPathConfigValue.object)
+        //         .verifiable(TypeMoq.Times.once());
+        //     pythonPathConfigValue
+        //         .setup(p => p.globalValue)
+        //         .returns(() => path.join('a', 'bin', 'python'))
+        //         .verifiable(TypeMoq.Times.atLeastOnce());
 
-            await expect(service.shouldAutoSetInterpreter()).to.eventually.equal(false, 'not false');
+        //     await expect(service.shouldAutoSetInterpreter()).to.eventually.equal(false, 'not false');
 
-            helper.verifyAll();
-            workspace.verifyAll();
-            config.verifyAll();
-            pythonPathConfigValue.verifyAll();
-        });
-        test('Should not auto set interpreter if there is a value in workspace settings (& value is not \'python\')', async () => {
-            const service = new InterpreterService(serviceContainer);
-            workspacePythonPath
-                .setup(w => w.configTarget)
-                .returns(() => ConfigurationTarget.Workspace)
-                .verifiable(TypeMoq.Times.once());
-            helper
-                .setup(h => h.getActiveWorkspaceUri())
-                .returns(() => workspacePythonPath.object)
-                .verifiable(TypeMoq.Times.once());
-            const pythonPathConfigValue = TypeMoq.Mock.ofType<ConfigValue<string>>();
-            config
-                .setup(w => w.inspect(TypeMoq.It.isValue('pythonPath')))
-                .returns(() => pythonPathConfigValue.object)
-                .verifiable(TypeMoq.Times.once());
-            pythonPathConfigValue
-                .setup(p => p.globalValue)
-                .returns(() => undefined)
-                .verifiable(TypeMoq.Times.atLeastOnce());
-            pythonPathConfigValue
-                .setup(p => p.workspaceValue)
-                .returns(() => path.join('a', 'bin', 'python'))
-                .verifiable(TypeMoq.Times.atLeastOnce());
+        //     helper.verifyAll();
+        //     workspace.verifyAll();
+        //     config.verifyAll();
+        //     pythonPathConfigValue.verifyAll();
+        // });
+        // test('Should not auto set interpreter if there is a value in workspace settings (& value is not \'python\')', async () => {
+        //     const service = new InterpreterService(serviceContainer);
+        //     workspacePythonPath
+        //         .setup(w => w.configTarget)
+        //         .returns(() => ConfigurationTarget.Workspace)
+        //         .verifiable(TypeMoq.Times.once());
+        //     helper
+        //         .setup(h => h.getActiveWorkspaceUri(undefined))
+        //         .returns(() => workspacePythonPath.object)
+        //         .verifiable(TypeMoq.Times.once());
+        //     const pythonPathConfigValue = TypeMoq.Mock.ofType<ConfigValue<string>>();
+        //     config
+        //         .setup(w => w.inspect(TypeMoq.It.isValue('pythonPath')))
+        //         .returns(() => pythonPathConfigValue.object)
+        //         .verifiable(TypeMoq.Times.once());
+        //     pythonPathConfigValue
+        //         .setup(p => p.globalValue)
+        //         .returns(() => undefined)
+        //         .verifiable(TypeMoq.Times.atLeastOnce());
+        //     pythonPathConfigValue
+        //         .setup(p => p.workspaceValue)
+        //         .returns(() => path.join('a', 'bin', 'python'))
+        //         .verifiable(TypeMoq.Times.atLeastOnce());
 
-            await expect(service.shouldAutoSetInterpreter()).to.eventually.equal(false, 'not false');
+        //     await expect(service.shouldAutoSetInterpreter()).to.eventually.equal(false, 'not false');
 
-            helper.verifyAll();
-            workspace.verifyAll();
-            config.verifyAll();
-            pythonPathConfigValue.verifyAll();
-        });
+        //     helper.verifyAll();
+        //     workspace.verifyAll();
+        //     config.verifyAll();
+        //     pythonPathConfigValue.verifyAll();
+        // });
 
         [
             { configTarget: ConfigurationTarget.Workspace, label: 'Workspace' },
@@ -315,210 +315,210 @@ suite('Interpreters service', () => {
         ].forEach(item => {
             const testSuffix = `(${item.label})`;
             const cfgTarget = item.configTarget as (ConfigurationTarget.Workspace | ConfigurationTarget.WorkspaceFolder);
-            test(`Should auto set interpreter if there is no value in workspace settings ${testSuffix}`, async () => {
-                const service = new InterpreterService(serviceContainer);
-                workspacePythonPath
-                    .setup(w => w.configTarget)
-                    .returns(() => cfgTarget)
-                    .verifiable(TypeMoq.Times.once());
-                helper
-                    .setup(h => h.getActiveWorkspaceUri())
-                    .returns(() => workspacePythonPath.object)
-                    .verifiable(TypeMoq.Times.once());
-                const pythonPathConfigValue = TypeMoq.Mock.ofType<ConfigValue<string>>();
-                config
-                    .setup(w => w.inspect(TypeMoq.It.isValue('pythonPath')))
-                    .returns(() => pythonPathConfigValue.object)
-                    .verifiable(TypeMoq.Times.once());
-                pythonPathConfigValue
-                    .setup(p => p.globalValue)
-                    .returns(() => undefined)
-                    .verifiable(TypeMoq.Times.atLeastOnce());
-                if (cfgTarget === ConfigurationTarget.Workspace) {
-                    pythonPathConfigValue
-                        .setup(p => p.workspaceValue)
-                        .returns(() => undefined)
-                        .verifiable(TypeMoq.Times.atLeastOnce());
-                } else {
-                    pythonPathConfigValue
-                        .setup(p => p.workspaceFolderValue)
-                        .returns(() => undefined)
-                        .verifiable(TypeMoq.Times.atLeastOnce());
-                }
+            // test(`Should auto set interpreter if there is no value in workspace settings ${testSuffix}`, async () => {
+            //     const service = new InterpreterService(serviceContainer);
+            //     workspacePythonPath
+            //         .setup(w => w.configTarget)
+            //         .returns(() => cfgTarget)
+            //         .verifiable(TypeMoq.Times.once());
+            //     helper
+            //         .setup(h => h.getActiveWorkspaceUri(undefined))
+            //         .returns(() => workspacePythonPath.object)
+            //         .verifiable(TypeMoq.Times.once());
+            //     const pythonPathConfigValue = TypeMoq.Mock.ofType<ConfigValue<string>>();
+            //     config
+            //         .setup(w => w.inspect(TypeMoq.It.isValue('pythonPath')))
+            //         .returns(() => pythonPathConfigValue.object)
+            //         .verifiable(TypeMoq.Times.once());
+            //     pythonPathConfigValue
+            //         .setup(p => p.globalValue)
+            //         .returns(() => undefined)
+            //         .verifiable(TypeMoq.Times.atLeastOnce());
+            //     if (cfgTarget === ConfigurationTarget.Workspace) {
+            //         pythonPathConfigValue
+            //             .setup(p => p.workspaceValue)
+            //             .returns(() => undefined)
+            //             .verifiable(TypeMoq.Times.atLeastOnce());
+            //     } else {
+            //         pythonPathConfigValue
+            //             .setup(p => p.workspaceFolderValue)
+            //             .returns(() => undefined)
+            //             .verifiable(TypeMoq.Times.atLeastOnce());
+            //     }
 
-                await expect(service.shouldAutoSetInterpreter()).to.eventually.equal(true, 'not true');
+            //     await expect(service.shouldAutoSetInterpreter()).to.eventually.equal(true, 'not true');
 
-                helper.verifyAll();
-                workspace.verifyAll();
-                config.verifyAll();
-                pythonPathConfigValue.verifyAll();
-            });
+            //     helper.verifyAll();
+            //     workspace.verifyAll();
+            //     config.verifyAll();
+            //     pythonPathConfigValue.verifyAll();
+            // });
 
-            test(`Should auto set interpreter if there is no value in workspace settings and value is \'python\' ${testSuffix}`, async () => {
-                const service = new InterpreterService(serviceContainer);
-                workspacePythonPath
-                    .setup(w => w.configTarget)
-                    .returns(() => ConfigurationTarget.Workspace)
-                    .verifiable(TypeMoq.Times.once());
-                helper
-                    .setup(h => h.getActiveWorkspaceUri())
-                    .returns(() => workspacePythonPath.object)
-                    .verifiable(TypeMoq.Times.once());
-                const pythonPathConfigValue = TypeMoq.Mock.ofType<ConfigValue<string>>();
-                config
-                    .setup(w => w.inspect(TypeMoq.It.isValue('pythonPath')))
-                    .returns(() => pythonPathConfigValue.object)
-                    .verifiable(TypeMoq.Times.once());
-                pythonPathConfigValue
-                    .setup(p => p.globalValue)
-                    .returns(() => undefined)
-                    .verifiable(TypeMoq.Times.atLeastOnce());
-                pythonPathConfigValue
-                    .setup(p => p.workspaceValue)
-                    .returns(() => 'python')
-                    .verifiable(TypeMoq.Times.atLeastOnce());
+            // test(`Should auto set interpreter if there is no value in workspace settings and value is \'python\' ${testSuffix}`, async () => {
+            //     const service = new InterpreterService(serviceContainer);
+            //     workspacePythonPath
+            //         .setup(w => w.configTarget)
+            //         .returns(() => ConfigurationTarget.Workspace)
+            //         .verifiable(TypeMoq.Times.once());
+            //     helper
+            //         .setup(h => h.getActiveWorkspaceUri(undefined))
+            //         .returns(() => workspacePythonPath.object)
+            //         .verifiable(TypeMoq.Times.once());
+            //     const pythonPathConfigValue = TypeMoq.Mock.ofType<ConfigValue<string>>();
+            //     config
+            //         .setup(w => w.inspect(TypeMoq.It.isValue('pythonPath')))
+            //         .returns(() => pythonPathConfigValue.object)
+            //         .verifiable(TypeMoq.Times.once());
+            //     pythonPathConfigValue
+            //         .setup(p => p.globalValue)
+            //         .returns(() => undefined)
+            //         .verifiable(TypeMoq.Times.atLeastOnce());
+            //     pythonPathConfigValue
+            //         .setup(p => p.workspaceValue)
+            //         .returns(() => 'python')
+            //         .verifiable(TypeMoq.Times.atLeastOnce());
 
-                await expect(service.shouldAutoSetInterpreter()).to.eventually.equal(true, 'not true');
+            //     await expect(service.shouldAutoSetInterpreter()).to.eventually.equal(true, 'not true');
 
-                helper.verifyAll();
-                workspace.verifyAll();
-                config.verifyAll();
-                pythonPathConfigValue.verifyAll();
-            });
+            //     helper.verifyAll();
+            //     workspace.verifyAll();
+            //     config.verifyAll();
+            //     pythonPathConfigValue.verifyAll();
+            // });
         });
     });
 
-    suite('Auto Set Interpreter', () => {
-        setup(setupSuite);
-        test('autoset interpreter - no workspace', async () => {
-            await verifyUpdateCalled(TypeMoq.Times.never());
-        });
+    // suite('Auto Set Interpreter', () => {
+    //     setup(setupSuite);
+    //     test('autoset interpreter - no workspace', async () => {
+    //         await verifyUpdateCalled(TypeMoq.Times.never());
+    //     });
 
-        test('autoset interpreter - global pythonPath in config', async () => {
-            setupWorkspace('folder');
-            config.setup(x => x.inspect('pythonPath')).returns(() => {
-                return { key: 'python', globalValue: 'global' };
-            });
-            await verifyUpdateCalled(TypeMoq.Times.never());
-        });
+    //     test('autoset interpreter - global pythonPath in config', async () => {
+    //         setupWorkspace('folder');
+    //         config.setup(x => x.inspect('pythonPath')).returns(() => {
+    //             return { key: 'python', globalValue: 'global' };
+    //         });
+    //         await verifyUpdateCalled(TypeMoq.Times.never());
+    //     });
 
-        test('autoset interpreter - workspace has no pythonPath in config', async () => {
-            setupWorkspace('folder');
-            config.setup(x => x.inspect('pythonPath')).returns(() => {
-                return { key: 'python' };
-            });
-            const interpreter: PythonInterpreter = {
-                ...info,
-                path: path.join('folder', 'py1', 'bin', 'python.exe'),
-                type: InterpreterType.Unknown
-            };
-            setupLocators([interpreter], []);
-            await verifyUpdateCalled(TypeMoq.Times.once());
-        });
+    //     test('autoset interpreter - workspace has no pythonPath in config', async () => {
+    //         setupWorkspace('folder');
+    //         config.setup(x => x.inspect('pythonPath')).returns(() => {
+    //             return { key: 'python' };
+    //         });
+    //         const interpreter: PythonInterpreter = {
+    //             ...info,
+    //             path: path.join('folder', 'py1', 'bin', 'python.exe'),
+    //             type: InterpreterType.Unknown
+    //         };
+    //         setupLocators([interpreter], []);
+    //         await verifyUpdateCalled(TypeMoq.Times.once());
+    //     });
 
-        test('autoset interpreter - workspace has default pythonPath in config', async () => {
-            setupWorkspace('folder');
-            config.setup(x => x.inspect('pythonPath')).returns(() => {
-                return { key: 'python', workspaceValue: 'python' };
-            });
-            setupLocators([], []);
-            await verifyUpdateCalled(TypeMoq.Times.never());
-        });
+    //     test('autoset interpreter - workspace has default pythonPath in config', async () => {
+    //         setupWorkspace('folder');
+    //         config.setup(x => x.inspect('pythonPath')).returns(() => {
+    //             return { key: 'python', workspaceValue: 'python' };
+    //         });
+    //         setupLocators([], []);
+    //         await verifyUpdateCalled(TypeMoq.Times.never());
+    //     });
 
-        test('autoset interpreter - pipenv workspace', async () => {
-            setupWorkspace('folder');
-            config.setup(x => x.inspect('pythonPath')).returns(() => {
-                return { key: 'python', workspaceValue: 'python' };
-            });
-            const interpreter: PythonInterpreter = {
-                ...info,
-                path: 'python',
-                type: InterpreterType.VirtualEnv
-            };
-            setupLocators([], [interpreter]);
-            await verifyUpdateCallData('python', ConfigurationTarget.Workspace, 'folder');
-        });
+    //     test('autoset interpreter - pipenv workspace', async () => {
+    //         setupWorkspace('folder');
+    //         config.setup(x => x.inspect('pythonPath')).returns(() => {
+    //             return { key: 'python', workspaceValue: 'python' };
+    //         });
+    //         const interpreter: PythonInterpreter = {
+    //             ...info,
+    //             path: 'python',
+    //             type: InterpreterType.VirtualEnv
+    //         };
+    //         setupLocators([], [interpreter]);
+    //         await verifyUpdateCallData('python', ConfigurationTarget.Workspace, 'folder');
+    //     });
 
-        test('autoset interpreter - workspace without interpreter', async () => {
-            setupWorkspace('root');
-            config.setup(x => x.inspect('pythonPath')).returns(() => {
-                return { key: 'python', workspaceValue: 'elsewhere' };
-            });
-            const interpreter: PythonInterpreter = {
-                ...info,
-                path: 'elsewhere',
-                type: InterpreterType.Unknown
-            };
+    //     test('autoset interpreter - workspace without interpreter', async () => {
+    //         setupWorkspace('root');
+    //         config.setup(x => x.inspect('pythonPath')).returns(() => {
+    //             return { key: 'python', workspaceValue: 'elsewhere' };
+    //         });
+    //         const interpreter: PythonInterpreter = {
+    //             ...info,
+    //             path: 'elsewhere',
+    //             type: InterpreterType.Unknown
+    //         };
 
-            setupLocators([interpreter], []);
-            await verifyUpdateCalled(TypeMoq.Times.never());
-        });
+    //         setupLocators([interpreter], []);
+    //         await verifyUpdateCalled(TypeMoq.Times.never());
+    //     });
 
-        test('autoset interpreter - workspace with interpreter', async () => {
-            setupWorkspace('root');
-            config.setup(x => x.inspect('pythonPath')).returns(() => {
-                return { key: 'python' };
-            });
-            const intPath = path.join('root', 'under', 'bin', 'python.exe');
-            const interpreter: PythonInterpreter = {
-                ...info,
-                path: intPath,
-                type: InterpreterType.Unknown
-            };
+    //     test('autoset interpreter - workspace with interpreter', async () => {
+    //         setupWorkspace('root');
+    //         config.setup(x => x.inspect('pythonPath')).returns(() => {
+    //             return { key: 'python' };
+    //         });
+    //         const intPath = path.join('root', 'under', 'bin', 'python.exe');
+    //         const interpreter: PythonInterpreter = {
+    //             ...info,
+    //             path: intPath,
+    //             type: InterpreterType.Unknown
+    //         };
 
-            setupLocators([interpreter], []);
-            await verifyUpdateCallData(intPath, ConfigurationTarget.Workspace, 'root');
-        });
+    //         setupLocators([interpreter], []);
+    //         await verifyUpdateCallData(intPath, ConfigurationTarget.Workspace, 'root');
+    //     });
 
-        async function verifyUpdateCalled(times: TypeMoq.Times) {
-            const service = new InterpreterService(serviceContainer);
-            await service.autoSetInterpreter();
-            updater
-                .verify(x => x.updatePythonPath(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()), times);
-        }
+    //     async function verifyUpdateCalled(times: TypeMoq.Times) {
+    //         const service = new InterpreterService(serviceContainer);
+    //         await service.autoSetInterpreter();
+    //         updater
+    //             .verify(x => x.updatePythonPath(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()), times);
+    //     }
 
-        async function verifyUpdateCallData(pythonPath: string, target: ConfigurationTarget, wksFolder: string) {
-            let pp: string | undefined;
-            let confTarget: ConfigurationTarget | undefined;
-            let trigger;
-            let wks;
-            updater
-                .setup(x => x.updatePythonPath(TypeMoq.It.isAnyString(), TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-                // tslint:disable-next-line:no-any
-                .callback((p: string, c: ConfigurationTarget, t: any, w: any) => {
-                    pp = p;
-                    confTarget = c;
-                    trigger = t;
-                    wks = w;
-                })
-                .returns(() => Promise.resolve());
+    //     async function verifyUpdateCallData(pythonPath: string, target: ConfigurationTarget, wksFolder: string) {
+    //         let pp: string | undefined;
+    //         let confTarget: ConfigurationTarget | undefined;
+    //         let trigger;
+    //         let wks;
+    //         updater
+    //             .setup(x => x.updatePythonPath(TypeMoq.It.isAnyString(), TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+    //             // tslint:disable-next-line:no-any
+    //             .callback((p: string, c: ConfigurationTarget, t: any, w: any) => {
+    //                 pp = p;
+    //                 confTarget = c;
+    //                 trigger = t;
+    //                 wks = w;
+    //             })
+    //             .returns(() => Promise.resolve());
 
-            const service = new InterpreterService(serviceContainer);
-            await service.autoSetInterpreter();
+    //         const service = new InterpreterService(serviceContainer);
+    //         await service.autoSetInterpreter();
 
-            expect(pp).not.to.be.equal(undefined, 'updatePythonPath not called');
-            expect(pp!).to.be.equal(pythonPath, 'invalid Python path');
-            expect(confTarget).to.be.equal(target, 'invalid configuration target');
-            expect(trigger).to.be.equal('load', 'invalid trigger');
-            expect(wks.fsPath).to.be.equal(Uri.file(wksFolder).fsPath, 'invalid workspace Uri');
-        }
+    //         expect(pp).not.to.be.equal(undefined, 'updatePythonPath not called');
+    //         expect(pp!).to.be.equal(pythonPath, 'invalid Python path');
+    //         expect(confTarget).to.be.equal(target, 'invalid configuration target');
+    //         expect(trigger).to.be.equal('load', 'invalid trigger');
+    //         expect(wks.fsPath).to.be.equal(Uri.file(wksFolder).fsPath, 'invalid workspace Uri');
+    //     }
 
-        function setupWorkspace(folder: string) {
-            const wsPath: WorkspacePythonPath = {
-                folderUri: Uri.file(folder),
-                configTarget: ConfigurationTarget.Workspace
-            };
-            helper.setup(x => x.getActiveWorkspaceUri()).returns(() => wsPath);
-        }
+    //     function setupWorkspace(folder: string) {
+    //         const wsPath: WorkspacePythonPath = {
+    //             folderUri: Uri.file(folder),
+    //             configTarget: ConfigurationTarget.Workspace
+    //         };
+    //         helper.setup(x => x.getActiveWorkspaceUri()).returns(() => wsPath);
+    //     }
 
-        function setupLocators(wks: PythonInterpreter[], pipenv: PythonInterpreter[]) {
-            pipenvLocator.setup(x => x.getInterpreters(TypeMoq.It.isAny(), TypeMoq.It.isValue(true))).returns(() => Promise.resolve(pipenv));
-            serviceManager.addSingletonInstance<IInterpreterLocatorService>(IInterpreterLocatorService, pipenvLocator.object, PIPENV_SERVICE);
-            wksLocator.setup(x => x.getInterpreters(TypeMoq.It.isAny(), TypeMoq.It.isValue(true))).returns(() => Promise.resolve(wks));
-            serviceManager.addSingletonInstance<IInterpreterLocatorService>(IInterpreterLocatorService, wksLocator.object, WORKSPACE_VIRTUAL_ENV_SERVICE);
+    //     function setupLocators(wks: PythonInterpreter[], pipenv: PythonInterpreter[]) {
+    //         pipenvLocator.setup(x => x.getInterpreters(TypeMoq.It.isAny(), TypeMoq.It.isValue(true))).returns(() => Promise.resolve(pipenv));
+    //         serviceManager.addSingletonInstance<IInterpreterLocatorService>(IInterpreterLocatorService, pipenvLocator.object, PIPENV_SERVICE);
+    //         wksLocator.setup(x => x.getInterpreters(TypeMoq.It.isAny(), TypeMoq.It.isValue(true))).returns(() => Promise.resolve(wks));
+    //         serviceManager.addSingletonInstance<IInterpreterLocatorService>(IInterpreterLocatorService, wksLocator.object, WORKSPACE_VIRTUAL_ENV_SERVICE);
 
-        }
-    });
+    //     }
+    // });
 
     suite('Caching Display name', () => {
         setup(() => {
