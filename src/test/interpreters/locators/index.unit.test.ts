@@ -69,6 +69,10 @@ suite('Interpreters - Locators Index', () => {
 
                     const typeLocator = TypeMoq.Mock.ofType<IInterpreterLocatorService>();
                     typeLocator
+                        .setup(l => l.hasInterpreters)
+                        .returns(() => Promise.resolve(true))
+                        .verifiable(TypeMoq.Times.once());
+                    typeLocator
                         .setup(l => l.getInterpreters(TypeMoq.It.isValue(resource)))
                         .returns(() => Promise.resolve([interpreter]))
                         .verifiable(TypeMoq.Times.once());
@@ -124,6 +128,10 @@ suite('Interpreters - Locators Index', () => {
                     };
 
                     const typeLocator = TypeMoq.Mock.ofType<IInterpreterLocatorService>();
+                    typeLocator
+                        .setup(l => l.hasInterpreters)
+                        .returns(() => Promise.resolve(true))
+                        .verifiable(TypeMoq.Times.once());
                     typeLocator
                         .setup(l => l.getInterpreters(TypeMoq.It.isValue(resource)))
                         .returns(() => Promise.resolve([interpreter]))
