@@ -5,6 +5,8 @@
 
 import { inject, injectable, named } from 'inversify';
 import { Event, EventEmitter } from 'vscode';
+import { IWorkspaceService } from '../../common/application/types';
+import '../../common/extensions';
 import { IFileSystem } from '../../common/platform/types';
 import { IPersistentState, IPersistentStateFactory, Resource } from '../../common/types';
 import { IInterpreterHelper, PythonInterpreter } from '../contracts';
@@ -22,10 +24,12 @@ export class InterpreterAutoSeletionService implements IInterpreterAutoSeletionS
     private readonly didAutoSelectedInterpreterEmitter = new EventEmitter<void>();
     private readonly stratergies: IBestAvailableInterpreterSelectorStratergy<PythonInterpreter | string | undefined>[];
     private readonly preferredInterpreter: IPersistentState<PythonInterpreter | undefined>;
+    private readonly autoSelectedInterpreter = new Map<string, string | undefined>();
     constructor(@inject(IInterpreterHelper) private readonly helper: IInterpreterHelper,
         @inject(IFileSystem) private readonly fs: IFileSystem,
         @inject(IPersistentStateFactory) private readonly stateFactory: IPersistentStateFactory,
         @inject(IInterpreterAutoSeletionProxyService) private readonly proxy: InterpreterAutoSeletionProxyService,
+        @inject(IWorkspaceService) private readonly workspaceService: IWorkspaceService,
         @inject(IBestAvailableInterpreterSelectorStratergy) @named('system') private readonly systemInterpreter: SystemInterpreterSelectionStratergy,
         @inject(IBestAvailableInterpreterSelectorStratergy) @named('currentPath') private readonly currentPathInterpreter: CurrentPathInterpreterSelectionStratergy,
         @inject(IBestAvailableInterpreterSelectorStratergy) @named('winReg') private readonly winRegInterpreter: WindowsRegistryInterpreterSelectionStratergy,
@@ -43,14 +47,15 @@ export class InterpreterAutoSeletionService implements IInterpreterAutoSeletionS
         return this.didAutoSelectedInterpreterEmitter.event;
     }
     public getAutoSelectedInterpreter(resource: Resource): string | undefined {
-        const interpreter = this.workspaceInterpreter.getStoredInterpreter(resource);
-        if (interpreter) {
-            return interpreter;
-        }
-
-        return this.preferredInterpreter.value ? this.preferredInterpreter.value.path : undefined;
+        // Do not execute anycode other than fetching fromm a property.
+        // This method gets invoked from settings class, and this class in turn uses classes that relies on settings.
+        // I.e. we can end up in a recursive loop.
+        const workspaceFolderPath = this.getWorkspacePath(resource);
+        return this.autoSelectedInterpreter.get(workspaceFolderPath);
     }
     public async autoSelectInterpreter(resource: Resource): Promise<void> {
+        this.storeAutoSelectedInterperter(resource, undefined);
+
         const activeWorkspace = this.helper.getActiveWorkspaceUri(resource);
         // Always update the best available system interpreters in the background.
         // This will be used in step 3.
@@ -91,12 +96,14 @@ export class InterpreterAutoSeletionService implements IInterpreterAutoSeletionS
         let interpreter = stratergy.getStoredInterpreter(resource);
         if (interpreter) {
             await this.preferredInterpreter.updateValue(interpreter);
+            this.storeAutoSelectedInterperter(resource, interpreter);
             return true;
         }
         interpreter = await this.currentPathInterpreter.getInterpreter(resource);
         if (interpreter) {
             await this.currentPathInterpreter.storeInterpreter(resource, interpreter);
             await this.preferredInterpreter.updateValue(interpreter);
+            this.storeAutoSelectedInterperter(resource, interpreter);
             return true;
         }
         return false;
@@ -118,12 +125,15 @@ export class InterpreterAutoSeletionService implements IInterpreterAutoSeletionS
             return false;
         }
         // If we already have an interpreter stored for the workspace, then exit.
-        if (this.workspaceInterpreter.getStoredInterpreter(resource)) {
+        const interpreter = this.workspaceInterpreter.getStoredInterpreter(resource);
+        if (interpreter) {
+            this.storeAutoSelectedInterperter(resource, interpreter);
             return true;
         }
         const workspaceInterpreter = await this.workspaceInterpreter.getInterpreter(resource);
         if (workspaceInterpreter) {
             await this.workspaceInterpreter.storeInterpreter(resource, workspaceInterpreter);
+            this.storeAutoSelectedInterperter(resource, workspaceInterpreter);
             return true;
         }
 
@@ -144,6 +154,7 @@ export class InterpreterAutoSeletionService implements IInterpreterAutoSeletionS
         }
         if (this.preferredInterpreter.value && this.preferredInterpreter.value.path !== bestInterpreter.path) {
             await this.preferredInterpreter.updateValue(bestInterpreter);
+            this.storeAutoSelectedInterperter(resource, bestInterpreter);
             return true;
         }
         return false;
@@ -171,5 +182,14 @@ export class InterpreterAutoSeletionService implements IInterpreterAutoSeletionS
             }
         };
         await Promise.all([promise, promise2()]);
+    }
+    private storeAutoSelectedInterperter(resource: Resource, interpreter: PythonInterpreter | string | undefined) {
+        const workspaceFolderPath = this.getWorkspacePath(resource);
+        const interpreterPath = interpreter ? (typeof interpreter === 'string' ? interpreter : interpreter.path) : undefined;
+        this.autoSelectedInterpreter.set(workspaceFolderPath, interpreterPath);
+    }
+    private getWorkspacePath(resource: Resource): string {
+        const workspaceFolder = resource ? this.workspaceService.getWorkspaceFolder(resource) : undefined;
+        return workspaceFolder ? workspaceFolder.uri.fsPath : '';
     }
 }
