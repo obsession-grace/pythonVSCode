@@ -21,7 +21,6 @@ import { IConfigurationService, IDisposableRegistry, IPersistentStateFactory } f
 import * as EnumEx from '../../client/common/utils/enum';
 import { noop } from '../../client/common/utils/misc';
 import { Architecture } from '../../client/common/utils/platform';
-import { convertPythonVersionToSemver } from '../../client/common/utils/version';
 import { IPythonPathUpdaterServiceManager } from '../../client/interpreter/configuration/types';
 import {
     IInterpreterDisplay,
@@ -588,7 +587,7 @@ suite('Interpreters service', () => {
     suite('Display Format (with all permutations)', () => {
         setup(setupSuite);
         [undefined, Uri.file('xyz')].forEach(resource => {
-            [undefined, '1.2.3-alpha'].forEach(versionInfo => {
+            [undefined, new SemVer('1.2.3-alpha')].forEach(version => {
                 // Forced cast to ignore TS warnings.
                 (EnumEx.getNamesAndValues<Architecture>(Architecture) as ({ name: string; value: Architecture } | undefined)[]).concat(undefined).forEach(arch => {
                     [undefined, path.join('a', 'b', 'c', 'd', 'bin', 'python')].forEach(pythonPath => {
@@ -597,7 +596,7 @@ suite('Interpreters service', () => {
                             [undefined, 'my env name'].forEach(envName => {
                                 ['', 'my pipenv name'].forEach(pipEnvName => {
                                     const testName = [`${resource ? 'With' : 'Without'} a workspace`,
-                                    `${versionInfo ? 'with' : 'without'} version information`,
+                                    `${version ? 'with' : 'without'} version information`,
                                     `${arch ? arch.name : 'without'} architecture`,
                                     `${pythonPath ? 'with' : 'without'} python Path`,
                                     `${interpreterType ? `${interpreterType.name} interpreter type` : 'without interpreter type'}`,
@@ -607,7 +606,7 @@ suite('Interpreters service', () => {
 
                                     test(testName, async () => {
                                         const interpreterInfo: Partial<PythonInterpreter> = {
-                                            version: versionInfo ? convertPythonVersionToSemver(versionInfo) : undefined,
+                                            version,
                                             architecture: arch ? arch.value : undefined,
                                             envName,
                                             type: interpreterType ? interpreterType.value : undefined,
@@ -637,7 +636,7 @@ suite('Interpreters service', () => {
                                         const envSuffixParts: string[] = [];
 
                                         if (interpreterInfo.version) {
-                                            displayNameParts.push(`${interpreterInfo.version.major}.${interpreterInfo.version.minor}${interpreterInfo.version.patch}`);
+                                            displayNameParts.push(`${interpreterInfo.version.major}.${interpreterInfo.version.minor}.${interpreterInfo.version.patch}`);
                                         }
                                         if (interpreterInfo.architecture) {
                                             displayNameParts.push(getArchitectureDisplayName(interpreterInfo.architecture));
