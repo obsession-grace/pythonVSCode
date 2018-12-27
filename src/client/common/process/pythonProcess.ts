@@ -38,11 +38,11 @@ export class PythonExecutionService implements IPythonExecutionService {
                 traceError(`Failed to parse interpreter information for '${this.pythonPath}' with JSON ${jsonValue}`, ex);
                 return;
             }
-            const version_info = json.versionInfo;
+            const versionValue = json.versionInfo.length === 4 ? `${json.versionInfo.slice(0, 3).join('.')}-${json.versionInfo[3]}` : json.versionInfo.join('.');
             return {
                 architecture: json.is64Bit ? Architecture.x64 : Architecture.x86,
                 path: this.pythonPath,
-                version: convertPythonVersionToSemver(version_info.join('.')),
+                version: convertPythonVersionToSemver(versionValue),
                 sysVersion: json.sysVersion,
                 sysPrefix: json.sysPrefix
             };
