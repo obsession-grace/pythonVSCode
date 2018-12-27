@@ -6,15 +6,16 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as fs from 'fs-extra';
 import { EOL } from 'os';
 import * as path from 'path';
-import { ConfigurationTarget, Disposable, Uri, workspace } from 'vscode';
+import { ConfigurationTarget, Disposable, Event, EventEmitter, Uri, workspace } from 'vscode';
 import { ConfigurationService } from '../../../client/common/configuration/service';
 import { IS_WINDOWS, NON_WINDOWS_PATH_VARIABLE_NAME, WINDOWS_PATH_VARIABLE_NAME } from '../../../client/common/platform/constants';
 import { PlatformService } from '../../../client/common/platform/platformService';
-import { IDisposableRegistry, IPathUtils } from '../../../client/common/types';
+import { IDisposableRegistry, IPathUtils, Resource } from '../../../client/common/types';
 import { createDeferred } from '../../../client/common/utils/async';
 import { EnvironmentVariablesService } from '../../../client/common/variables/environment';
 import { EnvironmentVariablesProvider } from '../../../client/common/variables/environmentVariablesProvider';
 import { EnvironmentVariables } from '../../../client/common/variables/types';
+import { IInterpreterAutoSeletionService } from '../../../client/interpreter/interpreterSelection/types';
 import { clearPythonPathInWorkspaceFolder, updateSetting } from '../../common';
 import { closeActiveWindows, initialize, initializeTest, IS_MULTI_ROOT_TEST } from '../../initialize';
 import { MockProcess } from '../../mocks/process';
@@ -29,6 +30,17 @@ const workspace4PyFile = Uri.file(path.join(workspace4Path.fsPath, 'one.py'));
 // tslint:disable-next-line:max-func-body-length
 suite('Multiroot Environment Variables Provider', () => {
     let ioc: UnitTestIocContainer;
+    class AutoSelectionService implements IInterpreterAutoSeletionService {
+        get onDidChangeAutoSelectedInterpreter(): Event<void> {
+            return new EventEmitter<void>().event;
+        }
+        public autoSelectInterpreter(resource: Resource): Promise<void> {
+            return Promise.resolve();
+        }
+        public getAutoSelectedInterpreter(resource: Resource): string | undefined {
+            return;
+        }
+    }
     const pathVariableName = IS_WINDOWS ? WINDOWS_PATH_VARIABLE_NAME : NON_WINDOWS_PATH_VARIABLE_NAME;
     suiteSetup(async function () {
         if (!IS_MULTI_ROOT_TEST) {
@@ -60,7 +72,8 @@ suite('Multiroot Environment Variables Provider', () => {
         const mockProcess = new MockProcess(mockVariables);
         const variablesService = new EnvironmentVariablesService(pathUtils);
         const disposables = ioc.serviceContainer.get<Disposable[]>(IDisposableRegistry);
-        const cfgService = new ConfigurationService();
+        ioc.serviceManager.addSingletonInstance(IInterpreterAutoSeletionService, new AutoSelectionService());
+        const cfgService = new ConfigurationService(ioc.serviceContainer);
         return new EnvironmentVariablesProvider(variablesService, disposables, new PlatformService(), cfgService, mockProcess);
     }
 

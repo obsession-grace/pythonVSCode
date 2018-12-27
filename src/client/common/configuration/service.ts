@@ -1,15 +1,20 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-import { injectable } from 'inversify';
+import { inject, injectable } from 'inversify';
 import { ConfigurationTarget, Uri, workspace, WorkspaceConfiguration } from 'vscode';
+import { IInterpreterAutoSeletionProxyService } from '../../interpreter/interpreterSelection/types';
+import { IServiceContainer } from '../../ioc/types';
 import { PythonSettings } from '../configSettings';
 import { IConfigurationService, IPythonSettings } from '../types';
 
 @injectable()
 export class ConfigurationService implements IConfigurationService {
+    constructor(@inject(IServiceContainer) private readonly serviceContainer: IServiceContainer) { }
     public getSettings(resource?: Uri): IPythonSettings {
-        return PythonSettings.getInstance(resource);
+        const interpreterAutoSeletionService = this.serviceContainer.get<IInterpreterAutoSeletionProxyService>(IInterpreterAutoSeletionProxyService);
+        return PythonSettings.getInstance(resource, interpreterAutoSeletionService);
+        // return PythonSettings.getInstance(resource);
     }
 
     public async updateSectionSetting(section: string, setting: string, value?: {}, resource?: Uri, configTarget?: ConfigurationTarget): Promise<void> {

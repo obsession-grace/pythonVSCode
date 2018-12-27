@@ -71,6 +71,7 @@ import {
     InterpreterLocatorProgressHandler,
     PythonInterpreter
 } from './interpreter/contracts';
+import { IInterpreterAutoSeletionService } from './interpreter/interpreterSelection/types';
 import { registerTypes as interpretersRegisterTypes } from './interpreter/serviceRegistry';
 import { ServiceContainer } from './ioc/container';
 import { ServiceManager } from './ioc/serviceManager';
@@ -109,8 +110,8 @@ export async function activate(context: ExtensionContext): Promise<IExtensionApi
     registerServices(context, serviceManager, serviceContainer);
     initializeServices(context, serviceManager, serviceContainer);
 
-    const interpreterManager = serviceContainer.get<IInterpreterService>(IInterpreterService);
-    await interpreterManager.autoSetInterpreter();
+    const autoSelection = serviceContainer.get<IInterpreterAutoSeletionService>(IInterpreterAutoSeletionService);
+    await autoSelection.autoSelectInterpreter(undefined);
 
     // When testing, do not perform health checks, as modal dialogs can be displayed.
     if (!isTestExecution()) {
@@ -136,6 +137,7 @@ export async function activate(context: ExtensionContext): Promise<IExtensionApi
     sendStartupTelemetry(Promise.all([activationDeferred.promise, lsActivationPromise]), serviceContainer).ignoreErrors();
 
     const workspaceService = serviceContainer.get<IWorkspaceService>(IWorkspaceService);
+    const interpreterManager = serviceContainer.get<IInterpreterService>(IInterpreterService);
     interpreterManager.refresh(workspaceService.hasWorkspaceFolders ? workspaceService.workspaceFolders![0].uri : undefined)
         .catch(ex => console.error('Python Extension: interpreterManager.refresh', ex));
 

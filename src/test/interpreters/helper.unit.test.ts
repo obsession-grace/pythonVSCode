@@ -29,7 +29,7 @@ suite('Interpreters Display Helper', () => {
     test('getActiveWorkspaceUri should return undefined if there are no workspaces', () => {
         workspaceService.setup(w => w.workspaceFolders).returns(() => []);
         documentManager.setup(doc => doc.activeTextEditor).returns(() => undefined);
-        const workspace = helper.getActiveWorkspaceUri();
+        const workspace = helper.getActiveWorkspaceUri(undefined);
         expect(workspace).to.be.equal(undefined, 'incorrect value');
     });
     test('getActiveWorkspaceUri should return the workspace if there is only one', () => {
@@ -37,7 +37,7 @@ suite('Interpreters Display Helper', () => {
         // tslint:disable-next-line:no-any
         workspaceService.setup(w => w.workspaceFolders).returns(() => [{ uri: folderUri } as any]);
 
-        const workspace = helper.getActiveWorkspaceUri();
+        const workspace = helper.getActiveWorkspaceUri(undefined);
         expect(workspace).to.be.not.equal(undefined, 'incorrect value');
         expect(workspace!.folderUri).to.be.equal(folderUri);
         expect(workspace!.configTarget).to.be.equal(ConfigurationTarget.Workspace);
@@ -48,7 +48,7 @@ suite('Interpreters Display Helper', () => {
         workspaceService.setup(w => w.workspaceFolders).returns(() => [{ uri: folderUri } as any, undefined as any]);
         documentManager.setup(d => d.activeTextEditor).returns(() => undefined);
 
-        const workspace = helper.getActiveWorkspaceUri();
+        const workspace = helper.getActiveWorkspaceUri(undefined);
         expect(workspace).to.be.equal(undefined, 'incorrect value');
     });
     test('getActiveWorkspaceUri should return undefined of the active editor does not belong to a workspace and if we have more than one workspace folder', () => {
@@ -63,7 +63,7 @@ suite('Interpreters Display Helper', () => {
         documentManager.setup(d => d.activeTextEditor).returns(() => textEditor.object);
         workspaceService.setup(w => w.getWorkspaceFolder(TypeMoq.It.isValue(documentUri))).returns(() => undefined);
 
-        const workspace = helper.getActiveWorkspaceUri();
+        const workspace = helper.getActiveWorkspaceUri(undefined);
         expect(workspace).to.be.equal(undefined, 'incorrect value');
     });
     test('getActiveWorkspaceUri should return workspace folder of the active editor if belongs to a workspace and if we have more than one workspace folder', () => {
@@ -80,7 +80,7 @@ suite('Interpreters Display Helper', () => {
         // tslint:disable-next-line:no-any
         workspaceService.setup(w => w.getWorkspaceFolder(TypeMoq.It.isValue(documentUri))).returns(() => { return { uri: documentWorkspaceFolderUri } as any; });
 
-        const workspace = helper.getActiveWorkspaceUri();
+        const workspace = helper.getActiveWorkspaceUri(undefined);
         expect(workspace).to.be.not.equal(undefined, 'incorrect value');
         expect(workspace!.folderUri).to.be.equal(documentWorkspaceFolderUri);
         expect(workspace!.configTarget).to.be.equal(ConfigurationTarget.WorkspaceFolder);

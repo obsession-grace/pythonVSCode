@@ -34,6 +34,7 @@ import { EXTENSION_ROOT_DIR } from '../../client/constants';
 import { JupyterExecution } from '../../client/datascience/jupyterExecution';
 import { ICell, IConnection, IJupyterKernelSpec, INotebookServer, InterruptResult } from '../../client/datascience/types';
 import { InterpreterType, PythonInterpreter } from '../../client/interpreter/contracts';
+import { InterpreterAutoSeletionService } from '../../client/interpreter/interpreterSelection';
 import { InterpreterService } from '../../client/interpreter/interpreterService';
 import { CondaService } from '../../client/interpreter/locators/services/condaService';
 import { KnownSearchPathsForInterpreters } from '../../client/interpreter/locators/services/KnownPathsService';
@@ -145,7 +146,7 @@ suite('Jupyter Execution', async () => {
     const serviceContainer = mock(ServiceContainer);
     const disposableRegistry = new DisposableRegistry();
     const dummyEvent = new EventEmitter<void>();
-    const pythonSettings = new PythonSettings();
+    const pythonSettings = new PythonSettings(undefined, instance(mock(InterpreterAutoSeletionService)));
     const jupyterOnPath = getOSType() === OSType.Windows ? '/foo/bar/jupyter.exe' : '/foo/bar/jupyter';
     let ipykernelInstallCount = 0;
 

@@ -8,7 +8,7 @@ import * as path from 'path';
 import * as TypeMoq from 'typemoq';
 // tslint:disable-next-line:no-require-imports
 import untildify = require('untildify');
-import { WorkspaceConfiguration } from 'vscode';
+import { Event, EventEmitter, WorkspaceConfiguration } from 'vscode';
 import {
     PythonSettings
 } from '../../client/common/configSettings';
@@ -21,23 +21,39 @@ import {
     ISortImportSettings,
     ITerminalSettings,
     IUnitTestSettings,
-    IWorkspaceSymbolSettings
+    IWorkspaceSymbolSettings,
+    Resource
 } from '../../client/common/types';
 import { noop } from '../../client/common/utils/misc';
+import { IInterpreterAutoSeletionService } from '../../client/interpreter/interpreterSelection/types';
 
 // tslint:disable-next-line:max-func-body-length
 suite('Python Settings', () => {
-    let config: TypeMoq.IMock<WorkspaceConfiguration>;
-    let expected: PythonSettings;
-    let settings: PythonSettings;
-    const CustomPythonSettings = class extends PythonSettings {
+    class CustomPythonSettings extends PythonSettings {
+        // tslint:disable-next-line:no-unnecessary-override
+        public update(pythonSettings: WorkspaceConfiguration) {
+            return super.update(pythonSettings);
+        }
         protected initialize() { noop(); }
-    };
-
+    }
+    let config: TypeMoq.IMock<WorkspaceConfiguration>;
+    let expected: CustomPythonSettings;
+    let settings: CustomPythonSettings;
+    class AutoSelectionService implements IInterpreterAutoSeletionService {
+        get onDidChangeAutoSelectedInterpreter(): Event<void> {
+            return new EventEmitter<void>().event;
+        }
+        public autoSelectInterpreter(resource: Resource): Promise<void> {
+            return Promise.resolve();
+        }
+        public getAutoSelectedInterpreter(resource: Resource): string | undefined {
+            return;
+        }
+    }
     setup(() => {
         config = TypeMoq.Mock.ofType<WorkspaceConfiguration>(undefined, TypeMoq.MockBehavior.Strict);
-        expected = new CustomPythonSettings();
-        settings = new CustomPythonSettings();
+        expected = new CustomPythonSettings(undefined, new AutoSelectionService());
+        settings = new CustomPythonSettings(undefined, new AutoSelectionService());
     });
 
     function initializeConfig(sourceSettings: PythonSettings) {

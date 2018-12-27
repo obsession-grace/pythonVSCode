@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-import { IsWindows } from '../common/types';
 import { IServiceManager } from '../ioc/types';
 import { InterpreterComparer } from './configuration/interpreterComparer';
 import { InterpreterSelector } from './configuration/interpreterSelector';
@@ -31,6 +30,7 @@ import {
     IVirtualEnvironmentsSearchPathProvider,
     KNOWN_PATH_SERVICE,
     PIPENV_SERVICE,
+    PythonInterpreter,
     WINDOWS_REGISTRY_SERVICE,
     WORKSPACE_VIRTUAL_ENV_SERVICE
 } from './contracts';
@@ -38,6 +38,13 @@ import { InterpreterDisplay } from './display';
 import { InterpreterLocatorProgressStatubarHandler } from './display/progressDisplay';
 import { ShebangCodeLensProvider } from './display/shebangCodeLensProvider';
 import { InterpreterHelper } from './helpers';
+import { InterpreterAutoSeletionService } from './interpreterSelection';
+import { InterpreterAutoSeletionProxyService } from './interpreterSelection/proxy';
+import { CurrentPathInterpreterSelectionStratergy } from './interpreterSelection/stratergies/currentPath';
+import { SystemInterpreterSelectionStratergy } from './interpreterSelection/stratergies/system';
+import { WindowsRegistryInterpreterSelectionStratergy } from './interpreterSelection/stratergies/windowsRegistry';
+import { WorkspaceInterpreterSelectionStratergy } from './interpreterSelection/stratergies/workspace';
+import { IBestAvailableInterpreterSelectorStratergy, IInterpreterAutoSeletionProxyService, IInterpreterAutoSeletionService } from './interpreterSelection/types';
 import { InterpreterService } from './interpreterService';
 import { InterpreterVersionService } from './interpreterVersion';
 import { InterpreterLocatorHelper } from './locators/helpers';
@@ -80,10 +87,7 @@ export function registerTypes(serviceManager: IServiceManager) {
     serviceManager.addSingleton<IInterpreterLocatorService>(IInterpreterLocatorService, PipEnvService, PIPENV_SERVICE);
     serviceManager.addSingleton<IInterpreterLocatorService>(IPipEnvService, PipEnvService);
 
-    const isWindows = serviceManager.get<boolean>(IsWindows);
-    if (isWindows) {
-        serviceManager.addSingleton<IInterpreterLocatorService>(IInterpreterLocatorService, WindowsRegistryService, WINDOWS_REGISTRY_SERVICE);
-    }
+    serviceManager.addSingleton<IInterpreterLocatorService>(IInterpreterLocatorService, WindowsRegistryService, WINDOWS_REGISTRY_SERVICE);
     serviceManager.addSingleton<IInterpreterLocatorService>(IInterpreterLocatorService, KnownPathsService, KNOWN_PATH_SERVICE);
     serviceManager.addSingleton<IInterpreterService>(IInterpreterService, InterpreterService);
     serviceManager.addSingleton<IInterpreterDisplay>(IInterpreterDisplay, InterpreterDisplay);
@@ -99,4 +103,11 @@ export function registerTypes(serviceManager: IServiceManager) {
 
     serviceManager.addSingleton<InterpreterLocatorProgressHandler>(InterpreterLocatorProgressHandler, InterpreterLocatorProgressStatubarHandler);
     serviceManager.addSingleton<IInterpreterLocatorProgressService>(IInterpreterLocatorProgressService, InterpreterLocatorProgressService);
+
+    serviceManager.addSingleton<IBestAvailableInterpreterSelectorStratergy<PythonInterpreter | undefined>>(IBestAvailableInterpreterSelectorStratergy, CurrentPathInterpreterSelectionStratergy, 'currentPath');
+    serviceManager.addSingleton<IBestAvailableInterpreterSelectorStratergy<PythonInterpreter | undefined>>(IBestAvailableInterpreterSelectorStratergy, SystemInterpreterSelectionStratergy, 'system');
+    serviceManager.addSingleton<IBestAvailableInterpreterSelectorStratergy<PythonInterpreter | undefined>>(IBestAvailableInterpreterSelectorStratergy, WindowsRegistryInterpreterSelectionStratergy, 'winReg');
+    serviceManager.addSingleton<IBestAvailableInterpreterSelectorStratergy<PythonInterpreter | string | undefined>>(IBestAvailableInterpreterSelectorStratergy, WorkspaceInterpreterSelectionStratergy, 'workspace');
+    serviceManager.addSingleton<IInterpreterAutoSeletionProxyService>(IInterpreterAutoSeletionProxyService, InterpreterAutoSeletionProxyService);
+    serviceManager.addSingleton<IInterpreterAutoSeletionService>(IInterpreterAutoSeletionService, InterpreterAutoSeletionService);
 }

@@ -7,6 +7,7 @@ import {
     ConfigurationTarget, DiagnosticSeverity, Disposable, Uri,
     workspace, WorkspaceConfiguration
 } from 'vscode';
+import { IInterpreterAutoSeletionProxyService } from '../interpreter/interpreterSelection/types';
 import { sendTelemetryEvent } from '../telemetry';
 import { COMPLETION_ADD_BRACKETS, FORMAT_ON_TYPE } from '../telemetry/constants';
 import { isTestExecution } from './constants';
@@ -58,18 +59,18 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
     // tslint:disable-next-line:variable-name
     private _pythonPath = '';
 
-    constructor(workspaceFolder?: Uri) {
+    constructor(workspaceFolder: Uri | undefined, private readonly interpreterAutoSeletionService: IInterpreterAutoSeletionProxyService) {
         super();
         this.workspaceRoot = workspaceFolder ? workspaceFolder : Uri.file(__dirname);
         this.initialize();
     }
     // tslint:disable-next-line:function-name
-    public static getInstance(resource?: Uri): PythonSettings {
+    public static getInstance(resource: Uri | undefined, interpreterAutoSeletionService: IInterpreterAutoSeletionProxyService): PythonSettings {
         const workspaceFolderUri = PythonSettings.getSettingsUriAndTarget(resource).uri;
         const workspaceFolderKey = workspaceFolderUri ? workspaceFolderUri.fsPath : '';
 
         if (!PythonSettings.pythonSettings.has(workspaceFolderKey)) {
-            const settings = new PythonSettings(workspaceFolderUri);
+            const settings = new PythonSettings(workspaceFolderUri, interpreterAutoSeletionService);
             PythonSettings.pythonSettings.set(workspaceFolderKey, settings);
             const config = workspace.getConfiguration('editor', resource ? resource : null);
             const formatOnType = config ? config.get('formatOnType', false) : false;
@@ -108,12 +109,17 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         this.disposables = [];
     }
     // tslint:disable-next-line:cyclomatic-complexity max-func-body-length
-    public update(pythonSettings: WorkspaceConfiguration) {
+    protected update(pythonSettings: WorkspaceConfiguration) {
         const workspaceRoot = this.workspaceRoot.fsPath;
         const systemVariables: SystemVariables = new SystemVariables(this.workspaceRoot ? this.workspaceRoot.fsPath : undefined);
 
-        // tslint:disable-next-line:no-backbone-get-set-outside-model no-non-null-assertion
-        this.pythonPath = systemVariables.resolveAny(pythonSettings.get<string>('pythonPath'))!;
+        const autoSelectedPythonPath = this.interpreterAutoSeletionService.getAutoSelectedInterpreter(this.workspaceRoot);
+        if (autoSelectedPythonPath) {
+            this.pythonPath = autoSelectedPythonPath;
+        } else {
+            // tslint:disable-next-line:no-backbone-get-set-outside-model no-non-null-assertion
+            this.pythonPath = systemVariables.resolveAny(pythonSettings.get<string>('pythonPath'))!;
+        }
         this.pythonPath = getAbsolutePath(this.pythonPath, workspaceRoot);
         // tslint:disable-next-line:no-backbone-get-set-outside-model no-non-null-assertion
         this.venvPath = systemVariables.resolveAny(pythonSettings.get<string>('venvPath'))!;
@@ -348,14 +354,16 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         }
     }
     protected initialize(): void {
-        this.disposables.push(workspace.onDidChangeConfiguration(() => {
+        const onDidChange = () => {
             const currentConfig = workspace.getConfiguration('python', this.workspaceRoot);
             this.update(currentConfig);
 
             // If workspace config changes, then we could have a cascading effect of on change events.
             // Let's defer the change notification.
             setTimeout(() => this.emit('change'), 1);
-        }));
+        };
+        this.disposables.push(this.interpreterAutoSeletionService.onDidChangeAutoSelectedInterpreter(onDidChange.bind(this)));
+        this.disposables.push(workspace.onDidChangeConfiguration(onDidChange.bind(this)));
 
         const initialConfig = workspace.getConfiguration('python', this.workspaceRoot);
         if (initialConfig) {
