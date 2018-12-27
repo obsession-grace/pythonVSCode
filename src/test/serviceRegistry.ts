@@ -3,7 +3,7 @@
 
 import { Container } from 'inversify';
 import * as TypeMoq from 'typemoq';
-import { Disposable, Memento, OutputChannel } from 'vscode';
+import { Disposable, Event, EventEmitter, Memento, OutputChannel } from 'vscode';
 import { STANDARD_OUTPUT_CHANNEL } from '../client/common/constants';
 import { Logger } from '../client/common/logger';
 import { IS_WINDOWS } from '../client/common/platform/constants';
@@ -19,9 +19,10 @@ import { PythonToolExecutionService } from '../client/common/process/pythonToolS
 import { registerTypes as processRegisterTypes } from '../client/common/process/serviceRegistry';
 import { IBufferDecoder, IProcessServiceFactory, IPythonExecutionFactory, IPythonToolExecutionService } from '../client/common/process/types';
 import { registerTypes as commonRegisterTypes } from '../client/common/serviceRegistry';
-import { GLOBAL_MEMENTO, ICurrentProcess, IDisposableRegistry, ILogger, IMemento, IOutputChannel, IPathUtils, IsWindows, WORKSPACE_MEMENTO } from '../client/common/types';
+import { GLOBAL_MEMENTO, ICurrentProcess, IDisposableRegistry, ILogger, IMemento, IOutputChannel, IPathUtils, IsWindows, Resource, WORKSPACE_MEMENTO } from '../client/common/types';
 import { registerTypes as variableRegisterTypes } from '../client/common/variables/serviceRegistry';
 import { registerTypes as formattersRegisterTypes } from '../client/formatters/serviceRegistry';
+import { IInterpreterAutoSeletionProxyService, IInterpreterAutoSeletionService } from '../client/interpreter/interpreterSelection/types';
 import { registerTypes as interpretersRegisterTypes } from '../client/interpreter/serviceRegistry';
 import { ServiceContainer } from '../client/ioc/container';
 import { ServiceManager } from '../client/ioc/serviceManager';
@@ -56,6 +57,15 @@ export class IocContainer {
         const testOutputChannel = new MockOutputChannel('Python Test - UnitTests');
         this.disposables.push(testOutputChannel);
         this.serviceManager.addSingletonInstance<OutputChannel>(IOutputChannel, testOutputChannel, TEST_OUTPUT_CHANNEL);
+
+        const mockInterpreterAutoSeletionService = new class implements IInterpreterAutoSeletionService {
+            public get onDidChangeAutoSelectedInterpreter(): Event<void> { return new EventEmitter<void>().event; }
+            public async autoSelectInterpreter(_resource: Resource): Promise<void> { return; }
+            public getAutoSelectedInterpreter(_resource: Resource): string | undefined { return; }
+            public registerInstance?(_instance: IInterpreterAutoSeletionProxyService): void { return; }
+
+        }();
+        this.serviceManager.addSingletonInstance<IInterpreterAutoSeletionService>(IInterpreterAutoSeletionService, mockInterpreterAutoSeletionService);
     }
     public dispose() {
         this.disposables.forEach(disposable => {
