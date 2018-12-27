@@ -244,7 +244,7 @@ suite('Module Installer', () => {
 });
 
 function generatePythonInterpreterVersions() {
-    const versions: SemVer[] = ['2.7.0-final', '3.4.0-final', '3.5.0-final', '3.6-0-final', '3.7.0-final'].map(ver => new SemVer(ver));
+    const versions: SemVer[] = ['2.7.0-final', '3.4.0-final', '3.5.0-final', '3.6.0-final', '3.7.0-final'].map(ver => new SemVer(ver));
     return versions.map(version => {
         const info = TypeMoq.Mock.ofType<PythonInterpreter>();
         info.setup((t: any) => t.then).returns(() => undefined);
