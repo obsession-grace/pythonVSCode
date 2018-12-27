@@ -28,10 +28,7 @@ import {
     IInterpreterLocatorService,
     INTERPRETER_LOCATOR_SERVICE,
     InterpreterType,
-    PIPENV_SERVICE,
-    PythonInterpreter,
-    WORKSPACE_VIRTUAL_ENV_SERVICE,
-    WorkspacePythonPath
+    PythonInterpreter
 } from '../../client/interpreter/contracts';
 import { InterpreterService } from '../../client/interpreter/interpreterService';
 import { IVirtualEnvironmentManager } from '../../client/interpreter/virtualEnvs/types';
@@ -40,19 +37,19 @@ import { ServiceManager } from '../../client/ioc/serviceManager';
 
 use(chaiAsPromised);
 
-const info: PythonInterpreter = {
-    architecture: Architecture.Unknown,
-    companyDisplayName: '',
-    displayName: '',
-    envName: '',
-    path: '',
-    type: InterpreterType.Unknown,
-    version: new SemVer('0.0.0-alpha'),
-    sysPrefix: '',
-    sysVersion: ''
-};
+// const info: PythonInterpreter = {
+//     architecture: Architecture.Unknown,
+//     companyDisplayName: '',
+//     displayName: '',
+//     envName: '',
+//     path: '',
+//     type: InterpreterType.Unknown,
+//     version: new SemVer('0.0.0-alpha'),
+//     sysPrefix: '',
+//     sysVersion: ''
+// };
 
-suite('xxInterpreters service', () => {
+suite('Interpreters service', () => {
     let serviceManager: ServiceManager;
     let serviceContainer: ServiceContainer;
     let updater: TypeMoq.IMock<IPythonPathUpdaterServiceManager>;
@@ -60,16 +57,16 @@ suite('xxInterpreters service', () => {
     let locator: TypeMoq.IMock<IInterpreterLocatorService>;
     let workspace: TypeMoq.IMock<IWorkspaceService>;
     let config: TypeMoq.IMock<WorkspaceConfiguration>;
-    let pipenvLocator: TypeMoq.IMock<IInterpreterLocatorService>;
-    let wksLocator: TypeMoq.IMock<IInterpreterLocatorService>;
+    // let pipenvLocator: TypeMoq.IMock<IInterpreterLocatorService>;
+    // let wksLocator: TypeMoq.IMock<IInterpreterLocatorService>;
     let fileSystem: TypeMoq.IMock<IFileSystem>;
     let interpreterDisplay: TypeMoq.IMock<IInterpreterDisplay>;
-    let workspacePythonPath: TypeMoq.IMock<WorkspacePythonPath>;
+    // let workspacePythonPath: TypeMoq.IMock<WorkspacePythonPath>;
     let virtualEnvMgr: TypeMoq.IMock<IVirtualEnvironmentManager>;
     let persistentStateFactory: TypeMoq.IMock<IPersistentStateFactory>;
     let pythonExecutionFactory: TypeMoq.IMock<IPythonExecutionFactory>;
     let pythonExecutionService: TypeMoq.IMock<IPythonExecutionService>;
-    type ConfigValue<T> = { key: string; defaultValue?: T; globalValue?: T; workspaceValue?: T; workspaceFolderValue?: T };
+    // type ConfigValue<T> = { key: string; defaultValue?: T; globalValue?: T; workspaceValue?: T; workspaceFolderValue?: T };
 
     function setupSuite() {
         const cont = new Container();
@@ -83,7 +80,7 @@ suite('xxInterpreters service', () => {
         config = TypeMoq.Mock.ofType<WorkspaceConfiguration>();
         fileSystem = TypeMoq.Mock.ofType<IFileSystem>();
         interpreterDisplay = TypeMoq.Mock.ofType<IInterpreterDisplay>();
-        workspacePythonPath = TypeMoq.Mock.ofType<WorkspacePythonPath>();
+        // workspacePythonPath = TypeMoq.Mock.ofType<WorkspacePythonPath>();
         virtualEnvMgr = TypeMoq.Mock.ofType<IVirtualEnvironmentManager>();
         persistentStateFactory = TypeMoq.Mock.ofType<IPersistentStateFactory>();
         pythonExecutionFactory = TypeMoq.Mock.ofType<IPythonExecutionFactory>();
@@ -114,8 +111,8 @@ suite('xxInterpreters service', () => {
         serviceManager.addSingletonInstance<IPythonExecutionFactory>(IPythonExecutionFactory, pythonExecutionFactory.object);
         serviceManager.addSingletonInstance<IPythonExecutionService>(IPythonExecutionService, pythonExecutionService.object);
 
-        pipenvLocator = TypeMoq.Mock.ofType<IInterpreterLocatorService>();
-        wksLocator = TypeMoq.Mock.ofType<IInterpreterLocatorService>();
+        // pipenvLocator = TypeMoq.Mock.ofType<IInterpreterLocatorService>();
+        // wksLocator = TypeMoq.Mock.ofType<IInterpreterLocatorService>();
 
     }
     suite('Misc', () => {
@@ -313,8 +310,8 @@ suite('xxInterpreters service', () => {
             { configTarget: ConfigurationTarget.Workspace, label: 'Workspace' },
             { configTarget: ConfigurationTarget.WorkspaceFolder, label: 'Workspace Folder' }
         ].forEach(item => {
-            const testSuffix = `(${item.label})`;
-            const cfgTarget = item.configTarget as (ConfigurationTarget.Workspace | ConfigurationTarget.WorkspaceFolder);
+            // const testSuffix = `(${item.label})`;
+            // const cfgTarget = item.configTarget as (ConfigurationTarget.Workspace | ConfigurationTarget.WorkspaceFolder);
             // test(`Should auto set interpreter if there is no value in workspace settings ${testSuffix}`, async () => {
             //     const service = new InterpreterService(serviceContainer);
             //     workspacePythonPath
