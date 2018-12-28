@@ -9,12 +9,14 @@ import { IWorkspaceService } from '../../client/common/application/types';
 import { ConfigurationService } from '../../client/common/configuration/service';
 import { IConfigurationService, ILintingSettings, IPythonSettings, Product } from '../../client/common/types';
 import * as EnumEx from '../../client/common/utils/enum';
+import { IInterpreterAutoSeletionProxyService, IInterpreterAutoSeletionService } from '../../client/interpreter/autoSelection/types';
 import { ServiceContainer } from '../../client/ioc/container';
 import { ServiceManager } from '../../client/ioc/serviceManager';
 import { IServiceContainer } from '../../client/ioc/types';
 import { LinterManager } from '../../client/linters/linterManager';
 import { ILinterManager, LinterId } from '../../client/linters/types';
 import { initialize } from '../initialize';
+import { MockAutoSelectionService } from '../mocks/autoSelector';
 
 // tslint:disable-next-line:max-func-body-length
 suite('Linting - Manager', () => {
@@ -31,7 +33,8 @@ suite('Linting - Manager', () => {
 
         serviceManager.addSingleton<IConfigurationService>(IConfigurationService, ConfigurationService);
         configService = serviceManager.get<IConfigurationService>(IConfigurationService);
-
+        serviceManager.addSingleton<IInterpreterAutoSeletionService>(IInterpreterAutoSeletionService, MockAutoSelectionService);
+        serviceManager.addSingleton<IInterpreterAutoSeletionProxyService>(IInterpreterAutoSeletionProxyService, MockAutoSelectionService);
         settings = configService.getSettings();
         const workspaceService = typeMoq.Mock.ofType<IWorkspaceService>();
         lm = new LinterManager(serviceContainer, workspaceService.object);

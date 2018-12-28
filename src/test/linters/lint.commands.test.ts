@@ -9,6 +9,7 @@ import { QuickPickOptions } from 'vscode';
 import { IApplicationShell, ICommandManager, IWorkspaceService } from '../../client/common/application/types';
 import { ConfigurationService } from '../../client/common/configuration/service';
 import { IConfigurationService, Product } from '../../client/common/types';
+import { IInterpreterAutoSeletionProxyService, IInterpreterAutoSeletionService } from '../../client/interpreter/autoSelection/types';
 import { ServiceContainer } from '../../client/ioc/container';
 import { ServiceManager } from '../../client/ioc/serviceManager';
 import { IServiceContainer } from '../../client/ioc/types';
@@ -16,6 +17,7 @@ import { LinterCommands } from '../../client/linters/linterCommands';
 import { LinterManager } from '../../client/linters/linterManager';
 import { ILinterManager, ILintingEngine } from '../../client/linters/types';
 import { closeActiveWindows, initialize, initializeTest } from '../initialize';
+import { MockAutoSelectionService } from '../mocks/autoSelector';
 
 // tslint:disable-next-line:max-func-body-length
 suite('Linting - Linter Selector', () => {
@@ -52,7 +54,8 @@ suite('Linting - Linter Selector', () => {
         const workspaceService = TypeMoq.Mock.ofType<IWorkspaceService>();
         lm = new LinterManager(serviceContainer, workspaceService.object);
         serviceManager.addSingletonInstance<ILinterManager>(ILinterManager, lm);
-
+        serviceManager.addSingleton<IInterpreterAutoSeletionService>(IInterpreterAutoSeletionService, MockAutoSelectionService);
+        serviceManager.addSingleton<IInterpreterAutoSeletionProxyService>(IInterpreterAutoSeletionProxyService, MockAutoSelectionService);
         commands = new LinterCommands(serviceContainer);
     }
 

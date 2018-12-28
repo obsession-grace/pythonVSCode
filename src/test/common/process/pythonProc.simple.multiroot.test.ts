@@ -28,6 +28,7 @@ import { OSType } from '../../../client/common/utils/platform';
 import {
     registerTypes as variablesRegisterTypes
 } from '../../../client/common/variables/serviceRegistry';
+import { IInterpreterAutoSeletionProxyService, IInterpreterAutoSeletionService } from '../../../client/interpreter/autoSelection/types';
 import { ServiceContainer } from '../../../client/ioc/container';
 import { ServiceManager } from '../../../client/ioc/serviceManager';
 import { IServiceContainer } from '../../../client/ioc/types';
@@ -36,6 +37,7 @@ import {
     isOs,
     isPythonVersion
 } from '../../common';
+import { MockAutoSelectionService } from '../../mocks/autoSelector';
 import {
     closeActiveWindows, initialize, initializeTest,
     IS_MULTI_ROOT_TEST
@@ -75,7 +77,8 @@ suite('PythonExecutableService', () => {
         serviceManager.addSingleton<IConfigurationService>(IConfigurationService, ConfigurationService);
         serviceManager.addSingleton<IPlatformService>(IPlatformService, PlatformService);
         serviceManager.addSingleton<IFileSystem>(IFileSystem, FileSystem);
-
+        serviceManager.addSingleton<IInterpreterAutoSeletionService>(IInterpreterAutoSeletionService, MockAutoSelectionService);
+        serviceManager.addSingleton<IInterpreterAutoSeletionProxyService>(IInterpreterAutoSeletionProxyService, MockAutoSelectionService);
         processRegisterTypes(serviceManager);
         variablesRegisterTypes(serviceManager);
 

@@ -21,6 +21,7 @@ import { IConfigurationService, IDisposableRegistry, IPersistentStateFactory } f
 import * as EnumEx from '../../client/common/utils/enum';
 import { noop } from '../../client/common/utils/misc';
 import { Architecture } from '../../client/common/utils/platform';
+import { IInterpreterAutoSeletionProxyService, IInterpreterAutoSeletionService } from '../../client/interpreter/autoSelection/types';
 import { IPythonPathUpdaterServiceManager } from '../../client/interpreter/configuration/types';
 import {
     IInterpreterDisplay,
@@ -34,6 +35,7 @@ import { InterpreterService } from '../../client/interpreter/interpreterService'
 import { IVirtualEnvironmentManager } from '../../client/interpreter/virtualEnvs/types';
 import { ServiceContainer } from '../../client/ioc/container';
 import { ServiceManager } from '../../client/ioc/serviceManager';
+import { MockAutoSelectionService } from '../mocks/autoSelector';
 
 use(chaiAsPromised);
 
@@ -110,6 +112,8 @@ suite('Interpreters service', () => {
         serviceManager.addSingletonInstance<IPersistentStateFactory>(IPersistentStateFactory, persistentStateFactory.object);
         serviceManager.addSingletonInstance<IPythonExecutionFactory>(IPythonExecutionFactory, pythonExecutionFactory.object);
         serviceManager.addSingletonInstance<IPythonExecutionService>(IPythonExecutionService, pythonExecutionService.object);
+        serviceManager.addSingleton<IInterpreterAutoSeletionService>(IInterpreterAutoSeletionService, MockAutoSelectionService);
+        serviceManager.addSingleton<IInterpreterAutoSeletionProxyService>(IInterpreterAutoSeletionProxyService, MockAutoSelectionService);
 
         // pipenvLocator = TypeMoq.Mock.ofType<IInterpreterLocatorService>();
         // wksLocator = TypeMoq.Mock.ofType<IInterpreterLocatorService>();
