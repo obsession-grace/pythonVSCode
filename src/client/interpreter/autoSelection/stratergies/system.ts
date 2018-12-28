@@ -5,6 +5,8 @@
 
 import { inject, injectable } from 'inversify';
 import { IPersistentState, IPersistentStateFactory, Resource } from '../../../common/types';
+import { captureTelemetry } from '../../../telemetry';
+import { PYTHON_INTERPRETER_AUTO_SELECTION } from '../../../telemetry/constants';
 import { IInterpreterHelper, IInterpreterService, PythonInterpreter } from '../../contracts';
 import { IBestAvailableInterpreterSelectorStratergy } from '../types';
 
@@ -25,6 +27,7 @@ export class SystemInterpreterSelectionStratergy implements IBestAvailableInterp
         @inject(IPersistentStateFactory) private readonly persistentStateFactory: IPersistentStateFactory) {
         this.store = this.persistentStateFactory.createGlobalPersistentState<PythonInterpreter | undefined>(globallyPreferredInterpreterPath, undefined);
     }
+    @captureTelemetry(PYTHON_INTERPRETER_AUTO_SELECTION, { stratergy: 'system' }, true)
     public async getInterpreter(resource: Resource): Promise<PythonInterpreter | undefined> {
         const interpreters = await this.interpreterService.getInterpreters(resource);
         return this.helper.getBestInterpreter(interpreters);

@@ -10,6 +10,8 @@ import { IPythonExecutionFactory } from '../common/process/types';
 import { IConfigurationService, IDisposableRegistry, IPersistentStateFactory } from '../common/types';
 import { sleep } from '../common/utils/async';
 import { IServiceContainer } from '../ioc/types';
+import { captureTelemetry } from '../telemetry';
+import { PYTHON_INTERPRETER_DISCOVERY } from '../telemetry/constants';
 import {
     IInterpreterDisplay, IInterpreterHelper, IInterpreterLocatorService,
     IInterpreterService, INTERPRETER_LOCATOR_SERVICE,
@@ -52,6 +54,7 @@ export class InterpreterService implements Disposable, IInterpreterService {
         disposables.push(disposable);
     }
 
+    @captureTelemetry(PYTHON_INTERPRETER_DISCOVERY, { locator: 'all' }, true)
     public async getInterpreters(resource?: Uri): Promise<PythonInterpreter[]> {
         const interpreters = await this.locator.getInterpreters(resource);
         await Promise.all(interpreters

@@ -9,6 +9,8 @@ import { IWorkspaceService } from '../../../common/application/types';
 import { IPlatformService } from '../../../common/platform/types';
 import { IConfigurationService, Resource } from '../../../common/types';
 import { createDeferredFromPromise } from '../../../common/utils/async';
+import { captureTelemetry } from '../../../telemetry';
+import { PYTHON_INTERPRETER_AUTO_SELECTION } from '../../../telemetry/constants';
 import { IPythonPathUpdaterServiceManager } from '../../configuration/types';
 import { IInterpreterHelper, IInterpreterLocatorService, PIPENV_SERVICE, PythonInterpreter, WORKSPACE_VIRTUAL_ENV_SERVICE } from '../../contracts';
 import { IBestAvailableInterpreterSelectorStratergy } from '../types';
@@ -31,6 +33,7 @@ export class WorkspaceInterpreterSelectionStratergy implements IBestAvailableInt
         @inject(IInterpreterLocatorService) @named(WORKSPACE_VIRTUAL_ENV_SERVICE) private readonly workspaceVirtualEnvInterpreterLocator: IInterpreterLocatorService) {
 
     }
+    @captureTelemetry(PYTHON_INTERPRETER_AUTO_SELECTION, { stratergy: 'workspace' }, true)
     public async getInterpreter(resource: Resource): Promise<PythonInterpreter | string | undefined> {
         if (!this.helper.getActiveWorkspaceUri(resource)) {
             return;

@@ -6,6 +6,8 @@
 import { inject, injectable, named } from 'inversify';
 import { IPlatformService } from '../../../common/platform/types';
 import { IPersistentState, IPersistentStateFactory, Resource } from '../../../common/types';
+import { captureTelemetry } from '../../../telemetry';
+import { PYTHON_INTERPRETER_AUTO_SELECTION } from '../../../telemetry/constants';
 import { IInterpreterHelper, IInterpreterLocatorService, PythonInterpreter, WINDOWS_REGISTRY_SERVICE } from '../../contracts';
 import { IBestAvailableInterpreterSelectorStratergy } from '../types';
 
@@ -27,6 +29,7 @@ export class WindowsRegistryInterpreterSelectionStratergy implements IBestAvaila
         @inject(IInterpreterLocatorService) @named(WINDOWS_REGISTRY_SERVICE) private winRegInterpreterLocator: IInterpreterLocatorService) {
         this.store = this.persistentStateFactory.createGlobalPersistentState<PythonInterpreter | undefined>(winRegistryPreferredInterpreterPath, undefined);
     }
+    @captureTelemetry(PYTHON_INTERPRETER_AUTO_SELECTION, { stratergy: 'windowsRegistry' }, true)
     public async getInterpreter(resource: Resource): Promise<PythonInterpreter | undefined> {
         if (!this.platform.isWindows) {
             return undefined;

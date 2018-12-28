@@ -5,6 +5,8 @@
 
 import { inject, injectable, named } from 'inversify';
 import { IPersistentState, IPersistentStateFactory, Resource } from '../../../common/types';
+import { captureTelemetry } from '../../../telemetry';
+import { PYTHON_INTERPRETER_AUTO_SELECTION } from '../../../telemetry/constants';
 import { CURRENT_PATH_SERVICE, IInterpreterHelper, IInterpreterLocatorService, PythonInterpreter } from '../../contracts';
 import { IBestAvailableInterpreterSelectorStratergy } from '../types';
 
@@ -26,6 +28,7 @@ export class CurrentPathInterpreterSelectionStratergy implements IBestAvailableI
         @inject(IInterpreterLocatorService) @named(CURRENT_PATH_SERVICE) private readonly currentPathInterpreterLocator: IInterpreterLocatorService) {
         this.store = this.persistentStateFactory.createGlobalPersistentState<PythonInterpreter | undefined>(globallyPreferredInterpreterPath, undefined);
     }
+    @captureTelemetry(PYTHON_INTERPRETER_AUTO_SELECTION, { stratergy: 'currentPath' }, true)
     public async getInterpreter(resource: Resource): Promise<PythonInterpreter | undefined> {
         const interpreters = await this.currentPathInterpreterLocator.getInterpreters(resource);
         return this.helper.getBestInterpreter(interpreters);

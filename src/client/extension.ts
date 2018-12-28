@@ -50,6 +50,7 @@ import {
     ILogger,
     IMemento,
     IOutputChannel,
+    Resource,
     WORKSPACE_MEMENTO
 } from './common/types';
 import { createDeferred } from './common/utils/async';
@@ -63,7 +64,7 @@ import { IDebugSessionEventHandlers } from './debugger/extension/hooks/types';
 import { registerTypes as debugConfigurationRegisterTypes } from './debugger/extension/serviceRegistry';
 import { IDebugConfigurationService, IDebuggerBanner } from './debugger/extension/types';
 import { registerTypes as formattersRegisterTypes } from './formatters/serviceRegistry';
-import { IInterpreterAutoSeletionService } from './interpreter/autoSelection/types';
+import { AutoSelectionStratergy, IBestAvailableInterpreterSelectorStratergy, IInterpreterAutoSeletionService } from './interpreter/autoSelection/types';
 import { IInterpreterSelector } from './interpreter/configuration/types';
 import {
     ICondaService,
@@ -292,7 +293,9 @@ async function sendStartupTelemetry(activatedPromise: Promise<any>, serviceConta
         const condaLocator = serviceContainer.get<ICondaService>(ICondaService);
         const interpreterService = serviceContainer.get<IInterpreterService>(IInterpreterService);
         const workspaceService = serviceContainer.get<IWorkspaceService>(IWorkspaceService);
+        const configurationService = serviceContainer.get<IConfigurationService>(IConfigurationService);
         const mainWorkspaceUri = workspaceService.hasWorkspaceFolders ? workspaceService.workspaceFolders![0].uri : undefined;
+        const settings = configurationService.getSettings(mainWorkspaceUri);
         const [condaVersion, interpreter, interpreters] = await Promise.all([
             condaLocator.getCondaVersion().then(ver => ver ? ver.raw : '').catch<string>(() => ''),
             interpreterService.getActiveInterpreter().catch<PythonInterpreter | undefined>(() => undefined),
@@ -301,13 +304,30 @@ async function sendStartupTelemetry(activatedPromise: Promise<any>, serviceConta
         const workspaceFolderCount = workspaceService.hasWorkspaceFolders ? workspaceService.workspaceFolders!.length : 0;
         const pythonVersion = interpreter && interpreter.version ? interpreter.version.raw : undefined;
         const interpreterType = interpreter ? interpreter.type : undefined;
+        const hasUserDefinedInterpreter = hasUserDefinedPythonPath(mainWorkspaceUri, serviceContainer);
+        const preferredWorkspaceInterpreter = getPreferredWorkspaceInterpreter(mainWorkspaceUri, serviceContainer);
+        const isAutoSelectedWorkspaceInterpreterUsed = preferredWorkspaceInterpreter ? settings.pythonPath === getPreferredWorkspaceInterpreter(mainWorkspaceUri, serviceContainer) : undefined;
         const hasPython3 = interpreters
             .filter(item => item && item.version ? item.version.major === 3 : false)
             .length > 0;
 
-        const props = { condaVersion, terminal: terminalShellType, pythonVersion, interpreterType, workspaceFolderCount, hasPython3 };
+        const props = {
+            condaVersion, terminal: terminalShellType, pythonVersion, interpreterType, workspaceFolderCount, hasPython3,
+            hasUserDefinedInterpreter, isAutoSelectedWorkspaceInterpreterUsed
+        };
         sendTelemetryEvent(EDITOR_LOAD, durations, props);
     } catch (ex) {
         logger.logError('sendStartupTelemetry failed.', ex);
     }
+}
+function hasUserDefinedPythonPath(resource: Resource, serviceContainer: IServiceContainer) {
+    const workspaceService = serviceContainer.get<IWorkspaceService>(IWorkspaceService);
+    const settings = workspaceService.getConfiguration('python', resource)!.inspect<string>('pyhontPath')!;
+    return (settings.workspaceFolderValue && settings.workspaceFolderValue !== 'python') ||
+        (settings.workspaceValue && settings.workspaceValue !== 'python') ||
+        (settings.globalValue && settings.globalValue !== 'python');
+}
+function getPreferredWorkspaceInterpreter(resource: Resource, serviceContainer: IServiceContainer) {
+    const workspaceInterpreterSelector = serviceContainer.get<IBestAvailableInterpreterSelectorStratergy<string | undefined>>(IBestAvailableInterpreterSelectorStratergy, AutoSelectionStratergy.workspace);
+    return workspaceInterpreterSelector.getStoredInterpreter(resource);
 }

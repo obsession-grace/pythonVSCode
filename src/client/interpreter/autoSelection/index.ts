@@ -9,6 +9,8 @@ import { IWorkspaceService } from '../../common/application/types';
 import '../../common/extensions';
 import { IFileSystem } from '../../common/platform/types';
 import { IPersistentState, IPersistentStateFactory, Resource } from '../../common/types';
+import { captureTelemetry, sendTelemetryEvent } from '../../telemetry';
+import { PYTHON_INTERPRETER_AUTO_SELECTION } from '../../telemetry/constants';
 import { IInterpreterHelper, PythonInterpreter } from '../contracts';
 import { InterpreterAutoSeletionProxyService } from './proxy';
 import { CurrentPathInterpreterSelectionStratergy } from './stratergies/currentPath';
@@ -54,9 +56,10 @@ export class InterpreterAutoSeletionService implements IInterpreterAutoSeletionS
         }
         return this.globallyPreferredInterpreter.value ? this.globallyPreferredInterpreter.value.path : undefined;
     }
+    @captureTelemetry(PYTHON_INTERPRETER_AUTO_SELECTION, { stratergy: 'main' }, true)
     public async autoSelectInterpreter(resource: Resource): Promise<void> {
         // Always update the best available interpreters (system wide) in the background.
-        // This will be used in step 3 (either immediately or later when vsc loads again).
+        // This will be used in step 2 (either immediately or later when vsc loads again).
         this.autoSelectBestAvailableSystemInterpreterInBackground(resource);
 
         const activeWorkspace = this.helper.getActiveWorkspaceUri(resource);
@@ -65,19 +68,23 @@ export class InterpreterAutoSeletionService implements IInterpreterAutoSeletionS
         // then update the settings and exit.
         const workspaceInterpreterSelected = activeWorkspace ? await this.autoSelectWorkspaceInterpreter(resource) : false;
         if (workspaceInterpreterSelected) {
+            sendTelemetryEvent(PYTHON_INTERPRETER_AUTO_SELECTION, undefined, { stratergy: 'workspace', identified: true });
             return;
         }
 
         // Possible the user uninstalled a python interrpeter, we need to ensure we don't use one that no longer exists.
         await this.clearInvalidAutoSelectedInterpreters(resource);
 
-        // 2. If we have a interpreter cached cached, then use it.
-        if (this.globallyPreferredInterpreter.value) {
+        // 2. Get best availale interpreter by checking previously stored values from each stratergy.
+        // Always do this over using cached item as this is fast and will udpate cache if necessary.
+        if (await this.getBestAvailableInterpreterFromStoredValues(resource)) {
+            sendTelemetryEvent(PYTHON_INTERPRETER_AUTO_SELECTION, undefined, { stratergy: 'main', identified: true });
             return;
         }
 
-        // 3. Get best availale interpreter by checking previously stored values from each stratergy.
-        if (await this.getBestAvailableInterpreterFromStoredValues(resource)) {
+        // 3. If we have a interpreter cached, then use it.
+        if (this.globallyPreferredInterpreter.value) {
+            sendTelemetryEvent(PYTHON_INTERPRETER_AUTO_SELECTION, undefined, { stratergy: 'main', identified: true });
             return;
         }
 
@@ -95,12 +102,14 @@ export class InterpreterAutoSeletionService implements IInterpreterAutoSeletionS
     protected async autoSelectInterpreterFromStratergy(resource: Resource, stratergy: IBestAvailableInterpreterSelectorStratergy<PythonInterpreter | undefined>): Promise<boolean> {
         let interpreter = stratergy.getStoredInterpreter(resource);
         if (interpreter) {
+            sendTelemetryEvent(PYTHON_INTERPRETER_AUTO_SELECTION, undefined, { updated: !!this.globallyPreferredInterpreter.value });
             await this.globallyPreferredInterpreter.updateValue(interpreter);
             this.storeAutoSelectedInterperter(resource, interpreter);
             return true;
         }
         interpreter = await stratergy.getInterpreter(resource);
         if (interpreter) {
+            sendTelemetryEvent(PYTHON_INTERPRETER_AUTO_SELECTION, undefined, { updated: !!this.globallyPreferredInterpreter.value });
             await stratergy.storeInterpreter(resource, interpreter);
             await this.globallyPreferredInterpreter.updateValue(interpreter);
             this.storeAutoSelectedInterperter(resource, interpreter);
@@ -147,8 +156,17 @@ export class InterpreterAutoSeletionService implements IInterpreterAutoSeletionS
         if (!bestInterpreter) {
             return false;
         }
+        // If identified interpreter is not better than previously cached interpreter then don't update.
+        // Then just exit, as the cached one is better.
+        if (this.globallyPreferredInterpreter.value && this.globallyPreferredInterpreter.value.version &&
+            bestInterpreter.version &&
+            this.globallyPreferredInterpreter.value.version.compare(bestInterpreter.version) > 0) {
+            return false;
+        }
+
         if (!this.globallyPreferredInterpreter.value ||
             (this.globallyPreferredInterpreter.value && this.globallyPreferredInterpreter.value.path !== bestInterpreter.path)) {
+            sendTelemetryEvent(PYTHON_INTERPRETER_AUTO_SELECTION, undefined, { updated: !!this.globallyPreferredInterpreter.value });
             await this.globallyPreferredInterpreter.updateValue(bestInterpreter);
         }
         this.storeAutoSelectedInterperter(resource, bestInterpreter);
@@ -169,6 +187,7 @@ export class InterpreterAutoSeletionService implements IInterpreterAutoSeletionS
             if (interpreter) {
                 if ((typeof interpreter === 'object' && !await this.fs.fileExists(interpreter.path)) ||
                     (typeof interpreter === 'string' && !await this.fs.fileExists(interpreter))) {
+                    sendTelemetryEvent(PYTHON_INTERPRETER_AUTO_SELECTION, undefined, { interpreterMissing: true });
                     await stratergy.storeInterpreter(resource, undefined);
                 }
             }
@@ -176,6 +195,7 @@ export class InterpreterAutoSeletionService implements IInterpreterAutoSeletionS
 
         const promise2 = async () => {
             if (this.globallyPreferredInterpreter.value && !await this.fs.fileExists(this.globallyPreferredInterpreter.value.path)) {
+                sendTelemetryEvent(PYTHON_INTERPRETER_AUTO_SELECTION, undefined, { interpreterMissing: true });
                 await this.globallyPreferredInterpreter.updateValue(undefined);
                 this.didAutoSelectedInterpreterEmitter.fire();
             }
