@@ -35,3 +35,10 @@ export interface IInterpreterAutoSeletionService extends IInterpreterAutoSeletio
     readonly onDidChangeAutoSelectedInterpreter: Event<void>;
     autoSelectInterpreter(resource: Resource): Promise<void>;
 }
+
+export enum AutoSelectionStratergy {
+    currentPath = 'currentPath',
+    workspace = 'workspace',
+    system = 'system',
+    windowsRegistry = 'windowsRegistry'
+}

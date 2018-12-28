@@ -8,7 +8,7 @@ import { CurrentPathInterpreterSelectionStratergy } from './autoSelection/strate
 import { SystemInterpreterSelectionStratergy } from './autoSelection/stratergies/system';
 import { WindowsRegistryInterpreterSelectionStratergy } from './autoSelection/stratergies/windowsRegistry';
 import { WorkspaceInterpreterSelectionStratergy } from './autoSelection/stratergies/workspace';
-import { IBestAvailableInterpreterSelectorStratergy, IInterpreterAutoSeletionProxyService, IInterpreterAutoSeletionService } from './autoSelection/types';
+import { AutoSelectionStratergy, IBestAvailableInterpreterSelectorStratergy, IInterpreterAutoSeletionProxyService, IInterpreterAutoSeletionService } from './autoSelection/types';
 import { InterpreterComparer } from './configuration/interpreterComparer';
 import { InterpreterSelector } from './configuration/interpreterSelector';
 import { PythonPathUpdaterService } from './configuration/pythonPathUpdaterService';
@@ -104,10 +104,10 @@ export function registerTypes(serviceManager: IServiceManager) {
     serviceManager.addSingleton<InterpreterLocatorProgressHandler>(InterpreterLocatorProgressHandler, InterpreterLocatorProgressStatubarHandler);
     serviceManager.addSingleton<IInterpreterLocatorProgressService>(IInterpreterLocatorProgressService, InterpreterLocatorProgressService);
 
-    serviceManager.addSingleton<IBestAvailableInterpreterSelectorStratergy<PythonInterpreter | undefined>>(IBestAvailableInterpreterSelectorStratergy, CurrentPathInterpreterSelectionStratergy, 'currentPath');
-    serviceManager.addSingleton<IBestAvailableInterpreterSelectorStratergy<PythonInterpreter | undefined>>(IBestAvailableInterpreterSelectorStratergy, SystemInterpreterSelectionStratergy, 'system');
-    serviceManager.addSingleton<IBestAvailableInterpreterSelectorStratergy<PythonInterpreter | undefined>>(IBestAvailableInterpreterSelectorStratergy, WindowsRegistryInterpreterSelectionStratergy, 'winReg');
-    serviceManager.addSingleton<IBestAvailableInterpreterSelectorStratergy<PythonInterpreter | string | undefined>>(IBestAvailableInterpreterSelectorStratergy, WorkspaceInterpreterSelectionStratergy, 'workspace');
+    serviceManager.addSingleton<IBestAvailableInterpreterSelectorStratergy<PythonInterpreter | undefined>>(IBestAvailableInterpreterSelectorStratergy, CurrentPathInterpreterSelectionStratergy, AutoSelectionStratergy.currentPath);
+    serviceManager.addSingleton<IBestAvailableInterpreterSelectorStratergy<PythonInterpreter | undefined>>(IBestAvailableInterpreterSelectorStratergy, SystemInterpreterSelectionStratergy, AutoSelectionStratergy.system);
+    serviceManager.addSingleton<IBestAvailableInterpreterSelectorStratergy<PythonInterpreter | undefined>>(IBestAvailableInterpreterSelectorStratergy, WindowsRegistryInterpreterSelectionStratergy, AutoSelectionStratergy.windowsRegistry);
+    serviceManager.addSingleton<IBestAvailableInterpreterSelectorStratergy<PythonInterpreter | string | undefined>>(IBestAvailableInterpreterSelectorStratergy, WorkspaceInterpreterSelectionStratergy, AutoSelectionStratergy.workspace);
     serviceManager.addSingleton<IInterpreterAutoSeletionProxyService>(IInterpreterAutoSeletionProxyService, InterpreterAutoSeletionProxyService);
     serviceManager.addSingleton<IInterpreterAutoSeletionService>(IInterpreterAutoSeletionService, InterpreterAutoSeletionService);
 }
