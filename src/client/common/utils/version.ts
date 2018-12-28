@@ -16,16 +16,7 @@ export function parseVersion(raw: string): semver.SemVer {
     }
     return ver;
 }
-
-export function convertToSemver(version: string) {
-    const versionParts = (version || '').split('.').filter(item => item.length > 0);
-    while (versionParts.length < 3) {
-        versionParts.push('0');
-    }
-    return versionParts.join('.');
-}
-
-export function convertPythonVersionToSemver(version: string): Version | undefined {
+export function parsePythonVersion(version: string): Version | undefined {
     if (!version || version.trim().length === 0) {
         return;
     }
@@ -53,14 +44,4 @@ export function convertPythonVersionToSemver(version: string): Version | undefin
     const numberParts = `${versionParts[0]}.${versionParts[1]}.${versionParts[2]}`;
     const rawVersion = versionParts.length === 4 ? `${numberParts}-${versionParts[3]}` : numberParts;
     return new semver.SemVer(rawVersion);
-}
-
-export function compareVersion(versionA: string, versionB: string) {
-    try {
-        versionA = convertToSemver(versionA);
-        versionB = convertToSemver(versionB);
-        return semver.gt(versionA, versionB) ? 1 : 0;
-    } catch {
-        return 0;
-    }
 }
