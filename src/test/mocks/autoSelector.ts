@@ -3,18 +3,22 @@
 
 'use strict';
 
-import { Event, EventEmitter} from 'vscode';
+import { Event, EventEmitter } from 'vscode';
 import { Resource } from '../../client/common/types';
-import { IInterpreterAutoSeletionService } from '../../client/interpreter/autoSelection/types';
+import { IInterpreterAutoSeletionProxyService, IInterpreterAutoSeletionService } from '../../client/interpreter/autoSelection/types';
+import { noop } from '../core';
 
-export class MockAutoSelectionService implements IInterpreterAutoSeletionService {
+export class MockAutoSelectionService implements IInterpreterAutoSeletionService, IInterpreterAutoSeletionProxyService {
     get onDidChangeAutoSelectedInterpreter(): Event<void> {
         return new EventEmitter<void>().event;
     }
-    public autoSelectInterpreter(resource: Resource): Promise<void> {
+    public autoSelectInterpreter(_resource: Resource): Promise<void> {
         return Promise.resolve();
     }
-    public getAutoSelectedInterpreter(resource: Resource): string | undefined {
+    public getAutoSelectedInterpreter(_resource: Resource): string | undefined {
         return;
+    }
+    public registerInstance(_instance: IInterpreterAutoSeletionProxyService): void {
+        noop();
     }
 }
