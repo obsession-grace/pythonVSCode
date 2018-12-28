@@ -66,6 +66,7 @@ export class IocContainer {
 
         }();
         this.serviceManager.addSingletonInstance<IInterpreterAutoSeletionService>(IInterpreterAutoSeletionService, mockInterpreterAutoSeletionService);
+        this.serviceManager.addSingletonInstance<IInterpreterAutoSeletionProxyService>(IInterpreterAutoSeletionProxyService, mockInterpreterAutoSeletionService);
     }
     public dispose() {
         this.disposables.forEach(disposable => {
