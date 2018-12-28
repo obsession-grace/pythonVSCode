@@ -4,6 +4,7 @@
 'use strict';
 
 import { inject, injectable, named } from 'inversify';
+import { compare } from 'semver';
 import { Event, EventEmitter } from 'vscode';
 import { IWorkspaceService } from '../../common/application/types';
 import '../../common/extensions';
@@ -160,7 +161,7 @@ export class InterpreterAutoSeletionService implements IInterpreterAutoSeletionS
         // Then just exit, as the cached one is better.
         if (this.globallyPreferredInterpreter.value && this.globallyPreferredInterpreter.value.version &&
             bestInterpreter.version &&
-            this.globallyPreferredInterpreter.value.version.compare(bestInterpreter.version) > 0) {
+            compare(this.globallyPreferredInterpreter.value.version.raw, bestInterpreter.version.raw) > 0) {
             return false;
         }
 

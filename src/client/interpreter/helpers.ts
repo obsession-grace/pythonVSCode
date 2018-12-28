@@ -1,4 +1,5 @@
 import { inject, injectable } from 'inversify';
+import { compare } from 'semver';
 import { ConfigurationTarget } from 'vscode';
 import { IDocumentManager, IWorkspaceService } from '../common/application/types';
 import { IFileSystem } from '../common/platform/types';
@@ -104,8 +105,11 @@ export class InterpreterHelper implements IInterpreterHelper {
         if (!Array.isArray(interpreters) || interpreters.length === 0) {
             return;
         }
+        if (interpreters.length === 1) {
+            return interpreters[0];
+        }
         const sorted = interpreters.slice();
-        sorted.sort((a, b) => (a.version && b.version) ? a.version.compare(b.version) : 0);
+        sorted.sort((a, b) => (a.version && b.version) ? compare(a.version.raw, b.version.raw) : 0);
         return sorted[sorted.length - 1];
     }
 }
