@@ -33,7 +33,6 @@ import { Architecture } from '../../client/common/utils/platform';
 import { EXTENSION_ROOT_DIR } from '../../client/constants';
 import { JupyterExecution } from '../../client/datascience/jupyterExecution';
 import { ICell, IConnection, IJupyterKernelSpec, INotebookServer, InterruptResult } from '../../client/datascience/types';
-import { InterpreterAutoSeletionService } from '../../client/interpreter/autoSelection';
 import { InterpreterType, PythonInterpreter } from '../../client/interpreter/contracts';
 import { InterpreterService } from '../../client/interpreter/interpreterService';
 import { CondaService } from '../../client/interpreter/locators/services/condaService';
@@ -41,6 +40,7 @@ import { KnownSearchPathsForInterpreters } from '../../client/interpreter/locato
 import { ServiceContainer } from '../../client/ioc/container';
 import { getOSType, OSType } from '../common';
 import { noop } from '../core';
+import { MockAutoSelectionService } from '../mocks/autoSelector';
 
 // tslint:disable:no-any no-http-string no-multiline-string max-func-body-length
 class MockJupyterServer implements INotebookServer {
@@ -146,7 +146,7 @@ suite('Jupyter Execution', async () => {
     const serviceContainer = mock(ServiceContainer);
     const disposableRegistry = new DisposableRegistry();
     const dummyEvent = new EventEmitter<void>();
-    const pythonSettings = new PythonSettings(undefined, instance(mock(InterpreterAutoSeletionService)));
+    const pythonSettings = new PythonSettings(undefined, new MockAutoSelectionService());
     const jupyterOnPath = getOSType() === OSType.Windows ? '/foo/bar/jupyter.exe' : '/foo/bar/jupyter';
     let ipykernelInstallCount = 0;
 

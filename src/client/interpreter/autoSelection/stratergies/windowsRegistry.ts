@@ -27,11 +27,11 @@ export class WindowsRegistryInterpreterSelectionStratergy implements IBestAvaila
         @inject(IInterpreterLocatorService) @named(WINDOWS_REGISTRY_SERVICE) private winRegInterpreterLocator: IInterpreterLocatorService) {
         this.store = this.persistentStateFactory.createGlobalPersistentState<PythonInterpreter | undefined>(winRegistryPreferredInterpreterPath, undefined);
     }
-    public async getInterpreter(_resource: Resource): Promise<PythonInterpreter | undefined> {
+    public async getInterpreter(resource: Resource): Promise<PythonInterpreter | undefined> {
         if (!this.platform.isWindows) {
             return undefined;
         }
-        const interpreters = await this.winRegInterpreterLocator.getInterpreters(undefined, true);
+        const interpreters = await this.winRegInterpreterLocator.getInterpreters(resource);
         return this.helper.getBestInterpreter(interpreters);
     }
     public getStoredInterpreter(_resource: Resource): PythonInterpreter | undefined {

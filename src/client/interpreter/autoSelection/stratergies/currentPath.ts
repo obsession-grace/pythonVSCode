@@ -26,8 +26,8 @@ export class CurrentPathInterpreterSelectionStratergy implements IBestAvailableI
         @inject(IInterpreterLocatorService) @named(CURRENT_PATH_SERVICE) private readonly currentPathInterpreterLocator: IInterpreterLocatorService) {
         this.store = this.persistentStateFactory.createGlobalPersistentState<PythonInterpreter | undefined>(globallyPreferredInterpreterPath, undefined);
     }
-    public async getInterpreter(_resource: Resource): Promise<PythonInterpreter | undefined> {
-        const interpreters = await this.currentPathInterpreterLocator.getInterpreters(undefined, true);
+    public async getInterpreter(resource: Resource): Promise<PythonInterpreter | undefined> {
+        const interpreters = await this.currentPathInterpreterLocator.getInterpreters(resource);
         return this.helper.getBestInterpreter(interpreters);
     }
     public getStoredInterpreter(_resource: Resource): PythonInterpreter | undefined {

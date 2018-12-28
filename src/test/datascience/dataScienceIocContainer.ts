@@ -39,8 +39,7 @@ import {
     ILogger,
     IPathUtils,
     IPersistentStateFactory,
-    IsWindows,
-    Resource,
+    IsWindows
 } from '../../client/common/types';
 import { noop } from '../../client/common/utils/misc';
 import { EnvironmentVariablesService } from '../../client/common/variables/environment';
@@ -64,7 +63,6 @@ import {
     INotebookServer,
     IStatusProvider,
 } from '../../client/datascience/types';
-import { IInterpreterAutoSeletionService } from '../../client/interpreter/autoSelection/types';
 import { InterpreterComparer } from '../../client/interpreter/configuration/interpreterComparer';
 import { PythonPathUpdaterService } from '../../client/interpreter/configuration/pythonPathUpdaterService';
 import { PythonPathUpdaterServiceFactory } from '../../client/interpreter/configuration/pythonPathUpdaterServiceFactory';
@@ -124,24 +122,13 @@ import {
 } from '../../client/interpreter/locators/services/workspaceVirtualEnvWatcherService';
 import { VirtualEnvironmentManager } from '../../client/interpreter/virtualEnvs';
 import { IVirtualEnvironmentManager } from '../../client/interpreter/virtualEnvs/types';
+import { MockAutoSelectionService } from '../mocks/autoSelector';
 import { UnitTestIocContainer } from '../unittests/serviceRegistry';
 import { MockCommandManager } from './mockCommandManager';
 
-class AutoSelectionService implements IInterpreterAutoSeletionService {
-    get onDidChangeAutoSelectedInterpreter(): Event<void> {
-        return new EventEmitter<void>().event;
-    }
-    public autoSelectInterpreter(resource: Resource): Promise<void> {
-        return Promise.resolve();
-    }
-    public getAutoSelectedInterpreter(resource: Resource): string | undefined {
-        return;
-    }
-}
-
 export class DataScienceIocContainer extends UnitTestIocContainer {
 
-    private pythonSettings: PythonSettings = new PythonSettings(undefined, new AutoSelectionService());
+    private pythonSettings: PythonSettings = new PythonSettings(undefined, new MockAutoSelectionService());
     private commandManager: MockCommandManager = new MockCommandManager();
     private setContexts: { [name: string]: boolean } = {};
     private contextSetEvent: EventEmitter<{ name: string; value: boolean }> = new EventEmitter<{ name: string; value: boolean }>();

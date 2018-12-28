@@ -8,7 +8,7 @@ import { Uri } from 'vscode';
 import { IWorkspaceService } from '../../../common/application/types';
 import { IPlatformService } from '../../../common/platform/types';
 import { IConfigurationService, Resource } from '../../../common/types';
-import { createDeferredFrom } from '../../../common/utils/async';
+import { createDeferredFromPromise } from '../../../common/utils/async';
 import { IPythonPathUpdaterServiceManager } from '../../configuration/types';
 import { IInterpreterHelper, IInterpreterLocatorService, PIPENV_SERVICE, PythonInterpreter, WORKSPACE_VIRTUAL_ENV_SERVICE } from '../../contracts';
 import { IBestAvailableInterpreterSelectorStratergy } from '../types';
@@ -32,12 +32,11 @@ export class WorkspaceInterpreterSelectionStratergy implements IBestAvailableInt
 
     }
     public async getInterpreter(resource: Resource): Promise<PythonInterpreter | string | undefined> {
-        const activeWorkspace = this.helper.getActiveWorkspaceUri(resource);
-        if (!activeWorkspace) {
+        if (!this.helper.getActiveWorkspaceUri(resource)) {
             return;
         }
-        const pipEnvPromise = createDeferredFrom(this.getWorkspacePipEnvInterpreters(resource));
-        const virtualEnvPromise = createDeferredFrom(this.getWorkspaceVirtualEnvInterpreters(resource));
+        const pipEnvPromise = createDeferredFromPromise(this.pipEnvInterpreterLocator.getInterpreters(resource));
+        const virtualEnvPromise = createDeferredFromPromise(this.getWorkspaceVirtualEnvInterpreters(resource));
 
         const interpreters = await Promise.race([pipEnvPromise.promise, virtualEnvPromise.promise]);
         let bestInterperter: PythonInterpreter | undefined;
@@ -72,9 +71,6 @@ export class WorkspaceInterpreterSelectionStratergy implements IBestAvailableInt
         await this.pythonPathUpdaterService.updatePythonPath(interpreterPath, activeWorkspace.configTarget, 'load', activeWorkspace.folderUri);
     }
 
-    protected async getWorkspacePipEnvInterpreters(resource: Resource): Promise<PythonInterpreter[] | undefined> {
-        return this.pipEnvInterpreterLocator.getInterpreters(resource, true);
-    }
     protected async getWorkspaceVirtualEnvInterpreters(resource: Resource): Promise<PythonInterpreter[] | undefined> {
         if (!resource) {
             return;
