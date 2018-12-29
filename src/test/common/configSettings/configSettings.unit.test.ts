@@ -11,7 +11,7 @@ import untildify = require('untildify');
 import { WorkspaceConfiguration } from 'vscode';
 import {
     PythonSettings
-} from '../../client/common/configSettings';
+} from '../../../client/common/configSettings';
 import {
     IAnalysisSettings,
     IAutoCompleteSettings,
@@ -22,9 +22,9 @@ import {
     ITerminalSettings,
     IUnitTestSettings,
     IWorkspaceSymbolSettings
-} from '../../client/common/types';
-import { noop } from '../../client/common/utils/misc';
-import { MockAutoSelectionService } from '../mocks/autoSelector';
+} from '../../../client/common/types';
+import { noop } from '../../../client/common/utils/misc';
+import { MockAutoSelectionService } from '../../mocks/autoSelector';
 
 // tslint:disable-next-line:max-func-body-length
 suite('Python Settings', () => {

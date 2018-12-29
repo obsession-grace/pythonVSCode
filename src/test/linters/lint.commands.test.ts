@@ -7,6 +7,7 @@ import { Container } from 'inversify';
 import * as TypeMoq from 'typemoq';
 import { QuickPickOptions } from 'vscode';
 import { IApplicationShell, ICommandManager, IWorkspaceService } from '../../client/common/application/types';
+import { WorkspaceService } from '../../client/common/application/workspace';
 import { ConfigurationService } from '../../client/common/configuration/service';
 import { IConfigurationService, Product } from '../../client/common/types';
 import { IInterpreterAutoSeletionProxyService, IInterpreterAutoSeletionService } from '../../client/interpreter/autoSelection/types';
@@ -43,6 +44,7 @@ suite('Linting - Linter Selector', () => {
 
         appShell = TypeMoq.Mock.ofType<IApplicationShell>();
         serviceManager.addSingleton<IConfigurationService>(IConfigurationService, ConfigurationService);
+        serviceManager.addSingleton<IWorkspaceService>(IWorkspaceService, WorkspaceService);
 
         const commandManager = TypeMoq.Mock.ofType<ICommandManager>();
         serviceManager.addSingletonInstance<ICommandManager>(ICommandManager, commandManager.object);
@@ -51,11 +53,13 @@ suite('Linting - Linter Selector', () => {
         engine = TypeMoq.Mock.ofType<ILintingEngine>();
         serviceManager.addSingletonInstance<ILintingEngine>(ILintingEngine, engine.object);
 
-        const workspaceService = TypeMoq.Mock.ofType<IWorkspaceService>();
-        lm = new LinterManager(serviceContainer, workspaceService.object);
-        serviceManager.addSingletonInstance<ILinterManager>(ILinterManager, lm);
+        // const workspaceService = TypeMoq.Mock.ofType<IWorkspaceService>();
+        // serviceManager.addSingletonInstance<ILinterManager>(ILinterManager, lm);
+        serviceManager.addSingleton<ILinterManager>(ILinterManager, LinterManager);
         serviceManager.addSingleton<IInterpreterAutoSeletionService>(IInterpreterAutoSeletionService, MockAutoSelectionService);
         serviceManager.addSingleton<IInterpreterAutoSeletionProxyService>(IInterpreterAutoSeletionProxyService, MockAutoSelectionService);
+        // lm = new LinterManager(serviceContainer, workspaceService.object);
+        lm = serviceManager.get<ILinterManager>(ILinterManager);
         commands = new LinterCommands(serviceContainer);
     }
 
@@ -103,6 +107,8 @@ suite('Linting - Linter Selector', () => {
             );
         const current = enable ? 'off' : 'on';
         await commands.enableLintingAsync();
+        // tslint:disable-next-line:no-any
+        lm.getActiveLinters = () => Promise.resolve(enable ? [{} as any] : []);
         assert.notEqual(suggestions.length, 0, 'showQuickPick was not called');
         assert.notEqual(options!, undefined, 'showQuickPick was not called');
 

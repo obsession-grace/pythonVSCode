@@ -1,7 +1,7 @@
 import * as path from 'path';
 import * as TypeMoq from 'typemoq';
 import { ConfigurationTarget, Uri } from 'vscode';
-import { IApplicationShell, ICommandManager, IWorkspaceService } from '../../client/common/application/types';
+import { IApplicationShell, ICommandManager } from '../../client/common/application/types';
 import { ConfigurationService } from '../../client/common/configuration/service';
 import { InstallationChannelManager } from '../../client/common/installer/channelManager';
 import { ProductInstaller } from '../../client/common/installer/productInstaller';
@@ -60,10 +60,6 @@ suite('Installer', () => {
 
         ioc.serviceManager.addSingletonInstance<IApplicationShell>(IApplicationShell, TypeMoq.Mock.ofType<IApplicationShell>().object);
         ioc.serviceManager.addSingleton<IConfigurationService>(IConfigurationService, ConfigurationService);
-
-        const workspaceService = TypeMoq.Mock.ofType<IWorkspaceService>();
-        workspaceService.setup(w => w.getWorkspaceFolder(TypeMoq.It.isAny())).returns(() => undefined);
-        ioc.serviceManager.addSingletonInstance<IWorkspaceService>(IWorkspaceService, workspaceService.object);
 
         ioc.registerMockProcessTypes();
         ioc.serviceManager.addSingletonInstance<boolean>(IsWindows, false);

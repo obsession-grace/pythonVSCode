@@ -4,8 +4,8 @@
 
 import * as assert from 'assert';
 import { Container } from 'inversify';
-import * as typeMoq from 'typemoq';
 import { IWorkspaceService } from '../../client/common/application/types';
+import { WorkspaceService } from '../../client/common/application/workspace';
 import { ConfigurationService } from '../../client/common/configuration/service';
 import { IConfigurationService, ILintingSettings, IPythonSettings, Product } from '../../client/common/types';
 import * as EnumEx from '../../client/common/utils/enum';
@@ -32,12 +32,13 @@ suite('Linting - Manager', () => {
         serviceManager.addSingletonInstance<IServiceContainer>(IServiceContainer, serviceContainer);
 
         serviceManager.addSingleton<IConfigurationService>(IConfigurationService, ConfigurationService);
+        serviceManager.addSingleton<IWorkspaceService>(IWorkspaceService, WorkspaceService);
         configService = serviceManager.get<IConfigurationService>(IConfigurationService);
         serviceManager.addSingleton<IInterpreterAutoSeletionService>(IInterpreterAutoSeletionService, MockAutoSelectionService);
         serviceManager.addSingleton<IInterpreterAutoSeletionProxyService>(IInterpreterAutoSeletionProxyService, MockAutoSelectionService);
         settings = configService.getSettings();
-        const workspaceService = typeMoq.Mock.ofType<IWorkspaceService>();
-        lm = new LinterManager(serviceContainer, workspaceService.object);
+        const workspaceService = serviceManager.get<IWorkspaceService>(IWorkspaceService);
+        lm = new LinterManager(serviceContainer, workspaceService);
 
         await lm.setActiveLintersAsync([Product.pylint]);
         await lm.enableLintingAsync(true);
