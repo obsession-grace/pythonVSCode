@@ -115,6 +115,7 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
 
         // tslint:disable-next-line:no-backbone-get-set-outside-model no-non-null-assertion
         this.pythonPath = systemVariables.resolveAny(pythonSettings.get<string>('pythonPath'))!;
+        // If user has defined a custom value, use it else try to get the best interpreter ourselves.
         if (this.pythonPath.length === 0 || this.pythonPath === 'python') {
             const autoSelectedPythonPath = this.interpreterAutoSeletionService.getAutoSelectedInterpreter(this.workspaceRoot);
             this.pythonPath = autoSelectedPythonPath || this.pythonPath;
