@@ -91,7 +91,8 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
     }
 
     // tslint:disable-next-line:type-literal-delimiter
-    public static getSettingsUriAndTarget(resource: Uri | undefined, workspace: IWorkspaceService): { uri: Uri | undefined, target: ConfigurationTarget } {
+    public static getSettingsUriAndTarget(resource: Uri | undefined, workspace?: IWorkspaceService): { uri: Uri | undefined, target: ConfigurationTarget } {
+        workspace = workspace || new WorkspaceService();
         const workspaceFolder = resource ? workspace.getWorkspaceFolder(resource) : undefined;
         let workspaceFolderUri: Uri | undefined = workspaceFolder ? workspaceFolder.uri : undefined;
 
