@@ -113,12 +113,11 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         const workspaceRoot = this.workspaceRoot.fsPath;
         const systemVariables: SystemVariables = new SystemVariables(this.workspaceRoot ? this.workspaceRoot.fsPath : undefined);
 
-        const autoSelectedPythonPath = this.interpreterAutoSeletionService.getAutoSelectedInterpreter(this.workspaceRoot);
-        if (autoSelectedPythonPath) {
-            this.pythonPath = autoSelectedPythonPath;
-        } else {
-            // tslint:disable-next-line:no-backbone-get-set-outside-model no-non-null-assertion
-            this.pythonPath = systemVariables.resolveAny(pythonSettings.get<string>('pythonPath'))!;
+        // tslint:disable-next-line:no-backbone-get-set-outside-model no-non-null-assertion
+        this.pythonPath = systemVariables.resolveAny(pythonSettings.get<string>('pythonPath'))!;
+        if (this.pythonPath.length === 0 || this.pythonPath === 'python') {
+            const autoSelectedPythonPath = this.interpreterAutoSeletionService.getAutoSelectedInterpreter(this.workspaceRoot);
+            this.pythonPath = autoSelectedPythonPath || this.pythonPath;
         }
         this.pythonPath = getAbsolutePath(this.pythonPath, workspaceRoot);
         // tslint:disable-next-line:no-backbone-get-set-outside-model no-non-null-assertion
