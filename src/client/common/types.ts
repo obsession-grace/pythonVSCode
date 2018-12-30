@@ -374,7 +374,7 @@ export interface IEditorUtils {
 }
 
 export interface IDisposable {
-    dispose(): Promise<void> | undefined;
+    dispose(): Promise<void> | undefined | void;
 }
 
 export const IAsyncDisposableRegistry = Symbol('IAsyncDisposableRegistry');
