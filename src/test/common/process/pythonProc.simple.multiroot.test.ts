@@ -78,7 +78,7 @@ suite('PythonExecutableService', () => {
         serviceManager.addSingleton<ICurrentProcess>(ICurrentProcess, CurrentProcess);
         serviceManager.addSingleton<IConfigurationService>(IConfigurationService, ConfigurationService);
         serviceManager.addSingleton<IPlatformService>(IPlatformService, PlatformService);
-        serviceManager.addSingleton<IWorkspaceService>(IPlatformService, WorkspaceService);
+        serviceManager.addSingleton<IWorkspaceService>(IWorkspaceService, WorkspaceService);
         serviceManager.addSingleton<IFileSystem>(IFileSystem, FileSystem);
         serviceManager.addSingleton<IInterpreterAutoSeletionService>(IInterpreterAutoSeletionService, MockAutoSelectionService);
         serviceManager.addSingleton<IInterpreterAutoSeletionProxyService>(IInterpreterAutoSeletionProxyService, MockAutoSelectionService);
