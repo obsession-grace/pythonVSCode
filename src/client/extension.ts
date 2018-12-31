@@ -64,7 +64,7 @@ import { IDebugSessionEventHandlers } from './debugger/extension/hooks/types';
 import { registerTypes as debugConfigurationRegisterTypes } from './debugger/extension/serviceRegistry';
 import { IDebugConfigurationService, IDebuggerBanner } from './debugger/extension/types';
 import { registerTypes as formattersRegisterTypes } from './formatters/serviceRegistry';
-import { AutoSelectionStratergy, IBestAvailableInterpreterSelectorStratergy, IInterpreterAutoSeletionService } from './interpreter/autoSelection/types';
+import { AutoSelectionRule, IInterpreterAutoSeletionRule, IInterpreterAutoSeletionService } from './interpreter/autoSelection/types';
 import { IInterpreterSelector } from './interpreter/configuration/types';
 import {
     ICondaService,
@@ -328,6 +328,7 @@ function hasUserDefinedPythonPath(resource: Resource, serviceContainer: IService
         (settings.globalValue && settings.globalValue !== 'python');
 }
 function getPreferredWorkspaceInterpreter(resource: Resource, serviceContainer: IServiceContainer) {
-    const workspaceInterpreterSelector = serviceContainer.get<IBestAvailableInterpreterSelectorStratergy<string | undefined>>(IBestAvailableInterpreterSelectorStratergy, AutoSelectionStratergy.workspace);
-    return workspaceInterpreterSelector.getStoredInterpreter(resource);
+    const workspaceInterpreterSelector = serviceContainer.get<IInterpreterAutoSeletionRule>(IInterpreterAutoSeletionRule, AutoSelectionRule.workspaceVirtualEnvs);
+    const interpreter = workspaceInterpreterSelector.getPreviouslyAutoSelectedInterpreter(resource);
+    return interpreter ? interpreter.path : undefined;
 }

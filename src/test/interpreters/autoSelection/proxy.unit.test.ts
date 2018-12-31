@@ -3,12 +3,13 @@
 
 'use strict';
 
-// tslint:disable:no-unnecessary-override no-any max-func-body-length no-invalid-this
+// tslint:disable:no-unnecessary-override no-any max-func-body-length no-invalid-this no-any
 
 import { expect } from 'chai';
 import { Event, EventEmitter, Uri } from 'vscode';
 import { InterpreterAutoSeletionProxyService } from '../../../client/interpreter/autoSelection/proxy';
 import { IInterpreterAutoSeletionProxyService } from '../../../client/interpreter/autoSelection/types';
+import { PythonInterpreter } from '../../../client/interpreter/contracts';
 
 suite('Interpreters - Auto Selection Proxy', () => {
     class InstanceClass implements IInterpreterAutoSeletionProxyService {
@@ -17,8 +18,8 @@ suite('Interpreters - Auto Selection Proxy', () => {
         public get onDidChangeAutoSelectedInterpreter(): Event<void> {
             return this.eventEmitter.event;
         }
-        public getAutoSelectedInterpreter(resource: Uri): string {
-            return this.pythonPath;
+        public getAutoSelectedInterpreter(_resource: Uri): PythonInterpreter {
+            return { path: this.pythonPath } as any;
         }
     }
 
@@ -53,7 +54,7 @@ suite('Interpreters - Auto Selection Proxy', () => {
 
             const value = proxy.getAutoSelectedInterpreter(resource);
 
-            expect(value).to.be.equal(pythonPath);
+            expect(value).to.be.deep.equal({ path: pythonPath });
         });
 
     });

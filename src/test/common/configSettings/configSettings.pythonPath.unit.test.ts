@@ -3,7 +3,7 @@
 
 'use strict';
 
-// tslint:disable:no-require-imports no-var-requires max-func-body-length no-unnecessary-override no-invalid-template-strings
+// tslint:disable:no-require-imports no-var-requires max-func-body-length no-unnecessary-override no-invalid-template-strings no-any
 
 import { expect } from 'chai';
 import * as path from 'path';
@@ -96,9 +96,10 @@ suite('Python Settings - pythonPath', () => {
     });
     test('If we don\t have a custom python path and we do have an auto selected interpreter, then use it', () => {
         const pythonPath = path.join(__dirname, 'this is a python path that was auto selected');
+        const interpreter: any = { path: pythonPath };
         const workspaceFolderUri = Uri.file(__dirname);
         const selectionService = mock(MockAutoSelectionService);
-        when(selectionService.getAutoSelectedInterpreter(workspaceFolderUri)).thenReturn(pythonPath);
+        when(selectionService.getAutoSelectedInterpreter(workspaceFolderUri)).thenReturn(interpreter);
         configSettings = new CustomPythonSettings(workspaceFolderUri, instance(selectionService));
         pythonSettings.setup(p => p.get(typemoq.It.isValue('pythonPath')))
             .returns(() => 'python')

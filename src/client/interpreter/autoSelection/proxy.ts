@@ -6,6 +6,7 @@
 import { inject, injectable } from 'inversify';
 import { Event, EventEmitter } from 'vscode';
 import { IAsyncDisposableRegistry, IDisposableRegistry, Resource } from '../../common/types';
+import { PythonInterpreter } from '../contracts';
 import { IInterpreterAutoSeletionProxyService } from './types';
 
 @injectable()
@@ -20,7 +21,7 @@ export class InterpreterAutoSeletionProxyService implements IInterpreterAutoSele
     public get onDidChangeAutoSelectedInterpreter(): Event<void> {
         return this.didAutoSelectedInterpreterEmitter.event;
     }
-    public getAutoSelectedInterpreter(resource: Resource): string | undefined {
+    public getAutoSelectedInterpreter(resource: Resource): PythonInterpreter | undefined {
         return this.instance ? this.instance.getAutoSelectedInterpreter(resource) : undefined;
     }
 }

@@ -6,331 +6,302 @@
 // tslint:disable:no-unnecessary-override no-any max-func-body-length no-invalid-this
 
 import { expect } from 'chai';
-import { anything, deepEqual, instance, mock, verify, when } from 'ts-mockito';
+import { SemVer } from 'semver';
+import { anything, instance, mock, verify, when } from 'ts-mockito';
+import * as typemoq from 'typemoq';
 import { Uri } from 'vscode';
 import { IWorkspaceService } from '../../../client/common/application/types';
 import { WorkspaceService } from '../../../client/common/application/workspace';
 import { PersistentState, PersistentStateFactory } from '../../../client/common/persistentState';
 import { FileSystem } from '../../../client/common/platform/fileSystem';
 import { IFileSystem } from '../../../client/common/platform/types';
-import { IPersistentState, IPersistentStateFactory, Resource } from '../../../client/common/types';
+import { IPersistentStateFactory, Resource } from '../../../client/common/types';
 import { InterpreterAutoSeletionService } from '../../../client/interpreter/autoSelection';
-import { InterpreterAutoSeletionProxyService } from '../../../client/interpreter/autoSelection/proxy';
-import { CurrentPathInterpreterSelectionStratergy } from '../../../client/interpreter/autoSelection/stratergies/currentPath';
-import { SystemInterpreterSelectionStratergy } from '../../../client/interpreter/autoSelection/stratergies/system';
-import { WindowsRegistryInterpreterSelectionStratergy } from '../../../client/interpreter/autoSelection/stratergies/windowsRegistry';
-import { WorkspaceInterpreterSelectionStratergy } from '../../../client/interpreter/autoSelection/stratergies/workspace';
-import { IBestAvailableInterpreterSelectorStratergy } from '../../../client/interpreter/autoSelection/types';
-import { IInterpreterHelper, PythonInterpreter } from '../../../client/interpreter/contracts';
-import { InterpreterHelper } from '../../../client/interpreter/helpers';
+import { CachedInterpretersAutoSelectionRule } from '../../../client/interpreter/autoSelection/rules/cached';
+import { CurrentPathInterpretersAutoSelectionRule } from '../../../client/interpreter/autoSelection/rules/currentPath';
+import { SettingsInterpretersAutoSelectionRule } from '../../../client/interpreter/autoSelection/rules/settings';
+import { SystemWideInterpretersAutoSelectionRule } from '../../../client/interpreter/autoSelection/rules/system';
+import { WindowsRegistryInterpretersAutoSelectionRule } from '../../../client/interpreter/autoSelection/rules/winRegistry';
+import { WorkspaceVirtualEnvInterpretersAutoSelectionRule } from '../../../client/interpreter/autoSelection/rules/workspaveEnv';
+import { IInterpreterAutoSeletionRule } from '../../../client/interpreter/autoSelection/types';
+import { PythonInterpreter } from '../../../client/interpreter/contracts';
 
 const preferredGlobalInterpreter = 'preferredGlobalInterpreter';
 
 suite('Interpreters - Auto Selection', () => {
-    let systemStratergy: SystemInterpreterSelectionStratergy;
-    let currentPathStratergy: CurrentPathInterpreterSelectionStratergy;
-    let winRegStratergy: WindowsRegistryInterpreterSelectionStratergy;
-    let workspaceStratergy: WorkspaceInterpreterSelectionStratergy;
-    let helper: IInterpreterHelper;
-    let stateFactory: IPersistentStateFactory;
-    let state: IPersistentState<PythonInterpreter | undefined>;
+    let autoSelectionService: InterpreterAutoSeletionServiceTest;
     let workspaceService: IWorkspaceService;
-    let proxy: InterpreterAutoSeletionProxyService;
+    let stateFactory: IPersistentStateFactory;
     let fs: IFileSystem;
-
+    let systemInterpreter: IInterpreterAutoSeletionRule;
+    let currentPathInterpreter: IInterpreterAutoSeletionRule;
+    let winRegInterpreter: IInterpreterAutoSeletionRule;
+    let cachedPaths: IInterpreterAutoSeletionRule;
+    let userDefinedInterpreter: IInterpreterAutoSeletionRule;
+    let workspaceInterpreter: IInterpreterAutoSeletionRule;
+    let state: PersistentState<PythonInterpreter | undefined>;
     class InterpreterAutoSeletionServiceTest extends InterpreterAutoSeletionService {
-        public async autoSelectInterpreterFromStratergy(resource: Resource, stratergy: IBestAvailableInterpreterSelectorStratergy<PythonInterpreter | undefined>): Promise<boolean> {
-            return super.autoSelectInterpreterFromStratergy(resource, stratergy);
+        public initializeStore(): Promise<void> {
+            return super.initializeStore();
         }
-        public autoSelectBestAvailableSystemInterpreterInBackground(resource: Resource) {
-            super.autoSelectBestAvailableSystemInterpreterInBackground(resource);
-        }
-        public async autoSelectWorkspaceInterpreter(resource: Resource): Promise<boolean> {
-            return super.autoSelectWorkspaceInterpreter(resource);
-        }
-        public async getBestAvailableInterpreterFromStoredValues(resource: Resource): Promise<boolean> {
-            return super.getBestAvailableInterpreterFromStoredValues(resource);
-        }
-        public async clearInvalidAutoSelectedInterpreters(resource: Resource): Promise<void> {
-            return super.clearInvalidAutoSelectedInterpreters(resource);
-        }
-        public storeAutoSelectedInterperter(resource: Resource, interpreter: PythonInterpreter | string | undefined) {
-            super.storeAutoSelectedInterperter(resource, interpreter);
+        public storeAutoSelectedInterperter(resource: Resource, interpreter: PythonInterpreter | undefined) {
+            return super.storeAutoSelectedInterperter(resource, interpreter);
         }
     }
-    let selectionService: InterpreterAutoSeletionServiceTest;
     setup(() => {
-        helper = mock(InterpreterHelper);
-        fs = mock(FileSystem);
-        stateFactory = mock(PersistentStateFactory);
         workspaceService = mock(WorkspaceService);
-        proxy = mock(InterpreterAutoSeletionProxyService);
-        systemStratergy = mock(SystemInterpreterSelectionStratergy);
-        currentPathStratergy = mock(CurrentPathInterpreterSelectionStratergy);
-        winRegStratergy = mock(WindowsRegistryInterpreterSelectionStratergy);
-        workspaceStratergy = mock(WorkspaceInterpreterSelectionStratergy);
-        state = mock<PersistentState<PythonInterpreter | undefined>>(PersistentState);
+        stateFactory = mock(PersistentStateFactory);
+        state = mock(PersistentState);
+        fs = mock(FileSystem);
+        systemInterpreter = mock(SystemWideInterpretersAutoSelectionRule);
+        currentPathInterpreter = mock(CurrentPathInterpretersAutoSelectionRule);
+        winRegInterpreter = mock(WindowsRegistryInterpretersAutoSelectionRule);
+        cachedPaths = mock(CachedInterpretersAutoSelectionRule);
+        userDefinedInterpreter = mock(SettingsInterpretersAutoSelectionRule);
+        workspaceInterpreter = mock(WorkspaceVirtualEnvInterpretersAutoSelectionRule);
 
-        when(stateFactory.createGlobalPersistentState<PythonInterpreter | undefined>(preferredGlobalInterpreter, undefined)).thenReturn(instance(state));
-        selectionService = new InterpreterAutoSeletionServiceTest(instance(helper), instance(fs), instance(stateFactory),
-            instance(proxy), instance(workspaceService),
-            instance(systemStratergy), instance(currentPathStratergy),
-            instance(winRegStratergy), instance(workspaceStratergy));
+        autoSelectionService = new InterpreterAutoSeletionServiceTest(
+            instance(workspaceService), instance(stateFactory), instance(fs),
+            instance(systemInterpreter), instance(currentPathInterpreter),
+            instance(winRegInterpreter), instance(cachedPaths),
+            instance(userDefinedInterpreter), instance(workspaceInterpreter)
+        );
     });
 
-    // test('Store is created', () => {
-    //     verify(stateFactory.createGlobalPersistentState(preferredGlobalInterpreter, undefined)).once();
-    // });
-    // test('Instance is injected into proxy', () => {
-    //     verify(proxy.registerInstance(selectionService)).once();
-    // });
-    [undefined, Uri.parse('one')].forEach(resource => {
-        const suffix = resource ? '(with a resource)' : '(without a resource)';
+    test('Rules are chained in order of preference', () => {
+        verify(userDefinedInterpreter.setNextRule(instance(workspaceInterpreter))).once();
+        verify(workspaceInterpreter.setNextRule(instance(cachedPaths))).once();
+        verify(cachedPaths.setNextRule(instance(currentPathInterpreter))).once();
+        verify(currentPathInterpreter.setNextRule(instance(winRegInterpreter))).once();
+        verify(winRegInterpreter.setNextRule(instance(systemInterpreter))).once();
+        verify(systemInterpreter.setNextRule(anything())).never();
+    });
+    test('Run rules in background', async () => {
+        autoSelectionService.initializeStore = () => Promise.resolve();
+        await autoSelectionService.autoSelectInterpreter(undefined);
 
-        test(`Change evnet is fired ${suffix}`, () => {
-            let changed = false;
-            selectionService.onDidChangeAutoSelectedInterpreter(() => changed = true);
+        verify(userDefinedInterpreter.autoSelectInterpreter(anything(), undefined)).never();
+        verify(userDefinedInterpreter.autoSelectInterpreter(anything())).never();
 
-            selectionService.storeAutoSelectedInterperter(resource, 'xyz');
+        verify(winRegInterpreter.autoSelectInterpreter(undefined, autoSelectionService)).never();
+        verify(winRegInterpreter.autoSelectInterpreter(anything(), undefined)).never();
+        verify(winRegInterpreter.autoSelectInterpreter(anything())).once();
 
-            expect(changed).to.be.equal(true, 'Change event not fired');
-        });
-        test(`Auto selected interpreter must be undefined ${suffix}`, () => {
-            const value = selectionService.getAutoSelectedInterpreter(resource);
+        verify(currentPathInterpreter.autoSelectInterpreter(undefined, autoSelectionService)).never();
+        verify(currentPathInterpreter.autoSelectInterpreter(anything(), undefined)).never();
+        verify(currentPathInterpreter.autoSelectInterpreter(anything())).once();
 
-            verify(state.value).once();
-            expect(value).to.be.equal(undefined, 'should be undefined');
-        });
-        test(`Get stored interprter path ${suffix}`, () => {
-            const pythonPath = 'some value';
-            selectionService.storeAutoSelectedInterperter(resource, pythonPath);
+        verify(systemInterpreter.autoSelectInterpreter(undefined, autoSelectionService)).never();
+        verify(systemInterpreter.autoSelectInterpreter(anything(), undefined)).never();
+        verify(systemInterpreter.autoSelectInterpreter(anything())).once();
 
-            const value = selectionService.getAutoSelectedInterpreter(resource);
+        for (const service of [workspaceInterpreter, cachedPaths]) {
+            verify(service.autoSelectInterpreter(undefined, autoSelectionService)).never();
+            verify(service.autoSelectInterpreter(anything(), undefined)).never();
+            verify(service.autoSelectInterpreter(anything())).never();
+        }
+    });
+    test('Run userDefineInterpreter as the first rule', async () => {
+        autoSelectionService.initializeStore = () => Promise.resolve();
+        await autoSelectionService.autoSelectInterpreter(undefined);
 
-            verify(state.value).never();
-            expect(value).to.be.equal(pythonPath);
-        });
-        test(`Get stored interprter path when storing the interpreter info ${suffix}`, () => {
-            const pythonPath = 'some value';
-            const info = { path: pythonPath };
-            selectionService.storeAutoSelectedInterperter(resource, info as any);
+        verify(userDefinedInterpreter.autoSelectInterpreter(undefined, autoSelectionService)).once();
+    });
+    test('Initialize the store', async () => {
+        let initialize = false;
+        autoSelectionService.initializeStore = async () => initialize = true as any;
+        await autoSelectionService.autoSelectInterpreter(undefined);
 
-            const value = selectionService.getAutoSelectedInterpreter(resource);
+        expect(initialize).to.be.equal(true, 'Not invoked');
+    });
+    test('Initializing the store would be executed once', async () => {
+        when(stateFactory.createGlobalPersistentState<PythonInterpreter | undefined>(preferredGlobalInterpreter, undefined)).thenReturn(instance<PersistentState<PythonInterpreter | undefined>>(state));
 
-            verify(state.value).never();
-            expect(value).to.be.equal(pythonPath);
-        });
-        test(`Get stored interprter path from state ${suffix}`, () => {
-            const pythonPath = 'some value';
-            const info = { path: pythonPath };
-            when(state.value).thenReturn(info as any);
+        await autoSelectionService.initializeStore();
+        await autoSelectionService.initializeStore();
+        await autoSelectionService.initializeStore();
 
-            const value = selectionService.getAutoSelectedInterpreter(resource);
+        verify(stateFactory.createGlobalPersistentState(preferredGlobalInterpreter, undefined)).once();
+    });
+    test('Clear file stored in cache if it doesn\'t exist', async () => {
+        const pythonPath = 'Hello World';
+        const interpreterInfo = { path: pythonPath } as any;
+        when(stateFactory.createGlobalPersistentState<PythonInterpreter | undefined>(preferredGlobalInterpreter, undefined)).thenReturn(instance<PersistentState<PythonInterpreter | undefined>>(state));
+        when(state.value).thenReturn(interpreterInfo);
+        when(fs.fileExists(pythonPath)).thenResolve(false);
 
-            expect(value).to.be.equal(pythonPath);
-        });
-        test(`Invalid Python paths returned by stratergies are cleared ${suffix}`, async () => {
-            const sysIntepreter = { path: 'python Path 1' };
-            when(fs.fileExists(sysIntepreter.path)).thenResolve(false);
-            when(systemStratergy.getStoredInterpreter(resource)).thenReturn(sysIntepreter as any);
+        await autoSelectionService.initializeStore();
 
-            const currentPathIntepreter = { path: 'python Path 2' };
-            when(fs.fileExists(currentPathIntepreter.path)).thenResolve(false);
-            when(currentPathStratergy.getStoredInterpreter(resource)).thenReturn(currentPathIntepreter as any);
+        verify(stateFactory.createGlobalPersistentState(preferredGlobalInterpreter, undefined)).once();
+        verify(state.value).atLeast(1);
+        verify(fs.fileExists(pythonPath)).once();
+        verify(state.updateValue(undefined)).once();
+    });
+    test('Should not clear file stored in cache if it does exist', async () => {
+        const pythonPath = 'Hello World';
+        const interpreterInfo = { path: pythonPath } as any;
+        when(stateFactory.createGlobalPersistentState<PythonInterpreter | undefined>(preferredGlobalInterpreter, undefined)).thenReturn(instance<PersistentState<PythonInterpreter | undefined>>(state));
+        when(state.value).thenReturn(interpreterInfo);
+        when(fs.fileExists(pythonPath)).thenResolve(true);
 
-            const winRegPathIntepreter = { path: 'python Path 3' };
-            when(fs.fileExists(winRegPathIntepreter.path)).thenResolve(false);
-            when(winRegStratergy.getStoredInterpreter(resource)).thenReturn(winRegPathIntepreter as any);
+        await autoSelectionService.initializeStore();
 
-            const GlobalPathIntepreter = { path: 'python Path 4' };
-            when(fs.fileExists(GlobalPathIntepreter.path)).thenResolve(false);
-            when(state.value).thenReturn(GlobalPathIntepreter as any);
+        verify(stateFactory.createGlobalPersistentState(preferredGlobalInterpreter, undefined)).once();
+        verify(state.value).atLeast(1);
+        verify(fs.fileExists(pythonPath)).once();
+        verify(state.updateValue(undefined)).never();
+    });
+    test('Store interpreter info in state store when resource is undefined', async () => {
+        let eventFired = false;
+        const pythonPath = 'Hello World';
+        const interpreterInfo = { path: pythonPath } as any;
+        when(stateFactory.createGlobalPersistentState<PythonInterpreter | undefined>(preferredGlobalInterpreter, undefined)).thenReturn(instance<PersistentState<PythonInterpreter | undefined>>(state));
+        autoSelectionService.onDidChangeAutoSelectedInterpreter(() => eventFired = true);
 
-            await selectionService.clearInvalidAutoSelectedInterpreters(resource);
+        await autoSelectionService.initializeStore();
+        await autoSelectionService.storeAutoSelectedInterperter(undefined, interpreterInfo);
+        const selectedInterpreter = autoSelectionService.getAutoSelectedInterpreter(undefined);
 
-            verify(fs.fileExists(sysIntepreter.path)).atLeast(1);
-            verify(fs.fileExists(currentPathIntepreter.path)).atLeast(1);
-            verify(fs.fileExists(winRegPathIntepreter.path)).atLeast(1);
-            verify(state.value).atLeast(1);
+        verify(state.updateValue(interpreterInfo)).once();
+        expect(selectedInterpreter).to.deep.equal(interpreterInfo);
+        expect(eventFired).to.deep.equal(true, 'event not fired');
+    });
+    test('Do not store global interpreter info in state store when resource is undefined and version is lower than one already in state', async () => {
+        let eventFired = false;
+        const pythonPath = 'Hello World';
+        const interpreterInfo = { path: pythonPath, version: new SemVer('1.0.0') } as any;
+        const interpreterInfoInState = { path: pythonPath, version: new SemVer('2.0.0') } as any;
+        when(fs.fileExists(interpreterInfoInState.path)).thenResolve(true);
+        when(stateFactory.createGlobalPersistentState<PythonInterpreter | undefined>(preferredGlobalInterpreter, undefined)).thenReturn(instance<PersistentState<PythonInterpreter | undefined>>(state));
+        autoSelectionService.onDidChangeAutoSelectedInterpreter(() => eventFired = true);
+        when(state.value).thenReturn(interpreterInfoInState);
 
-            verify(systemStratergy.storeInterpreter(resource, undefined)).once();
-            verify(currentPathStratergy.storeInterpreter(resource, undefined)).once();
-            verify(winRegStratergy.storeInterpreter(resource, undefined)).once();
-            verify(state.updateValue(undefined)).once();
-        });
-        test(`Valid Python paths returned by stratergies are not cleared ${suffix}`, async () => {
-            const sysIntepreter = { path: 'python Path 1' };
-            when(fs.fileExists(sysIntepreter.path)).thenResolve(true);
-            when(systemStratergy.getStoredInterpreter(resource)).thenReturn(sysIntepreter as any);
+        await autoSelectionService.initializeStore();
+        await autoSelectionService.storeAutoSelectedInterperter(undefined, interpreterInfo);
+        const selectedInterpreter = autoSelectionService.getAutoSelectedInterpreter(undefined);
 
-            const currentPathIntepreter = { path: 'python Path 2' };
-            when(fs.fileExists(currentPathIntepreter.path)).thenResolve(true);
-            when(currentPathStratergy.getStoredInterpreter(resource)).thenReturn(currentPathIntepreter as any);
+        verify(state.updateValue(anything())).never();
+        expect(selectedInterpreter).to.deep.equal(interpreterInfoInState);
+        expect(eventFired).to.deep.equal(false, 'event fired');
+    });
+    test('Store global interpreter info in state store when resource is undefined and version is higher than one already in state', async () => {
+        let eventFired = false;
+        const pythonPath = 'Hello World';
+        const interpreterInfo = { path: pythonPath, version: new SemVer('3.0.0') } as any;
+        const interpreterInfoInState = { path: pythonPath, version: new SemVer('2.0.0') } as any;
+        when(fs.fileExists(interpreterInfoInState.path)).thenResolve(true);
+        when(stateFactory.createGlobalPersistentState<PythonInterpreter | undefined>(preferredGlobalInterpreter, undefined)).thenReturn(instance<PersistentState<PythonInterpreter | undefined>>(state));
+        autoSelectionService.onDidChangeAutoSelectedInterpreter(() => eventFired = true);
+        when(state.value).thenReturn(interpreterInfoInState);
 
-            const winRegPathIntepreter = { path: 'python Path 3' };
-            when(fs.fileExists(winRegPathIntepreter.path)).thenResolve(true);
-            when(winRegStratergy.getStoredInterpreter(resource)).thenReturn(winRegPathIntepreter as any);
+        await autoSelectionService.initializeStore();
+        await autoSelectionService.storeAutoSelectedInterperter(undefined, interpreterInfo);
+        const selectedInterpreter = autoSelectionService.getAutoSelectedInterpreter(undefined);
 
-            const GlobalPathIntepreter = { path: 'python Path 4' };
-            when(fs.fileExists(GlobalPathIntepreter.path)).thenResolve(true);
-            when(state.value).thenReturn(GlobalPathIntepreter as any);
+        verify(state.updateValue(anything())).once();
+        expect(selectedInterpreter).to.deep.equal(interpreterInfo);
+        expect(eventFired).to.deep.equal(true, 'event fired');
+    });
+    test('Store global interpreter info in state store', async () => {
+        const pythonPath = 'Hello World';
+        const interpreterInfo = { path: pythonPath } as any;
+        when(stateFactory.createGlobalPersistentState<PythonInterpreter | undefined>(preferredGlobalInterpreter, undefined)).thenReturn(instance<PersistentState<PythonInterpreter | undefined>>(state));
 
-            await selectionService.clearInvalidAutoSelectedInterpreters(resource);
+        await autoSelectionService.initializeStore();
+        await autoSelectionService.setGlobalInterpreter(interpreterInfo);
+        const selectedInterpreter = autoSelectionService.getAutoSelectedInterpreter(undefined);
 
-            verify(fs.fileExists(sysIntepreter.path)).atLeast(1);
-            verify(fs.fileExists(currentPathIntepreter.path)).atLeast(1);
-            verify(fs.fileExists(winRegPathIntepreter.path)).atLeast(1);
-            verify(state.value).atLeast(1);
+        verify(state.updateValue(interpreterInfo)).once();
+        expect(selectedInterpreter).to.deep.equal(interpreterInfo);
+    });
+    test('Store interpreter info in state store when resource is defined', async () => {
+        let eventFired = false;
+        const pythonPath = 'Hello World';
+        const interpreterInfo = { path: pythonPath } as any;
+        const resource = Uri.parse('one');
+        when(stateFactory.createGlobalPersistentState<PythonInterpreter | undefined>(preferredGlobalInterpreter, undefined)).thenReturn(instance<PersistentState<PythonInterpreter | undefined>>(state));
+        when(workspaceService.getWorkspaceFolder(resource)).thenReturn({ name: '', index: 0, uri: resource });
+        autoSelectionService.onDidChangeAutoSelectedInterpreter(() => eventFired = true);
 
-            verify(systemStratergy.storeInterpreter(resource, undefined)).never();
-            verify(currentPathStratergy.storeInterpreter(resource, undefined)).never();
-            verify(winRegStratergy.storeInterpreter(resource, undefined)).never();
-            verify(state.updateValue(undefined)).never();
-        });
-        test(`Pick best available interpreters from preivously stored/identified values and upate stores ${suffix}`, async () => {
-            let changed = false;
-            selectionService.onDidChangeAutoSelectedInterpreter(() => changed = true);
+        await autoSelectionService.initializeStore();
+        await autoSelectionService.storeAutoSelectedInterperter(resource, interpreterInfo);
+        const selectedInterpreter = autoSelectionService.getAutoSelectedInterpreter(resource);
 
-            const sysIntepreter = { path: 'python Path 1' };
-            when(systemStratergy.getStoredInterpreter(resource)).thenReturn(sysIntepreter as any);
-            const currentPathIntepreter = { path: 'python Path 2' };
-            when(currentPathStratergy.getStoredInterpreter(resource)).thenReturn(currentPathIntepreter as any);
-            const winRegPathIntepreter = { path: 'python Path 3' };
-            when(winRegStratergy.getStoredInterpreter(resource)).thenReturn(winRegPathIntepreter as any);
+        verify(state.updateValue(interpreterInfo)).never();
+        expect(selectedInterpreter).to.deep.equal(interpreterInfo);
+        expect(eventFired).to.deep.equal(true, 'event not fired');
+    });
+    test('Store workspace interpreter info in state store', async () => {
+        const pythonPath = 'Hello World';
+        const interpreterInfo = { path: pythonPath } as any;
+        const resource = Uri.parse('one');
+        when(stateFactory.createGlobalPersistentState<PythonInterpreter | undefined>(preferredGlobalInterpreter, undefined)).thenReturn(instance<PersistentState<PythonInterpreter | undefined>>(state));
+        when(workspaceService.getWorkspaceFolder(resource)).thenReturn({ name: '', index: 0, uri: resource });
 
-            when(helper.getBestInterpreter(deepEqual([sysIntepreter, currentPathIntepreter, winRegPathIntepreter]))).thenReturn(currentPathIntepreter as any);
+        await autoSelectionService.initializeStore();
+        await autoSelectionService.setWorkspaceInterpreter(resource, interpreterInfo);
+        const selectedInterpreter = autoSelectionService.getAutoSelectedInterpreter(resource);
 
-            const isAvailable = await selectionService.getBestAvailableInterpreterFromStoredValues(resource);
-            const bestAvailable = selectionService.getAutoSelectedInterpreter(resource);
+        verify(state.updateValue(interpreterInfo)).never();
+        expect(selectedInterpreter).to.deep.equal(interpreterInfo);
+    });
+    test('Return undefined when we do not have a global value', async () => {
+        const pythonPath = 'Hello World';
+        const interpreterInfo = { path: pythonPath } as any;
+        const resource = Uri.parse('one');
+        when(stateFactory.createGlobalPersistentState<PythonInterpreter | undefined>(preferredGlobalInterpreter, undefined)).thenReturn(instance<PersistentState<PythonInterpreter | undefined>>(state));
+        when(workspaceService.getWorkspaceFolder(resource)).thenReturn({ name: '', index: 0, uri: resource });
 
-            verify(state.updateValue(currentPathIntepreter as any)).once();
-            expect(isAvailable).to.be.equal(true, 'Should be true');
-            expect(bestAvailable).to.be.equal(currentPathIntepreter.path);
-            expect(changed).to.be.equal(true, 'Change event not fired');
-        });
-        test(`Pick best available interpreters from preivously stored/identified values but do not udpate state ${suffix}`, async () => {
-            let changed = false;
-            selectionService.onDidChangeAutoSelectedInterpreter(() => changed = true);
+        await autoSelectionService.initializeStore();
+        await autoSelectionService.storeAutoSelectedInterperter(resource, interpreterInfo);
+        const selectedInterpreter = autoSelectionService.getAutoSelectedInterpreter(undefined);
 
-            const sysIntepreter = { path: 'python Path 1' };
-            when(systemStratergy.getStoredInterpreter(resource)).thenReturn(sysIntepreter as any);
-            const currentPathIntepreter = { path: 'python Path 2' };
-            when(currentPathStratergy.getStoredInterpreter(resource)).thenReturn(currentPathIntepreter as any);
-            const winRegPathIntepreter = { path: 'python Path 3' };
-            when(winRegStratergy.getStoredInterpreter(resource)).thenReturn(winRegPathIntepreter as any);
-            when(state.value).thenReturn(currentPathIntepreter as any);
+        verify(state.updateValue(interpreterInfo)).never();
+        expect(selectedInterpreter === null || selectedInterpreter === undefined).to.equal(true, 'Should be undefined');
+    });
+    test('Return global value if we do not have a matching value for the resource', async () => {
+        const pythonPath = 'Hello World';
+        const interpreterInfo = { path: pythonPath } as any;
+        const resource = Uri.parse('one');
+        when(stateFactory.createGlobalPersistentState<PythonInterpreter | undefined>(preferredGlobalInterpreter, undefined)).thenReturn(instance<PersistentState<PythonInterpreter | undefined>>(state));
+        when(workspaceService.getWorkspaceFolder(resource)).thenReturn({ name: '', index: 0, uri: resource });
+        const globalInterpreterInfo = { path: 'global Value' };
+        when(state.value).thenReturn(globalInterpreterInfo as any);
+        await autoSelectionService.initializeStore();
+        await autoSelectionService.storeAutoSelectedInterperter(resource, interpreterInfo);
+        const anotherResourceOfAnotherWorkspace = Uri.parse('Some other workspace');
+        const selectedInterpreter = autoSelectionService.getAutoSelectedInterpreter(anotherResourceOfAnotherWorkspace);
 
-            when(helper.getBestInterpreter(deepEqual([sysIntepreter, currentPathIntepreter, winRegPathIntepreter]))).thenReturn(currentPathIntepreter as any);
+        verify(workspaceService.getWorkspaceFolder(resource)).once();
+        verify(workspaceService.getWorkspaceFolder(anotherResourceOfAnotherWorkspace)).once();
+        verify(state.updateValue(interpreterInfo)).never();
+        expect(selectedInterpreter).to.deep.equal(globalInterpreterInfo);
+    });
+    test('setWorkspaceInterpreter will invoke storeAutoSelectedInterperter with same args', async () => {
+        const pythonPath = 'Hello World';
+        const interpreterInfo = { path: pythonPath } as any;
+        const resource = Uri.parse('one');
+        const moq = typemoq.Mock.ofInstance(autoSelectionService, typemoq.MockBehavior.Loose, false);
+        moq
+            .setup(m => m.storeAutoSelectedInterperter(typemoq.It.isValue(resource), typemoq.It.isValue(interpreterInfo)))
+            .returns(() => Promise.resolve())
+            .verifiable(typemoq.Times.once());
+        moq.callBase = true;
+        await moq.object.setWorkspaceInterpreter(resource, interpreterInfo);
 
-            const isAvailable = await selectionService.getBestAvailableInterpreterFromStoredValues(resource);
-            const bestAvailable = selectionService.getAutoSelectedInterpreter(resource);
+        moq.verifyAll();
+    });
+    test('setGlobalInterpreter will invoke storeAutoSelectedInterperter with same args and without a resource', async () => {
+        const pythonPath = 'Hello World';
+        const interpreterInfo = { path: pythonPath } as any;
+        const moq = typemoq.Mock.ofInstance(autoSelectionService, typemoq.MockBehavior.Loose, false);
+        moq
+            .setup(m => m.storeAutoSelectedInterperter(typemoq.It.isValue(undefined), typemoq.It.isValue(interpreterInfo)))
+            .returns(() => Promise.resolve())
+            .verifiable(typemoq.Times.once());
+        moq.callBase = true;
+        await moq.object.setGlobalInterpreter(interpreterInfo);
 
-            verify(state.updateValue(anything())).never();
-            expect(isAvailable).to.be.equal(true, 'Should be true');
-            expect(bestAvailable).to.be.equal(currentPathIntepreter.path);
-            expect(changed).to.be.equal(true, 'Change event not fired');
-        });
-        test(`Should not pick workspace interpreters if there is no workspace ${suffix}`, async () => {
-            when(helper.getActiveWorkspaceUri(resource)).thenReturn(undefined);
-
-            const isAvailable = await selectionService.autoSelectWorkspaceInterpreter(resource);
-
-            verify(helper.getActiveWorkspaceUri(resource)).once();
-            expect(isAvailable).to.be.equal(false, 'invalid value');
-        });
-        test(`Should pick workspace interpreters and must store it ${suffix}`, async () => {
-            let changed = false;
-            const pythonPath = 'some virtual Env Interpereter';
-            selectionService.onDidChangeAutoSelectedInterpreter(() => changed = true);
-            when(helper.getActiveWorkspaceUri(resource)).thenReturn('zbc' as any);
-            when(workspaceStratergy.getStoredInterpreter(resource)).thenReturn(pythonPath);
-
-            const isAvailable = await selectionService.autoSelectWorkspaceInterpreter(resource);
-            const bestAvailable = selectionService.getAutoSelectedInterpreter(resource);
-
-            verify(helper.getActiveWorkspaceUri(resource)).once();
-            expect(isAvailable).to.be.equal(true, 'invalid value');
-            expect(bestAvailable).to.be.equal(pythonPath);
-            expect(changed).to.be.equal(true, 'Change event not fired');
-        });
-        test(`Should query and pick workspace interpreters and must store it and update workspace store ${suffix}`, async () => {
-            let changed = false;
-            const pythonPath = 'some virtual Env Interpereter';
-            selectionService.onDidChangeAutoSelectedInterpreter(() => changed = true);
-            when(helper.getActiveWorkspaceUri(resource)).thenReturn('zbc' as any);
-            when(workspaceStratergy.getStoredInterpreter(resource)).thenReturn(undefined);
-            when(workspaceStratergy.getInterpreter(resource)).thenResolve(pythonPath);
-            when(workspaceStratergy.storeInterpreter(resource, pythonPath)).thenResolve();
-
-            const isAvailable = await selectionService.autoSelectWorkspaceInterpreter(resource);
-            const bestAvailable = selectionService.getAutoSelectedInterpreter(resource);
-
-            verify(helper.getActiveWorkspaceUri(resource)).once();
-            expect(isAvailable).to.be.equal(true, 'invalid value');
-            expect(bestAvailable).to.be.equal(pythonPath);
-            expect(changed).to.be.equal(true, 'Change event not fired');
-            verify(workspaceStratergy.storeInterpreter(resource, pythonPath)).once();
-        });
-        test(`Should query and not pick workspace interpreters and not store it ${suffix}`, async () => {
-            let changed = false;
-            selectionService.onDidChangeAutoSelectedInterpreter(() => changed = true);
-            when(helper.getActiveWorkspaceUri(resource)).thenReturn('zbc' as any);
-            when(workspaceStratergy.getStoredInterpreter(resource)).thenReturn(undefined);
-            when(workspaceStratergy.getInterpreter(resource)).thenResolve(undefined);
-
-            const isAvailable = await selectionService.autoSelectWorkspaceInterpreter(resource);
-            const bestAvailable = selectionService.getAutoSelectedInterpreter(resource);
-
-            verify(helper.getActiveWorkspaceUri(resource)).once();
-            expect(isAvailable).to.be.equal(false, 'invalid value');
-            expect(bestAvailable).to.be.equal(undefined, 'should be undefined');
-            expect(changed).to.be.equal(false, 'Change event fired');
-            verify(workspaceStratergy.storeInterpreter(anything(), anything())).never();
-        });
-        test(`Should pick pre-selected interpreter rather than querying ${suffix}`, async () => {
-            let changed = false;
-            const info = { path: 'python Path 1' };
-            selectionService.onDidChangeAutoSelectedInterpreter(() => changed = true);
-            when(systemStratergy.getStoredInterpreter(resource)).thenReturn(info as any);
-
-            const isAvailable = await selectionService.autoSelectInterpreterFromStratergy(resource, instance(systemStratergy));
-            const bestAvailable = selectionService.getAutoSelectedInterpreter(resource);
-
-            expect(isAvailable).to.be.equal(true, 'invalid value');
-            expect(bestAvailable).to.be.equal(info.path);
-            expect(changed).to.be.equal(true, 'Change event not fired');
-            verify(systemStratergy.getInterpreter(anything())).never();
-        });
-        test(`Should query and pick an interpreter ${suffix}`, async () => {
-            let changed = false;
-            const info = { path: 'python Path 1' };
-            selectionService.onDidChangeAutoSelectedInterpreter(() => changed = true);
-            when(systemStratergy.getStoredInterpreter(resource)).thenReturn(undefined);
-            when(systemStratergy.getInterpreter(resource)).thenResolve(info as any);
-
-            const isAvailable = await selectionService.autoSelectInterpreterFromStratergy(resource, instance(systemStratergy));
-            const bestAvailable = selectionService.getAutoSelectedInterpreter(resource);
-
-            expect(isAvailable).to.be.equal(true, 'invalid value');
-            expect(bestAvailable).to.be.equal(info.path);
-            expect(changed).to.be.equal(true, 'Change event not fired');
-            verify(systemStratergy.getInterpreter(anything())).once();
-            verify(systemStratergy.storeInterpreter(resource, info as any)).once();
-        });
-        test(`Should not pick anything as there are no interpreters ${suffix}`, async () => {
-            let changed = false;
-            selectionService.onDidChangeAutoSelectedInterpreter(() => changed = true);
-            when(systemStratergy.getStoredInterpreter(resource)).thenReturn(undefined);
-            when(systemStratergy.getInterpreter(resource)).thenResolve(undefined);
-
-            const isAvailable = await selectionService.autoSelectInterpreterFromStratergy(resource, instance(systemStratergy));
-            const bestAvailable = selectionService.getAutoSelectedInterpreter(resource);
-
-            expect(isAvailable).to.be.equal(false, 'invalid value');
-            expect(bestAvailable).to.be.equal(undefined, 'should be undefined');
-            expect(changed).to.be.equal(false, 'Change event fired');
-            verify(systemStratergy.getInterpreter(anything())).once();
-            verify(systemStratergy.storeInterpreter(anything(), anything())).never();
-        });
+        moq.verifyAll();
     });
 });

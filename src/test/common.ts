@@ -14,6 +14,7 @@ import { ConfigurationTarget, Event, TextDocument, Uri } from 'vscode';
 import { IExtensionApi } from '../client/api';
 import { IProcessService } from '../client/common/process/types';
 import { IPythonSettings, Resource } from '../client/common/types';
+import { PythonInterpreter } from '../client/interpreter/contracts';
 import { IServiceContainer } from '../client/ioc/types';
 import { EXTENSION_ROOT_DIR_FOR_TESTS, IS_MULTI_ROOT_TEST, IS_PERF_TEST, IS_SMOKE_TEST } from './constants';
 import { noop, sleep } from './core';
@@ -118,7 +119,7 @@ export function getExtensionSettings(resource: Uri | undefined): IPythonSettings
         public autoSelectInterpreter(_resource: Resource): Promise<void> {
             return Promise.resolve();
         }
-        public getAutoSelectedInterpreter(_resource: Resource): string | undefined {
+        public getAutoSelectedInterpreter(_resource: Resource): PythonInterpreter | undefined {
             return;
         }
     }

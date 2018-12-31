@@ -3,16 +3,10 @@
 
 'use strict';
 
-import { Event } from 'vscode';
+import { Event, Uri } from 'vscode';
 import { Resource } from '../../common/types';
+import { PythonInterpreter } from '../contracts';
 
-export const IBestAvailableInterpreterSelectorStratergy = Symbol('IBestAvailableInterpreterSelectorStratergy');
-export interface IBestAvailableInterpreterSelectorStratergy<T> {
-    priority: number;
-    getInterpreter(resource: Resource): Promise<T>;
-    getStoredInterpreter(resource: Resource): T;
-    storeInterpreter(resource: Resource, interpreter: T): Promise<void>;
-}
 export const IInterpreterAutoSeletionProxyService = Symbol('IInterpreterAutoSeletionProxyService');
 /**
  * Interface similar to IInterpreterAutoSeletionService, to avoid chickn n egg situation.
@@ -26,7 +20,7 @@ export const IInterpreterAutoSeletionProxyService = Symbol('IInterpreterAutoSele
  */
 export interface IInterpreterAutoSeletionProxyService {
     readonly onDidChangeAutoSelectedInterpreter: Event<void>;
-    getAutoSelectedInterpreter(resource: Resource): string | undefined;
+    getAutoSelectedInterpreter(resource: Resource): PythonInterpreter | undefined;
     registerInstance?(instance: IInterpreterAutoSeletionProxyService): void;
 }
 
@@ -34,11 +28,22 @@ export const IInterpreterAutoSeletionService = Symbol('IInterpreterAutoSeletionS
 export interface IInterpreterAutoSeletionService extends IInterpreterAutoSeletionProxyService {
     readonly onDidChangeAutoSelectedInterpreter: Event<void>;
     autoSelectInterpreter(resource: Resource): Promise<void>;
+    setWorkspaceInterpreter(resource: Uri, interpreter: PythonInterpreter | undefined): Promise<void>;
+    setGlobalInterpreter(interpreter: PythonInterpreter | undefined): Promise<void>;
 }
 
-export enum AutoSelectionStratergy {
+export enum AutoSelectionRule {
     currentPath = 'currentPath',
-    workspace = 'workspace',
-    system = 'system',
+    workspaceVirtualEnvs = 'workspaceEnvs',
+    settings = 'settings',
+    cachedInterpreters = 'cachedInterpreters',
+    systemWide = 'system',
     windowsRegistry = 'windowsRegistry'
+}
+
+export const IInterpreterAutoSeletionRule = Symbol('IInterpreterAutoSeletionRule');
+export interface IInterpreterAutoSeletionRule {
+    setNextRule(rule: IInterpreterAutoSeletionRule): void;
+    autoSelectInterpreter(resource: Resource, manager?: IInterpreterAutoSeletionService): Promise<void>;
+    getPreviouslyAutoSelectedInterpreter(resource: Resource): PythonInterpreter | undefined;
 }

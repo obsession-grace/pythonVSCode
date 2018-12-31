@@ -2,13 +2,15 @@
 // Licensed under the MIT License.
 
 import { IServiceManager } from '../ioc/types';
-import { InterpreterAutoSeletionService } from './autoSelection';
+import { InterpreterAutoSeletionService } from './autoSelection/index';
 import { InterpreterAutoSeletionProxyService } from './autoSelection/proxy';
-import { CurrentPathInterpreterSelectionStratergy } from './autoSelection/stratergies/currentPath';
-import { SystemInterpreterSelectionStratergy } from './autoSelection/stratergies/system';
-import { WindowsRegistryInterpreterSelectionStratergy } from './autoSelection/stratergies/windowsRegistry';
-import { WorkspaceInterpreterSelectionStratergy } from './autoSelection/stratergies/workspace';
-import { AutoSelectionStratergy, IBestAvailableInterpreterSelectorStratergy, IInterpreterAutoSeletionProxyService, IInterpreterAutoSeletionService } from './autoSelection/types';
+import { CachedInterpretersAutoSelectionRule } from './autoSelection/rules/cached';
+import { CurrentPathInterpretersAutoSelectionRule } from './autoSelection/rules/currentPath';
+import { SettingsInterpretersAutoSelectionRule } from './autoSelection/rules/settings';
+import { SystemWideInterpretersAutoSelectionRule } from './autoSelection/rules/system';
+import { WindowsRegistryInterpretersAutoSelectionRule } from './autoSelection/rules/winRegistry';
+import { WorkspaceVirtualEnvInterpretersAutoSelectionRule } from './autoSelection/rules/workspaveEnv';
+import { AutoSelectionRule, IInterpreterAutoSeletionProxyService, IInterpreterAutoSeletionRule, IInterpreterAutoSeletionService } from './autoSelection/types';
 import { InterpreterComparer } from './configuration/interpreterComparer';
 import { InterpreterSelector } from './configuration/interpreterSelector';
 import { PythonPathUpdaterService } from './configuration/pythonPathUpdaterService';
@@ -37,7 +39,6 @@ import {
     IVirtualEnvironmentsSearchPathProvider,
     KNOWN_PATH_SERVICE,
     PIPENV_SERVICE,
-    PythonInterpreter,
     WINDOWS_REGISTRY_SERVICE,
     WORKSPACE_VIRTUAL_ENV_SERVICE
 } from './contracts';
@@ -104,10 +105,12 @@ export function registerTypes(serviceManager: IServiceManager) {
     serviceManager.addSingleton<InterpreterLocatorProgressHandler>(InterpreterLocatorProgressHandler, InterpreterLocatorProgressStatubarHandler);
     serviceManager.addSingleton<IInterpreterLocatorProgressService>(IInterpreterLocatorProgressService, InterpreterLocatorProgressService);
 
-    serviceManager.addSingleton<IBestAvailableInterpreterSelectorStratergy<PythonInterpreter | undefined>>(IBestAvailableInterpreterSelectorStratergy, CurrentPathInterpreterSelectionStratergy, AutoSelectionStratergy.currentPath);
-    serviceManager.addSingleton<IBestAvailableInterpreterSelectorStratergy<PythonInterpreter | undefined>>(IBestAvailableInterpreterSelectorStratergy, SystemInterpreterSelectionStratergy, AutoSelectionStratergy.system);
-    serviceManager.addSingleton<IBestAvailableInterpreterSelectorStratergy<PythonInterpreter | undefined>>(IBestAvailableInterpreterSelectorStratergy, WindowsRegistryInterpreterSelectionStratergy, AutoSelectionStratergy.windowsRegistry);
-    serviceManager.addSingleton<IBestAvailableInterpreterSelectorStratergy<PythonInterpreter | string | undefined>>(IBestAvailableInterpreterSelectorStratergy, WorkspaceInterpreterSelectionStratergy, AutoSelectionStratergy.workspace);
+    serviceManager.addSingleton<IInterpreterAutoSeletionRule>(IInterpreterAutoSeletionRule, CurrentPathInterpretersAutoSelectionRule, AutoSelectionRule.currentPath);
+    serviceManager.addSingleton<IInterpreterAutoSeletionRule>(IInterpreterAutoSeletionRule, SystemWideInterpretersAutoSelectionRule, AutoSelectionRule.systemWide);
+    serviceManager.addSingleton<IInterpreterAutoSeletionRule>(IInterpreterAutoSeletionRule, WindowsRegistryInterpretersAutoSelectionRule, AutoSelectionRule.windowsRegistry);
+    serviceManager.addSingleton<IInterpreterAutoSeletionRule>(IInterpreterAutoSeletionRule, WorkspaceVirtualEnvInterpretersAutoSelectionRule, AutoSelectionRule.workspaceVirtualEnvs);
+    serviceManager.addSingleton<IInterpreterAutoSeletionRule>(IInterpreterAutoSeletionRule, CachedInterpretersAutoSelectionRule, AutoSelectionRule.cachedInterpreters);
+    serviceManager.addSingleton<IInterpreterAutoSeletionRule>(IInterpreterAutoSeletionRule, SettingsInterpretersAutoSelectionRule, AutoSelectionRule.settings);
     serviceManager.addSingleton<IInterpreterAutoSeletionProxyService>(IInterpreterAutoSeletionProxyService, InterpreterAutoSeletionProxyService);
     serviceManager.addSingleton<IInterpreterAutoSeletionService>(IInterpreterAutoSeletionService, InterpreterAutoSeletionService);
 }

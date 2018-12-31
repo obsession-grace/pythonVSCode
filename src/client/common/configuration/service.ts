@@ -5,15 +5,19 @@ import { inject, injectable } from 'inversify';
 import { ConfigurationTarget, Uri, workspace, WorkspaceConfiguration } from 'vscode';
 import { IInterpreterAutoSeletionProxyService } from '../../interpreter/autoSelection/types';
 import { IServiceContainer } from '../../ioc/types';
+import { IWorkspaceService } from '../application/types';
 import { PythonSettings } from '../configSettings';
 import { IConfigurationService, IPythonSettings } from '../types';
 
 @injectable()
 export class ConfigurationService implements IConfigurationService {
-    constructor(@inject(IServiceContainer) private readonly serviceContainer: IServiceContainer) { }
+    private readonly workspaceService: IWorkspaceService;
+    constructor(@inject(IServiceContainer) private readonly serviceContainer: IServiceContainer) {
+        this.workspaceService = this.serviceContainer.get<IWorkspaceService>(IWorkspaceService);
+    }
     public getSettings(resource?: Uri): IPythonSettings {
         const interpreterAutoSeletionService = this.serviceContainer.get<IInterpreterAutoSeletionProxyService>(IInterpreterAutoSeletionProxyService);
-        return PythonSettings.getInstance(resource, interpreterAutoSeletionService);
+        return PythonSettings.getInstance(resource, interpreterAutoSeletionService, this.workspaceService);
         // return PythonSettings.getInstance(resource);
     }
 
@@ -22,7 +26,7 @@ export class ConfigurationService implements IConfigurationService {
             uri: resource,
             target: configTarget || ConfigurationTarget.WorkspaceFolder
         };
-        const settingsInfo = section === 'python' && configTarget !== ConfigurationTarget.Global ? PythonSettings.getSettingsUriAndTarget(resource) : defaultSetting;
+        const settingsInfo = section === 'python' && configTarget !== ConfigurationTarget.Global ? PythonSettings.getSettingsUriAndTarget(resource, this.workspaceService) : defaultSetting;
 
         const configSection = workspace.getConfiguration(section, settingsInfo.uri);
         const currentValue = configSection.inspect(setting);
