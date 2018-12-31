@@ -27,7 +27,7 @@ export abstract class CacheableLocatorService implements IInterpreterLocatorServ
         @unmanaged() protected readonly serviceContainer: IServiceContainer,
         @unmanaged() private cachePerWorkspace: boolean = false) {
         this._hasInterpreters = createDeferred<boolean>();
-        this.cacheKeyPrefix = `INTERPRETERS_CACHE_v2_${name}`;
+        this.cacheKeyPrefix = `INTERPRETERS_CACHE_v3_${name}`;
     }
     public get onLocating(): Event<Promise<PythonInterpreter[]>> {
         return this.locating.event;
