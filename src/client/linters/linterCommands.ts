@@ -6,8 +6,11 @@ import { DiagnosticCollection, Disposable, QuickPickOptions, Uri } from 'vscode'
 import { IApplicationShell, ICommandManager, IDocumentManager } from '../common/application/types';
 import { Commands } from '../common/constants';
 import { IDisposable } from '../common/types';
+import { Linters } from '../common/utils/localize';
 import { IServiceContainer } from '../ioc/types';
-import { ILinterManager, ILintingEngine } from './types';
+import { sendTelemetryEvent } from '../telemetry';
+import { SELECT_LINTER } from '../telemetry/constants';
+import { ILinterManager, ILintingEngine, LinterId } from './types';
 
 export class LinterCommands implements IDisposable {
     private disposables: Disposable[] = [];
@@ -32,6 +35,7 @@ export class LinterCommands implements IDisposable {
     public async setLinterAsync(): Promise<void> {
         const linters = this.linterManager.getAllLinterInfos();
         const suggestions = linters.map(x => x.id).sort();
+        const linterList = ['Disable Linting', ...suggestions];
         const activeLinters = await this.linterManager.getActiveLinters(true, this.settingsUri);
 
         let current: string;
@@ -53,17 +57,22 @@ export class LinterCommands implements IDisposable {
             placeHolder: `current: ${current}`
         };
 
-        const selection = await this.appShell.showQuickPick(suggestions, quickPickOptions);
+        const selection = await this.appShell.showQuickPick(linterList, quickPickOptions);
         if (selection !== undefined) {
-            const index = linters.findIndex(x => x.id === selection);
-            if (activeLinters.length > 1) {
-                // tslint:disable-next-line:messages-must-be-localized
-                const response = await this.appShell.showWarningMessage(`Multiple linters are enabled in settings. Replace with '${selection}'?`, 'Yes', 'No');
-                if (response !== 'Yes') {
-                    return;
+            if (selection === 'Disable Linting'){
+                await this.linterManager.enableLintingAsync(false);
+                sendTelemetryEvent(SELECT_LINTER, undefined, {enabled: false});
+            } else{
+                const index = linters.findIndex(x => x.id === selection);
+                if (activeLinters.length > 1) {
+                    const response = await this.appShell.showWarningMessage(Linters.replaceWithSelectedLinter().format(selection), 'Yes', 'No');
+                    if (response !== 'Yes') {
+                        return;
+                    }
                 }
+                await this.linterManager.setActiveLintersAsync([linters[index].product], this.settingsUri);
+                sendTelemetryEvent(SELECT_LINTER, undefined, {tool: selection as LinterId, enabled: true});
             }
-            await this.linterManager.setActiveLintersAsync([linters[index].product], this.settingsUri);
         }
     }
 
