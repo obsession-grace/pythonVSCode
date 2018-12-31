@@ -11,6 +11,8 @@ import { Container } from 'inversify';
 import { EOL } from 'os';
 import * as path from 'path';
 import { ConfigurationTarget, Disposable, Uri } from 'vscode';
+import { IWorkspaceService } from '../../../client/common/application/types';
+import { WorkspaceService } from '../../../client/common/application/workspace';
 import { ConfigurationService } from '../../../client/common/configuration/service';
 import { IS_WINDOWS } from '../../../client/common/platform/constants';
 import { FileSystem } from '../../../client/common/platform/fileSystem';
@@ -76,6 +78,7 @@ suite('PythonExecutableService', () => {
         serviceManager.addSingleton<ICurrentProcess>(ICurrentProcess, CurrentProcess);
         serviceManager.addSingleton<IConfigurationService>(IConfigurationService, ConfigurationService);
         serviceManager.addSingleton<IPlatformService>(IPlatformService, PlatformService);
+        serviceManager.addSingleton<IWorkspaceService>(IPlatformService, WorkspaceService);
         serviceManager.addSingleton<IFileSystem>(IFileSystem, FileSystem);
         serviceManager.addSingleton<IInterpreterAutoSeletionService>(IInterpreterAutoSeletionService, MockAutoSelectionService);
         serviceManager.addSingleton<IInterpreterAutoSeletionProxyService>(IInterpreterAutoSeletionProxyService, MockAutoSelectionService);
