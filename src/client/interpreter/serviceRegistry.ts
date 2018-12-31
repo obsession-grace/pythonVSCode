@@ -9,7 +9,7 @@ import { CurrentPathInterpretersAutoSelectionRule } from './autoSelection/rules/
 import { SettingsInterpretersAutoSelectionRule } from './autoSelection/rules/settings';
 import { SystemWideInterpretersAutoSelectionRule } from './autoSelection/rules/system';
 import { WindowsRegistryInterpretersAutoSelectionRule } from './autoSelection/rules/winRegistry';
-import { WorkspaceVirtualEnvInterpretersAutoSelectionRule } from './autoSelection/rules/workspaveEnv';
+import { WorkspaceVirtualEnvInterpretersAutoSelectionRule } from './autoSelection/rules/workspaceEnv';
 import { AutoSelectionRule, IInterpreterAutoSeletionProxyService, IInterpreterAutoSeletionRule, IInterpreterAutoSeletionService } from './autoSelection/types';
 import { InterpreterComparer } from './configuration/interpreterComparer';
 import { InterpreterSelector } from './configuration/interpreterSelector';

@@ -37,12 +37,22 @@ export class InterpreterAutoSeletionService implements IInterpreterAutoSeletionS
         this.rulesToRunInBackground.push(...[winRegInterpreter, currentPathInterpreter, systemInterpreter]);
 
         // Rules are as follows in order
-        // 1. First check settings.json (user, workspace or workspace folder).
+        // 1. First check user settings.json
+        //      If we have user settings, then always use that, do not proceed.
         // 2. Check workspace virtual environments (pipenv, etc).
+        //      If we have some, then use those as preferred workspace environments.
         // 3. Check list of cached interpreters (previously cachced from all the rules).
+        //      If we find a good one, use that as preferred global env.
+        //      Provided its better than what we have already cached as globally preffered interpreter (globallyPreferredInterpreter).
         // 4. Check current path.
+        //      If we find a good one, use that as preferred global env.
+        //      Provided its better than what we have already cached as globally preffered interpreter (globallyPreferredInterpreter).
         // 5. Check windows registry.
+        //      If we find a good one, use that as preferred global env.
+        //      Provided its better than what we have already cached as globally preffered interpreter (globallyPreferredInterpreter).
         // 6. Check the entire system.
+        //      If we find a good one, use that as preferred global env.
+        //      Provided its better than what we have already cached as globally preffered interpreter (globallyPreferredInterpreter).
         userDefinedInterpreter.setNextRule(workspaceInterpreter);
         workspaceInterpreter.setNextRule(cachedPaths);
         cachedPaths.setNextRule(currentPathInterpreter);

@@ -52,7 +52,8 @@ export class WorkspaceVirtualEnvInterpretersAutoSelectionRule extends BaseRuleSe
             return this.next(resource, manager);
         }
         await this.cacheSelectedInterpreter(resource, bestInterpreter);
-        return manager.setWorkspaceInterpreter(resource!, bestInterpreter);
+        await manager.setWorkspaceInterpreter(resource!, bestInterpreter);
+        return this.next(resource, manager);
     }
     protected async getWorkspaceVirtualEnvInterpreters(resource: Resource): Promise<PythonInterpreter[] | undefined> {
         if (!resource) {

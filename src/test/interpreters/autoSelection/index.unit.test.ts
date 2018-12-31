@@ -22,7 +22,7 @@ import { CurrentPathInterpretersAutoSelectionRule } from '../../../client/interp
 import { SettingsInterpretersAutoSelectionRule } from '../../../client/interpreter/autoSelection/rules/settings';
 import { SystemWideInterpretersAutoSelectionRule } from '../../../client/interpreter/autoSelection/rules/system';
 import { WindowsRegistryInterpretersAutoSelectionRule } from '../../../client/interpreter/autoSelection/rules/winRegistry';
-import { WorkspaceVirtualEnvInterpretersAutoSelectionRule } from '../../../client/interpreter/autoSelection/rules/workspaveEnv';
+import { WorkspaceVirtualEnvInterpretersAutoSelectionRule } from '../../../client/interpreter/autoSelection/rules/workspaceEnv';
 import { IInterpreterAutoSeletionRule } from '../../../client/interpreter/autoSelection/types';
 import { PythonInterpreter } from '../../../client/interpreter/contracts';
 
