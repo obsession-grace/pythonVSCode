@@ -24,6 +24,7 @@ export class CachedInterpretersAutoSelectionRule extends BaseRuleService {
         this.rules = [systemInterpreter, currentPathInterpreter, winRegInterpreter];
     }
     public async autoSelectInterpreter(resource: Resource, manager?: IInterpreterAutoSeletionService): Promise<void> {
+        await super.autoSelectInterpreter(resource, manager);
         const cachedInterpreters = this.rules
             .map(item => item.getPreviouslyAutoSelectedInterpreter(resource))
             .filter(item => !!item)

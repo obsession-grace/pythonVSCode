@@ -30,11 +30,20 @@ export class WorkspaceVirtualEnvInterpretersAutoSelectionRule extends BaseRuleSe
         super(AutoSelectionRule.workspaceVirtualEnvs, fs, stateFactory);
     }
     public async autoSelectInterpreter(resource: Resource, manager?: IInterpreterAutoSeletionService): Promise<void> {
-        if (!this.helper.getActiveWorkspaceUri(resource)) {
+        await super.autoSelectInterpreter(resource, manager);
+        const workspacePath = this.helper.getActiveWorkspaceUri(resource);
+        if (!workspacePath) {
             return this.next(resource, manager);
         }
-        const pipEnvPromise = createDeferredFromPromise(this.pipEnvInterpreterLocator.getInterpreters(resource));
-        const virtualEnvPromise = createDeferredFromPromise(this.getWorkspaceVirtualEnvInterpreters(resource));
+
+        const pythonConfig = this.workspaceService.getConfiguration('python', workspacePath.folderUri)!;
+        const pythonPathInConfig = pythonConfig.inspect<string>('pythonPath')!;
+        // If user has defined custom values in settings for this workspace folder, then use that.
+        if (pythonPathInConfig.workspaceFolderValue) {
+            return this.next(resource, manager);
+        }
+        const pipEnvPromise = createDeferredFromPromise(this.pipEnvInterpreterLocator.getInterpreters(workspacePath.folderUri));
+        const virtualEnvPromise = createDeferredFromPromise(this.getWorkspaceVirtualEnvInterpreters(workspacePath.folderUri));
 
         // Use only one, we currently do not have support for both pipenv and virtual env in same workspace.
         // If users have this, then theu can specify which one is to be used.
@@ -51,8 +60,8 @@ export class WorkspaceVirtualEnvInterpretersAutoSelectionRule extends BaseRuleSe
         if (!bestInterpreter || !manager) {
             return this.next(resource, manager);
         }
-        await this.cacheSelectedInterpreter(resource, bestInterpreter);
-        await manager.setWorkspaceInterpreter(resource!, bestInterpreter);
+        await this.cacheSelectedInterpreter(workspacePath.folderUri, bestInterpreter);
+        await manager.setWorkspaceInterpreter(workspacePath.folderUri!, bestInterpreter);
         return this.next(resource, manager);
     }
     protected async getWorkspaceVirtualEnvInterpreters(resource: Resource): Promise<PythonInterpreter[] | undefined> {

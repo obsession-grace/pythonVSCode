@@ -4,10 +4,12 @@
 'use strict';
 
 // tslint:disable:no-unnecessary-override no-any max-func-body-length no-invalid-this
+
 import { expect } from 'chai';
 import * as path from 'path';
 import { SemVer } from 'semver';
 import { anything, deepEqual, instance, mock, verify, when } from 'ts-mockito';
+import * as typemoq from 'typemoq';
 import { Uri, WorkspaceFolder } from 'vscode';
 import { IWorkspaceService } from '../../../../client/common/application/types';
 import { WorkspaceService } from '../../../../client/common/application/workspace';
@@ -100,6 +102,34 @@ suite('Interpreters - Auto Selection - Workspace Virtual Envs Rule', () => {
 
         verify(nextRule.autoSelectInterpreter(undefined, manager)).once();
         verify(helper.getActiveWorkspaceUri(anything())).once();
+    });
+    test('Invoke next rule if user has defined a python path in settings', async () => {
+        const nextRule = mock(BaseRuleService);
+        const manager = mock(InterpreterAutoSeletionService);
+        type PythonPathInConfig = { workspaceFolderValue: string };
+        const pythonPathInConfig = typemoq.Mock.ofType<PythonPathInConfig>();
+        const pythonPathValue = 'Hello there.exe';
+        pythonPathInConfig
+            .setup(p => p.workspaceFolderValue)
+            .returns(() => pythonPathValue)
+            .verifiable(typemoq.Times.once());
+
+        const pythonPath = { inspect: () => pythonPathInConfig.object };
+        const folderUri = Uri.parse('Folder');
+        const someUri = Uri.parse('somethign');
+
+        rule.setNextRule(nextRule);
+        when(platform.osType).thenReturn(OSType.OSX);
+        when(helper.getActiveWorkspaceUri(anything())).thenReturn({ folderUri } as any);
+        when(nextRule.autoSelectInterpreter(someUri, manager)).thenResolve();
+        when(workspaceService.getConfiguration('python', folderUri)).thenReturn(pythonPath as any);
+
+        rule.setNextRule(instance(nextRule));
+        await rule.autoSelectInterpreter(someUri, manager);
+
+        verify(nextRule.autoSelectInterpreter(someUri, manager)).once();
+        verify(helper.getActiveWorkspaceUri(anything())).once();
+        pythonPathInConfig.verifyAll();
     });
     test('Does not udpate settings when there is no interpreter', async () => {
         await rule.cacheSelectedInterpreter(undefined, {} as any);
@@ -226,15 +256,25 @@ suite('Interpreters - Auto Selection - Workspace Virtual Envs Rule', () => {
         verify(helper.getActiveWorkspaceUri(undefined)).once();
     });
     test('Use pipEnv if that completes first with results', async () => {
-        const manager = mock(InterpreterAutoSeletionService);
+        const folderUri = Uri.parse('Folder');
+        type PythonPathInConfig = { workspaceFolderValue: string };
+        const pythonPathInConfig = typemoq.Mock.ofType<PythonPathInConfig>();
+        const pythonPath = { inspect: () => pythonPathInConfig.object };
+        pythonPathInConfig
+            .setup(p => p.workspaceFolderValue)
+            .returns(() => undefined as any)
+            .verifiable(typemoq.Times.once());
+        when(helper.getActiveWorkspaceUri(anything())).thenReturn({ folderUri } as any);
+        when(workspaceService.getConfiguration('python', folderUri)).thenReturn(pythonPath as any);
+
         const resource = Uri.file('x');
+        const manager = mock(InterpreterAutoSeletionService);
         const interpreterInfo = { path: '1', version: new SemVer('1.0.0') } as any;
         const virtualEnvPromise = createDeferred<PythonInterpreter[]>();
         const nextInvoked = createDeferred();
         rule.next = () => Promise.resolve(nextInvoked.resolve());
         rule.getWorkspaceVirtualEnvInterpreters = () => virtualEnvPromise.promise;
-        when(pipEnvLocator.getInterpreters(resource)).thenResolve([interpreterInfo]);
-        when(helper.getActiveWorkspaceUri(resource)).thenReturn({} as any);
+        when(pipEnvLocator.getInterpreters(folderUri)).thenResolve([interpreterInfo]);
         when(helper.getBestInterpreter(deepEqual([interpreterInfo]))).thenReturn(interpreterInfo);
 
         rule.cacheSelectedInterpreter = () => Promise.resolve();
@@ -244,18 +284,28 @@ suite('Interpreters - Auto Selection - Workspace Virtual Envs Rule', () => {
 
         expect(nextInvoked.completed).to.be.equal(true, 'Next rule not invoked');
         verify(helper.getActiveWorkspaceUri(resource)).atLeast(1);
-        verify(manager.setWorkspaceInterpreter(resource, interpreterInfo)).once();
+        verify(manager.setWorkspaceInterpreter(folderUri, interpreterInfo)).once();
     });
-    test('Use Virtual Env if that completes first with results', async () => {
-        const manager = mock(InterpreterAutoSeletionService);
+    test('Use virtualEnv if that completes first with results', async () => {
+        const folderUri = Uri.parse('Folder');
+        type PythonPathInConfig = { workspaceFolderValue: string };
+        const pythonPathInConfig = typemoq.Mock.ofType<PythonPathInConfig>();
+        const pythonPath = { inspect: () => pythonPathInConfig.object };
+        pythonPathInConfig
+            .setup(p => p.workspaceFolderValue)
+            .returns(() => undefined as any)
+            .verifiable(typemoq.Times.once());
+        when(helper.getActiveWorkspaceUri(anything())).thenReturn({ folderUri } as any);
+        when(workspaceService.getConfiguration('python', folderUri)).thenReturn(pythonPath as any);
+
         const resource = Uri.file('x');
+        const manager = mock(InterpreterAutoSeletionService);
         const interpreterInfo = { path: '1', version: new SemVer('1.0.0') } as any;
         const pipEnvPromise = createDeferred<PythonInterpreter[]>();
         const nextInvoked = createDeferred();
         rule.next = () => Promise.resolve(nextInvoked.resolve());
         rule.getWorkspaceVirtualEnvInterpreters = () => Promise.resolve([interpreterInfo]);
-        when(pipEnvLocator.getInterpreters(resource)).thenReturn(pipEnvPromise.promise);
-        when(helper.getActiveWorkspaceUri(resource)).thenReturn({} as any);
+        when(pipEnvLocator.getInterpreters(folderUri)).thenResolve([interpreterInfo]);
         when(helper.getBestInterpreter(deepEqual([interpreterInfo]))).thenReturn(interpreterInfo);
 
         rule.cacheSelectedInterpreter = () => Promise.resolve();
@@ -265,9 +315,20 @@ suite('Interpreters - Auto Selection - Workspace Virtual Envs Rule', () => {
 
         expect(nextInvoked.completed).to.be.equal(true, 'Next rule not invoked');
         verify(helper.getActiveWorkspaceUri(resource)).atLeast(1);
-        verify(manager.setWorkspaceInterpreter(resource, interpreterInfo)).once();
+        verify(manager.setWorkspaceInterpreter(folderUri, interpreterInfo)).once();
     });
     test('Wait for virtualEnv if pipEnv completes without any intepreters', async () => {
+        const folderUri = Uri.parse('Folder');
+        type PythonPathInConfig = { workspaceFolderValue: string };
+        const pythonPathInConfig = typemoq.Mock.ofType<PythonPathInConfig>();
+        const pythonPath = { inspect: () => pythonPathInConfig.object };
+        pythonPathInConfig
+            .setup(p => p.workspaceFolderValue)
+            .returns(() => undefined as any)
+            .verifiable(typemoq.Times.once());
+        when(helper.getActiveWorkspaceUri(anything())).thenReturn({ folderUri } as any);
+        when(workspaceService.getConfiguration('python', folderUri)).thenReturn(pythonPath as any);
+
         const manager = mock(InterpreterAutoSeletionService);
         const resource = Uri.file('x');
         const interpreterInfo = { path: '1', version: new SemVer('1.0.0') } as any;
@@ -275,8 +336,7 @@ suite('Interpreters - Auto Selection - Workspace Virtual Envs Rule', () => {
         const nextInvoked = createDeferred();
         rule.next = () => Promise.resolve(nextInvoked.resolve());
         rule.getWorkspaceVirtualEnvInterpreters = () => virtualEnvPromise.promise;
-        when(pipEnvLocator.getInterpreters(resource)).thenResolve([]);
-        when(helper.getActiveWorkspaceUri(resource)).thenReturn({} as any);
+        when(pipEnvLocator.getInterpreters(folderUri)).thenResolve([]);
         when(helper.getBestInterpreter(deepEqual(anything()))).thenReturn(interpreterInfo);
 
         rule.cacheSelectedInterpreter = () => Promise.resolve();
@@ -286,9 +346,20 @@ suite('Interpreters - Auto Selection - Workspace Virtual Envs Rule', () => {
 
         expect(nextInvoked.completed).to.be.equal(true, 'Next rule not invoked');
         verify(helper.getActiveWorkspaceUri(resource)).atLeast(1);
-        verify(manager.setWorkspaceInterpreter(resource, interpreterInfo)).once();
+        verify(manager.setWorkspaceInterpreter(folderUri, interpreterInfo)).once();
     });
     test('Wait for pipEnv if VirtualEnv completes without any intepreters', async () => {
+        const folderUri = Uri.parse('Folder');
+        type PythonPathInConfig = { workspaceFolderValue: string };
+        const pythonPathInConfig = typemoq.Mock.ofType<PythonPathInConfig>();
+        const pythonPath = { inspect: () => pythonPathInConfig.object };
+        pythonPathInConfig
+            .setup(p => p.workspaceFolderValue)
+            .returns(() => undefined as any)
+            .verifiable(typemoq.Times.once());
+        when(helper.getActiveWorkspaceUri(anything())).thenReturn({ folderUri } as any);
+        when(workspaceService.getConfiguration('python', folderUri)).thenReturn(pythonPath as any);
+
         const manager = mock(InterpreterAutoSeletionService);
         const resource = Uri.file('x');
         const interpreterInfo = { path: '1', version: new SemVer('1.0.0') } as any;
@@ -296,8 +367,7 @@ suite('Interpreters - Auto Selection - Workspace Virtual Envs Rule', () => {
         const nextInvoked = createDeferred();
         rule.next = () => Promise.resolve(nextInvoked.resolve());
         rule.getWorkspaceVirtualEnvInterpreters = () => Promise.resolve([]);
-        when(pipEnvLocator.getInterpreters(resource)).thenResolve([]);
-        when(helper.getActiveWorkspaceUri(resource)).thenReturn({} as any);
+        when(pipEnvLocator.getInterpreters(folderUri)).thenResolve([]);
         when(helper.getBestInterpreter(deepEqual(anything()))).thenReturn(interpreterInfo);
 
         rule.cacheSelectedInterpreter = () => Promise.resolve();
@@ -307,6 +377,6 @@ suite('Interpreters - Auto Selection - Workspace Virtual Envs Rule', () => {
 
         expect(nextInvoked.completed).to.be.equal(true, 'Next rule not invoked');
         verify(helper.getActiveWorkspaceUri(resource)).atLeast(1);
-        verify(manager.setWorkspaceInterpreter(resource, interpreterInfo)).once();
+        verify(manager.setWorkspaceInterpreter(folderUri, interpreterInfo)).once();
     });
 });

@@ -30,16 +30,17 @@ export abstract class BaseRuleService implements IInterpreterAutoSeletionRule {
         return this.stateStore.value;
     }
     protected async setGlobalInterpreter(interpreter?: PythonInterpreter, manager?: IInterpreterAutoSeletionService): Promise<boolean> {
-        if (interpreter) {
-            await this.cacheSelectedInterpreter(undefined, interpreter);
-        }
+        await this.cacheSelectedInterpreter(undefined, interpreter);
         if (!interpreter || !manager || !interpreter.version) {
             return false;
         }
         const preferredInterpreter = manager.getAutoSelectedInterpreter(undefined);
-        if (preferredInterpreter && preferredInterpreter.version &&
-            compare(interpreter.version.raw, preferredInterpreter.version.raw) > 0) {
+        const comparison = preferredInterpreter && preferredInterpreter.version ? compare(interpreter.version.raw, preferredInterpreter.version.raw) : -1;
+        if (comparison > 0) {
             await manager.setGlobalInterpreter(interpreter);
+            return true;
+        }
+        if (comparison === 0) {
             return true;
         }
 

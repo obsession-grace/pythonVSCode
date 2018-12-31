@@ -21,7 +21,7 @@ export class InterpreterAutoSeletionService implements IInterpreterAutoSeletionS
     private readonly didAutoSelectedInterpreterEmitter = new EventEmitter<void>();
     private readonly autoSelectedInterpreterByWorkspace = new Map<string, PythonInterpreter | undefined>();
     private globallyPreferredInterpreter!: IPersistentState<PythonInterpreter | undefined>;
-    private readonly rulesToRunInBackground: IInterpreterAutoSeletionRule[] = [];
+    private readonly rules: IInterpreterAutoSeletionRule[] = [];
     constructor(@inject(IWorkspaceService) private readonly workspaceService: IWorkspaceService,
         @inject(IPersistentStateFactory) private readonly stateFactory: IPersistentStateFactory,
         @inject(IFileSystem) private readonly fs: IFileSystem,
@@ -34,7 +34,7 @@ export class InterpreterAutoSeletionService implements IInterpreterAutoSeletionS
 
         // It is possible we area always opening the same workspace folder, but we still need to determine and cache
         // the best available interpreters based on other rules (cache for furture use).
-        this.rulesToRunInBackground.push(...[winRegInterpreter, currentPathInterpreter, systemInterpreter]);
+        this.rules.push(...[winRegInterpreter, currentPathInterpreter, systemInterpreter, cachedPaths, userDefinedInterpreter, workspaceInterpreter]);
 
         // Rules are as follows in order
         // 1. First check user settings.json
@@ -60,7 +60,7 @@ export class InterpreterAutoSeletionService implements IInterpreterAutoSeletionS
         winRegInterpreter.setNextRule(systemInterpreter);
     }
     public async autoSelectInterpreter(resource: Resource): Promise<void> {
-        Promise.all(this.rulesToRunInBackground.map(item => item.autoSelectInterpreter(resource))).ignoreErrors();
+        Promise.all(this.rules.map(item => item.autoSelectInterpreter(undefined))).ignoreErrors();
         await this.initializeStore();
         await this.userDefinedInterpreter.autoSelectInterpreter(resource, this);
     }

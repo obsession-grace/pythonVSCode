@@ -23,6 +23,7 @@ export class WindowsRegistryInterpretersAutoSelectionRule extends BaseRuleServic
         super(AutoSelectionRule.windowsRegistry, fs, stateFactory);
     }
     public async autoSelectInterpreter(resource: Resource, manager?: IInterpreterAutoSeletionService): Promise<void> {
+        await super.autoSelectInterpreter(resource, manager);
         if (this.platform.osType !== OSType.Windows) {
             return this.next(resource, manager);
         }

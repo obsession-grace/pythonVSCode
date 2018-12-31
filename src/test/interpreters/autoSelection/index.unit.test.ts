@@ -80,26 +80,14 @@ suite('Interpreters - Auto Selection', () => {
         autoSelectionService.initializeStore = () => Promise.resolve();
         await autoSelectionService.autoSelectInterpreter(undefined);
 
-        verify(userDefinedInterpreter.autoSelectInterpreter(anything(), undefined)).never();
-        verify(userDefinedInterpreter.autoSelectInterpreter(anything())).never();
-
-        verify(winRegInterpreter.autoSelectInterpreter(undefined, autoSelectionService)).never();
-        verify(winRegInterpreter.autoSelectInterpreter(anything(), undefined)).never();
-        verify(winRegInterpreter.autoSelectInterpreter(anything())).once();
-
-        verify(currentPathInterpreter.autoSelectInterpreter(undefined, autoSelectionService)).never();
-        verify(currentPathInterpreter.autoSelectInterpreter(anything(), undefined)).never();
-        verify(currentPathInterpreter.autoSelectInterpreter(anything())).once();
-
-        verify(systemInterpreter.autoSelectInterpreter(undefined, autoSelectionService)).never();
-        verify(systemInterpreter.autoSelectInterpreter(anything(), undefined)).never();
-        verify(systemInterpreter.autoSelectInterpreter(anything())).once();
-
-        for (const service of [workspaceInterpreter, cachedPaths]) {
-            verify(service.autoSelectInterpreter(undefined, autoSelectionService)).never();
-            verify(service.autoSelectInterpreter(anything(), undefined)).never();
-            verify(service.autoSelectInterpreter(anything())).never();
+        const allRules = [userDefinedInterpreter, winRegInterpreter, currentPathInterpreter, systemInterpreter, workspaceInterpreter, cachedPaths];
+        for (const service of allRules) {
+            verify(service.autoSelectInterpreter(undefined)).once();
+            if (service !== userDefinedInterpreter) {
+                verify(service.autoSelectInterpreter(anything(), autoSelectionService)).never();
+            }
         }
+        verify(userDefinedInterpreter.autoSelectInterpreter(anything(), autoSelectionService)).once();
     });
     test('Run userDefineInterpreter as the first rule', async () => {
         autoSelectionService.initializeStore = () => Promise.resolve();
