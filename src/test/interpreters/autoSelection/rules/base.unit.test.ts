@@ -17,7 +17,7 @@ import { IPersistentStateFactory, Resource } from '../../../../client/common/typ
 import { InterpreterAutoSeletionService } from '../../../../client/interpreter/autoSelection';
 import { BaseRuleService } from '../../../../client/interpreter/autoSelection/rules/baseRule';
 import { CurrentPathInterpretersAutoSelectionRule } from '../../../../client/interpreter/autoSelection/rules/currentPath';
-import { IInterpreterAutoSeletionService } from '../../../../client/interpreter/autoSelection/types';
+import { AutoSelectionRule, IInterpreterAutoSeletionService } from '../../../../client/interpreter/autoSelection/types';
 import { PythonInterpreter } from '../../../../client/interpreter/contracts';
 
 suite('Interpreters - Auto Selection - Base Rule', () => {
@@ -36,13 +36,16 @@ suite('Interpreters - Auto Selection - Base Rule', () => {
         public async setGlobalInterpreter(interpreter?: PythonInterpreter, manager?: IInterpreterAutoSeletionService): Promise<boolean> {
             return super.setGlobalInterpreter(interpreter, manager);
         }
+        protected async onAutoSelectInterpreter(_resource: Uri, _manager?: IInterpreterAutoSeletionService): Promise<boolean> {
+            return true;
+        }
     }
     setup(() => {
         stateFactory = mock(PersistentStateFactory);
         state = mock(PersistentState);
         fs = mock(FileSystem);
         when(stateFactory.createGlobalPersistentState<PythonInterpreter | undefined>(anything(), undefined)).thenReturn(instance<PersistentState<PythonInterpreter | undefined>>(state));
-        rule = new BaseRuleServiceTest(ruleName, instance(fs), instance(stateFactory));
+        rule = new BaseRuleServiceTest(AutoSelectionRule.cachedInterpreters, instance(fs), instance(stateFactory));
     });
 
     test('State store is created', () => {

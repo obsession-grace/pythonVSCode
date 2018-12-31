@@ -23,15 +23,12 @@ export class CachedInterpretersAutoSelectionRule extends BaseRuleService {
         super(AutoSelectionRule.cachedInterpreters, fs, stateFactory);
         this.rules = [systemInterpreter, currentPathInterpreter, winRegInterpreter];
     }
-    public async autoSelectInterpreter(resource: Resource, manager?: IInterpreterAutoSeletionService): Promise<void> {
-        await super.autoSelectInterpreter(resource, manager);
+    protected async onAutoSelectInterpreter(resource: Resource, manager?: IInterpreterAutoSeletionService): Promise<boolean> {
         const cachedInterpreters = this.rules
             .map(item => item.getPreviouslyAutoSelectedInterpreter(resource))
             .filter(item => !!item)
             .map(item => item!);
         const bestInterpreter = this.helper.getBestInterpreter(cachedInterpreters);
-        if (! await this.setGlobalInterpreter(bestInterpreter, manager)) {
-            return this.next(resource, manager);
-        }
+        return this.setGlobalInterpreter(bestInterpreter, manager);
     }
 }

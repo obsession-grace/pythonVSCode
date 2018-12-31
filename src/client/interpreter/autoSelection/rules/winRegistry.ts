@@ -22,15 +22,12 @@ export class WindowsRegistryInterpretersAutoSelectionRule extends BaseRuleServic
 
         super(AutoSelectionRule.windowsRegistry, fs, stateFactory);
     }
-    public async autoSelectInterpreter(resource: Resource, manager?: IInterpreterAutoSeletionService): Promise<void> {
-        await super.autoSelectInterpreter(resource, manager);
+    protected async onAutoSelectInterpreter(resource: Resource, manager?: IInterpreterAutoSeletionService): Promise<boolean> {
         if (this.platform.osType !== OSType.Windows) {
-            return this.next(resource, manager);
+            return false;
         }
         const interpreters = await this.winRegInterpreterLocator.getInterpreters(resource);
         const bestInterpreter = this.helper.getBestInterpreter(interpreters);
-        if (!await this.setGlobalInterpreter(bestInterpreter, manager)) {
-            return this.next(resource, manager);
-        }
+        return this.setGlobalInterpreter(bestInterpreter, manager);
     }
 }

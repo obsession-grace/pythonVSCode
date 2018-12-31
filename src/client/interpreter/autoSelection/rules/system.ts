@@ -20,12 +20,9 @@ export class SystemWideInterpretersAutoSelectionRule extends BaseRuleService {
 
         super(AutoSelectionRule.systemWide, fs, stateFactory);
     }
-    public async autoSelectInterpreter(resource: Resource, manager?: IInterpreterAutoSeletionService): Promise<void> {
-        await super.autoSelectInterpreter(resource, manager);
+    protected async onAutoSelectInterpreter(resource: Resource, manager?: IInterpreterAutoSeletionService): Promise<boolean> {
         const interpreters = await this.interpreterService.getInterpreters(resource);
         const bestInterpreter = this.helper.getBestInterpreter(interpreters);
-        if (!await this.setGlobalInterpreter(bestInterpreter, manager)) {
-            return this.next(resource, manager);
-        }
+        return this.setGlobalInterpreter(bestInterpreter, manager);
     }
 }

@@ -29,18 +29,17 @@ export class WorkspaceVirtualEnvInterpretersAutoSelectionRule extends BaseRuleSe
 
         super(AutoSelectionRule.workspaceVirtualEnvs, fs, stateFactory);
     }
-    public async autoSelectInterpreter(resource: Resource, manager?: IInterpreterAutoSeletionService): Promise<void> {
-        await super.autoSelectInterpreter(resource, manager);
+    protected async onAutoSelectInterpreter(resource: Resource, manager?: IInterpreterAutoSeletionService): Promise<boolean> {
         const workspacePath = this.helper.getActiveWorkspaceUri(resource);
         if (!workspacePath) {
-            return this.next(resource, manager);
+            return false;
         }
 
         const pythonConfig = this.workspaceService.getConfiguration('python', workspacePath.folderUri)!;
         const pythonPathInConfig = pythonConfig.inspect<string>('pythonPath')!;
         // If user has defined custom values in settings for this workspace folder, then use that.
         if (pythonPathInConfig.workspaceFolderValue) {
-            return this.next(resource, manager);
+            return false;
         }
         const pipEnvPromise = createDeferredFromPromise(this.pipEnvInterpreterLocator.getInterpreters(workspacePath.folderUri));
         const virtualEnvPromise = createDeferredFromPromise(this.getWorkspaceVirtualEnvInterpreters(workspacePath.folderUri));
@@ -58,11 +57,11 @@ export class WorkspaceVirtualEnvInterpretersAutoSelectionRule extends BaseRuleSe
             bestInterpreter = this.helper.getBestInterpreter(pipEnvList.concat(virtualEnvList));
         }
         if (!bestInterpreter || !manager) {
-            return this.next(resource, manager);
+            return false;
         }
         await this.cacheSelectedInterpreter(workspacePath.folderUri, bestInterpreter);
         await manager.setWorkspaceInterpreter(workspacePath.folderUri!, bestInterpreter);
-        return this.next(resource, manager);
+        return false;
     }
     protected async getWorkspaceVirtualEnvInterpreters(resource: Resource): Promise<PythonInterpreter[] | undefined> {
         if (!resource) {

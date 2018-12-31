@@ -4,6 +4,7 @@
 
 import { TerminalShellType } from '../common/terminal/types';
 import { DebugConfigurationType } from '../debugger/extension/types';
+import { AutoSelectionRule } from '../interpreter/autoSelection/types';
 import { InterpreterType } from '../interpreter/contracts';
 import { LinterId } from '../linters/types';
 import { PlatformErrors } from './constants';
@@ -156,7 +157,7 @@ export type Platform = {
 };
 
 export type InterpreterAutoSelection = {
-    stratergy?: 'main' | 'currentPath' | 'system' | 'windowsRegistry' | 'workspace';
+    rule?: AutoSelectionRule;
     interpreterMissing?: boolean;
     identified?: boolean;
     updated?: boolean;

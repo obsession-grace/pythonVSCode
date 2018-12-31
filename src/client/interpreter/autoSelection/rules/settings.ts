@@ -19,15 +19,11 @@ export class SettingsInterpretersAutoSelectionRule extends BaseRuleService {
 
         super(AutoSelectionRule.settings, fs, stateFactory);
     }
-    public async autoSelectInterpreter(resource: Resource, manager?: IInterpreterAutoSeletionService): Promise<void> {
-        await super.autoSelectInterpreter(resource, manager);
+    protected async onAutoSelectInterpreter(resource: Resource, manager?: IInterpreterAutoSeletionService): Promise<boolean> {
         // tslint:disable-next-line:no-any
         const pythonConfig = this.workspaceService.getConfiguration('python', null as any)!;
         const pythonPathInConfig = pythonConfig.inspect<string>('pythonPath')!;
         // No need to store python paths defined in settings in our caches, they can be retrieved from the settings directly.
-        if (pythonPathInConfig.globalValue && pythonPathInConfig.globalValue !== 'python') {
-            return;
-        }
-        return this.next(resource, manager);
+        return pythonPathInConfig.globalValue && pythonPathInConfig.globalValue !== 'python' ? true : false;
     }
 }
