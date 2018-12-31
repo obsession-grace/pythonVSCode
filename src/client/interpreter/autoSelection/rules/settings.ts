@@ -6,7 +6,7 @@
 import { inject, injectable } from 'inversify';
 import { IWorkspaceService } from '../../../common/application/types';
 import { IFileSystem } from '../../../common/platform/types';
-import { IConfigurationService, IPersistentStateFactory, Resource } from '../../../common/types';
+import { IPersistentStateFactory, Resource } from '../../../common/types';
 import { IInterpreterHelper } from '../../contracts';
 import { AutoSelectionRule, IInterpreterAutoSeletionService } from '../types';
 import { BaseRuleService } from './baseRule';
@@ -17,8 +17,7 @@ export class SettingsInterpretersAutoSelectionRule extends BaseRuleService {
         @inject(IFileSystem) fs: IFileSystem,
         @inject(IInterpreterHelper) private readonly helper: IInterpreterHelper,
         @inject(IPersistentStateFactory) stateFactory: IPersistentStateFactory,
-        @inject(IWorkspaceService) private readonly workspaceService: IWorkspaceService,
-        @inject(IConfigurationService) private readonly configurationService: IConfigurationService) {
+        @inject(IWorkspaceService) private readonly workspaceService: IWorkspaceService) {
 
         super(AutoSelectionRule.settings, fs, stateFactory);
     }
@@ -29,12 +28,8 @@ export class SettingsInterpretersAutoSelectionRule extends BaseRuleService {
         const pythonConfig = this.workspaceService.getConfiguration('python', resource)!;
         const pythonPathInConfig = pythonConfig.inspect<string>('pythonPath')!;
         // No need to store python paths defined in settings in our caches, they can be retrieved from the settings directly.
-        if (pythonPathInConfig.globalValue && pythonPathInConfig.globalValue !== 'python') {
-            const pythonPath = this.configurationService.getSettings(undefined).pythonPath;
-            const interpreter = await this.helper.getInterpreterInformation(pythonPath);
-            if (interpreter && manager) {
-                return;
-            }
+        if (pythonPathInConfig.globalValue && pythonPathInConfig.globalValue !== 'python' && manager) {
+            return;
         }
         return this.next(resource, manager);
     }

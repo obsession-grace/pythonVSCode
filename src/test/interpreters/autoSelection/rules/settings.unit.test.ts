@@ -5,17 +5,14 @@
 
 // tslint:disable:no-unnecessary-override no-any max-func-body-length no-invalid-this
 
-import { SemVer } from 'semver';
 import { anything, instance, mock, verify, when } from 'ts-mockito';
 import { Uri } from 'vscode';
 import { IWorkspaceService } from '../../../../client/common/application/types';
 import { WorkspaceService } from '../../../../client/common/application/workspace';
-import { PythonSettings } from '../../../../client/common/configSettings';
-import { ConfigurationService } from '../../../../client/common/configuration/service';
 import { PersistentState, PersistentStateFactory } from '../../../../client/common/persistentState';
 import { FileSystem } from '../../../../client/common/platform/fileSystem';
 import { IFileSystem } from '../../../../client/common/platform/types';
-import { IConfigurationService, IPersistentStateFactory, IPythonSettings } from '../../../../client/common/types';
+import { IPersistentStateFactory } from '../../../../client/common/types';
 import { InterpreterAutoSeletionService } from '../../../../client/interpreter/autoSelection';
 import { BaseRuleService } from '../../../../client/interpreter/autoSelection/rules/baseRule';
 import { SettingsInterpretersAutoSelectionRule } from '../../../../client/interpreter/autoSelection/rules/settings';
@@ -29,21 +26,16 @@ suite('Interpreters - Auto Selection - Settings Rule', () => {
     let state: PersistentState<PythonInterpreter | undefined>;
     let helper: IInterpreterHelper;
     let workspaceService: IWorkspaceService;
-    let configurationService: IConfigurationService;
-    let pythonSettings: IPythonSettings;
     setup(() => {
         stateFactory = mock(PersistentStateFactory);
         state = mock(PersistentState);
         fs = mock(FileSystem);
         helper = mock(InterpreterHelper);
         workspaceService = mock(WorkspaceService);
-        configurationService = mock(ConfigurationService);
-        pythonSettings = mock(PythonSettings);
 
-        when(configurationService.getSettings(anything())).thenReturn(instance(pythonSettings));
         when(stateFactory.createGlobalPersistentState<PythonInterpreter | undefined>(anything(), undefined)).thenReturn(instance(state));
         rule = new SettingsInterpretersAutoSelectionRule(instance(fs), instance(helper),
-            instance(stateFactory), instance(workspaceService), instance(configurationService));
+            instance(stateFactory), instance(workspaceService));
     });
 
     test('Invoke next rule if there is resource', async () => {
@@ -59,7 +51,6 @@ suite('Interpreters - Auto Selection - Settings Rule', () => {
 
         verify(nextRule.autoSelectInterpreter(anything(), manager)).once();
         verify(helper.getActiveWorkspaceUri(undefined)).once();
-        verify(configurationService.getSettings(anything())).never();
         verify(manager.setWorkspaceInterpreter(anything(), anything())).never();
     });
     test('Invoke next rule if there is noworkspace', async () => {
@@ -76,7 +67,6 @@ suite('Interpreters - Auto Selection - Settings Rule', () => {
 
         verify(nextRule.autoSelectInterpreter(anything(), manager)).once();
         verify(helper.getActiveWorkspaceUri(resource)).once();
-        verify(configurationService.getSettings(anything())).never();
         verify(manager.setWorkspaceInterpreter(anything(), anything())).never();
     });
     test('Invoke next rule if settings are empty', async () => {
@@ -96,7 +86,6 @@ suite('Interpreters - Auto Selection - Settings Rule', () => {
 
         verify(nextRule.autoSelectInterpreter(anything(), manager)).once();
         verify(helper.getActiveWorkspaceUri(resource)).once();
-        verify(configurationService.getSettings(anything())).never();
         verify(manager.setWorkspaceInterpreter(anything(), anything())).never();
     });
     test('Invoke next rule if python Path in settings = python', async () => {
@@ -116,7 +105,6 @@ suite('Interpreters - Auto Selection - Settings Rule', () => {
 
         verify(nextRule.autoSelectInterpreter(anything(), manager)).once();
         verify(helper.getActiveWorkspaceUri(resource)).once();
-        verify(configurationService.getSettings(anything())).never();
         verify(manager.setWorkspaceInterpreter(anything(), anything())).never();
     });
     test('Invoke next rule if python Path in user settings is python', async () => {
@@ -136,7 +124,6 @@ suite('Interpreters - Auto Selection - Settings Rule', () => {
 
         verify(nextRule.autoSelectInterpreter(anything(), anything())).once();
         verify(helper.getActiveWorkspaceUri(resource)).once();
-        verify(configurationService.getSettings(anything())).never();
         verify(manager.setWorkspaceInterpreter(anything(), anything())).never();
     });
     test('Must not Invoke next rule if python Path in user settings is not python', async () => {
@@ -150,16 +137,12 @@ suite('Interpreters - Auto Selection - Settings Rule', () => {
         when(helper.getActiveWorkspaceUri(resource)).thenReturn({} as any);
         when(nextRule.autoSelectInterpreter(anything(), manager)).thenResolve();
         when(workspaceService.getConfiguration('python', resource)).thenReturn(pythonPath as any);
-        const interpreterInfo = { path: 'something', version: new SemVer('1.2.1') };
-        when(configurationService.getSettings(undefined)).thenReturn({ pythonPath: 'something returned from configSettings' } as any);
-        when(helper.getInterpreterInformation('something returned from configSettings')).thenResolve(interpreterInfo);
 
         rule.setNextRule(instance(nextRule));
         await rule.autoSelectInterpreter(resource, instance(manager));
 
         verify(nextRule.autoSelectInterpreter(anything(), manager)).never();
         verify(helper.getActiveWorkspaceUri(resource)).once();
-        verify(configurationService.getSettings(undefined)).once();
         verify(manager.setGlobalInterpreter(anything())).never();
     });
 });
