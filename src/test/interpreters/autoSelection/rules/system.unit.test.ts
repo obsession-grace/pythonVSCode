@@ -5,16 +5,17 @@
 
 // tslint:disable:no-unnecessary-override no-any max-func-body-length no-invalid-this
 
+import * as assert from 'assert';
+import { expect } from 'chai';
 import { SemVer } from 'semver';
-import { anything, instance, mock, verify, when } from 'ts-mockito';
-import * as typemoq from 'typemoq';
+import { anything, deepEqual, instance, mock, verify, when } from 'ts-mockito';
 import { Uri } from 'vscode';
 import { PersistentState, PersistentStateFactory } from '../../../../client/common/persistentState';
 import { FileSystem } from '../../../../client/common/platform/fileSystem';
 import { IFileSystem } from '../../../../client/common/platform/types';
 import { IPersistentStateFactory, Resource } from '../../../../client/common/types';
 import { InterpreterAutoSeletionService } from '../../../../client/interpreter/autoSelection';
-import { BaseRuleService } from '../../../../client/interpreter/autoSelection/rules/baseRule';
+import { NextAction } from '../../../../client/interpreter/autoSelection/rules/baseRule';
 import { SystemWideInterpretersAutoSelectionRule } from '../../../../client/interpreter/autoSelection/rules/system';
 import { IInterpreterAutoSeletionService } from '../../../../client/interpreter/autoSelection/types';
 import { IInterpreterHelper, IInterpreterService, PythonInterpreter } from '../../../../client/interpreter/contracts';
@@ -32,8 +33,8 @@ suite('Interpreters - Auto Selection - System Interpreters Rule', () => {
         public async setGlobalInterpreter(interpreter?: PythonInterpreter, manager?: IInterpreterAutoSeletionService): Promise<boolean> {
             return super.setGlobalInterpreter(interpreter, manager);
         }
-        public async next(resource: Resource, manager?: IInterpreterAutoSeletionService): Promise<void> {
-            return super.next(resource, manager);
+        public async onAutoSelectInterpreter(resource: Resource, manager?: IInterpreterAutoSeletionService): Promise<NextAction> {
+            return super.onAutoSelectInterpreter(resource, manager);
         }
     }
     setup(() => {
@@ -43,65 +44,65 @@ suite('Interpreters - Auto Selection - System Interpreters Rule', () => {
         helper = mock(InterpreterHelper);
         interpreterService = mock(InterpreterService);
 
-        when(stateFactory.createGlobalPersistentState<PythonInterpreter | undefined>(anything(), undefined)).thenReturn(instance<PersistentState<PythonInterpreter | undefined>>(state));
+        when(stateFactory.createGlobalPersistentState<PythonInterpreter | undefined>(anything(), undefined)).thenReturn(instance(state));
         rule = new SystemWideInterpretersAutoSelectionRuleTest(instance(fs), instance(helper),
             instance(stateFactory), instance(interpreterService));
     });
 
     test('Invoke next rule if there are no intepreters in the current path', async () => {
-        const nextRule = mock(BaseRuleService);
         const manager = mock(InterpreterAutoSeletionService);
         const resource = Uri.file('x');
-
-        rule.setNextRule(nextRule);
+        let setGlobalInterpreterInvoked = false;
         when(interpreterService.getInterpreters(resource)).thenResolve([]);
-        when(nextRule.autoSelectInterpreter(resource, manager)).thenResolve();
+        when(helper.getBestInterpreter(deepEqual([]))).thenReturn(undefined);
+        rule.setGlobalInterpreter = async (res: any) => {
+            setGlobalInterpreterInvoked = true;
+            assert.equal(res, undefined);
+            return Promise.resolve(false);
+        };
 
-        rule.setNextRule(instance(nextRule));
-        await rule.autoSelectInterpreter(resource, manager);
+        const nextAction = await rule.onAutoSelectInterpreter(resource, manager);
 
-        verify(nextRule.autoSelectInterpreter(resource, manager)).once();
         verify(interpreterService.getInterpreters(resource)).once();
+        expect(nextAction).to.be.equal(NextAction.runNextRule);
+        expect(setGlobalInterpreterInvoked).to.be.equal(true, 'setGlobalInterpreter not invoked');
     });
-    test('Invoke next rule if fails to update global state', async () => {
+    test('Invoke next rule if there intepreters in the current path but update fails', async () => {
         const manager = mock(InterpreterAutoSeletionService);
-        const interpreterInfo = { path: '1', version: new SemVer('1.0.0') } as any;
         const resource = Uri.file('x');
-
-        when(helper.getBestInterpreter(anything())).thenReturn(interpreterInfo);
+        let setGlobalInterpreterInvoked = false;
+        const interpreterInfo = { path: '1', version: new SemVer('1.0.0') } as any;
         when(interpreterService.getInterpreters(resource)).thenResolve([interpreterInfo]);
+        when(helper.getBestInterpreter(deepEqual([interpreterInfo]))).thenReturn(interpreterInfo);
+        rule.setGlobalInterpreter = async (res: any) => {
+            setGlobalInterpreterInvoked = true;
+            expect(res).deep.equal(interpreterInfo);
+            return Promise.resolve(false);
+        };
 
-        const moq = typemoq.Mock.ofInstance(rule, typemoq.MockBehavior.Loose, true);
-        moq.callBase = true;
-        moq.setup(m => m.setGlobalInterpreter(typemoq.It.isAny(), typemoq.It.isAny()))
-            .returns(() => Promise.resolve(false))
-            .verifiable(typemoq.Times.once());
-        moq.setup(m => m.next(typemoq.It.isAny(), typemoq.It.isAny()))
-            .returns(() => Promise.resolve())
-            .verifiable(typemoq.Times.once());
+        const nextAction = await rule.onAutoSelectInterpreter(resource, manager);
 
-        await moq.object.autoSelectInterpreter(resource, manager);
-
-        moq.verifyAll();
+        verify(interpreterService.getInterpreters(resource)).once();
+        expect(nextAction).to.be.equal(NextAction.runNextRule);
+        expect(setGlobalInterpreterInvoked).to.be.equal(true, 'setGlobalInterpreter not invoked');
     });
-    test('Not Invoke next rule if succeeds to update global state', async () => {
+    test('Do not Invoke next rule if there intepreters in the current path and update does not fail', async () => {
         const manager = mock(InterpreterAutoSeletionService);
-        const interpreterInfo = { path: '1', version: new SemVer('1.0.0') } as any;
         const resource = Uri.file('x');
-
-        when(helper.getBestInterpreter(anything())).thenReturn(interpreterInfo);
+        let setGlobalInterpreterInvoked = false;
+        const interpreterInfo = { path: '1', version: new SemVer('1.0.0') } as any;
         when(interpreterService.getInterpreters(resource)).thenResolve([interpreterInfo]);
+        when(helper.getBestInterpreter(deepEqual([interpreterInfo]))).thenReturn(interpreterInfo);
+        rule.setGlobalInterpreter = async (res: any) => {
+            setGlobalInterpreterInvoked = true;
+            expect(res).deep.equal(interpreterInfo);
+            return Promise.resolve(true);
+        };
 
-        const moq = typemoq.Mock.ofInstance(rule, typemoq.MockBehavior.Loose, true);
-        moq.callBase = true;
-        moq.setup(m => m.setGlobalInterpreter(typemoq.It.isAny(), typemoq.It.isAny()))
-            .returns(() => Promise.resolve(true))
-            .verifiable(typemoq.Times.once());
-        moq.setup(m => m.next(typemoq.It.isAny(), typemoq.It.isAny()))
-            .returns(() => Promise.resolve())
-            .verifiable(typemoq.Times.never());
-        await moq.object.autoSelectInterpreter(resource, manager);
+        const nextAction = await rule.onAutoSelectInterpreter(resource, manager);
 
-        moq.verifyAll();
+        verify(interpreterService.getInterpreters(resource)).once();
+        expect(nextAction).to.be.equal(NextAction.exit);
+        expect(setGlobalInterpreterInvoked).to.be.equal(true, 'setGlobalInterpreter not invoked');
     });
 });

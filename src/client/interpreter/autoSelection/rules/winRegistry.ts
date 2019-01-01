@@ -9,7 +9,7 @@ import { IPersistentStateFactory, Resource } from '../../../common/types';
 import { OSType } from '../../../common/utils/platform';
 import { IInterpreterHelper, IInterpreterLocatorService, WINDOWS_REGISTRY_SERVICE } from '../../contracts';
 import { AutoSelectionRule, IInterpreterAutoSeletionService } from '../types';
-import { BaseRuleService } from './baseRule';
+import { BaseRuleService, NextAction } from './baseRule';
 
 @injectable()
 export class WindowsRegistryInterpretersAutoSelectionRule extends BaseRuleService {
@@ -22,12 +22,12 @@ export class WindowsRegistryInterpretersAutoSelectionRule extends BaseRuleServic
 
         super(AutoSelectionRule.windowsRegistry, fs, stateFactory);
     }
-    protected async onAutoSelectInterpreter(resource: Resource, manager?: IInterpreterAutoSeletionService): Promise<boolean> {
+    protected async onAutoSelectInterpreter(resource: Resource, manager?: IInterpreterAutoSeletionService): Promise<NextAction> {
         if (this.platform.osType !== OSType.Windows) {
-            return false;
+            return NextAction.runNextRule;
         }
         const interpreters = await this.winRegInterpreterLocator.getInterpreters(resource);
         const bestInterpreter = this.helper.getBestInterpreter(interpreters);
-        return this.setGlobalInterpreter(bestInterpreter, manager);
+        return await this.setGlobalInterpreter(bestInterpreter, manager) ? NextAction.exit : NextAction.runNextRule;
     }
 }

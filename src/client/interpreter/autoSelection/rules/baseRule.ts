@@ -14,6 +14,11 @@ import { PYTHON_INTERPRETER_AUTO_SELECTION } from '../../../telemetry/constants'
 import { PythonInterpreter } from '../../contracts';
 import { AutoSelectionRule, IInterpreterAutoSeletionRule, IInterpreterAutoSeletionService } from '../types';
 
+export enum NextAction {
+    runNextRule = 'runNextRule',
+    exit = 'exit'
+}
+
 @injectable()
 export abstract class BaseRuleService implements IInterpreterAutoSeletionRule {
     protected nextRule?: IInterpreterAutoSeletionRule;
@@ -29,16 +34,17 @@ export abstract class BaseRuleService implements IInterpreterAutoSeletionRule {
     public async autoSelectInterpreter(resource: Resource, manager?: IInterpreterAutoSeletionService): Promise<void> {
         await this.clearCachedInterpreterIfInvalid(resource);
         const stopWatch = new StopWatch();
-        const identified = await this.onAutoSelectInterpreter(resource, manager);
+        const action = await this.onAutoSelectInterpreter(resource, manager);
+        const identified = action === NextAction.runNextRule;
         sendTelemetryEvent(PYTHON_INTERPRETER_AUTO_SELECTION, { elapsedTime: stopWatch.elapsedTime }, { rule: this.ruleName, identified });
-        if (!identified) {
+        if (action === NextAction.runNextRule) {
             await this.next(resource, manager);
         }
     }
     public getPreviouslyAutoSelectedInterpreter(_resource: Resource): PythonInterpreter | undefined {
         return this.stateStore.value;
     }
-    protected abstract onAutoSelectInterpreter(resource: Resource, manager?: IInterpreterAutoSeletionService): Promise<boolean>;
+    protected abstract onAutoSelectInterpreter(resource: Resource, manager?: IInterpreterAutoSeletionService): Promise<NextAction>;
     protected async setGlobalInterpreter(interpreter?: PythonInterpreter, manager?: IInterpreterAutoSeletionService): Promise<boolean> {
         await this.cacheSelectedInterpreter(undefined, interpreter);
         if (!interpreter || !manager || !interpreter.version) {

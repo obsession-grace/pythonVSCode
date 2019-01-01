@@ -103,7 +103,7 @@ suite('Interpreters - Auto Selection', () => {
         expect(initialize).to.be.equal(true, 'Not invoked');
     });
     test('Initializing the store would be executed once', async () => {
-        when(stateFactory.createGlobalPersistentState<PythonInterpreter | undefined>(preferredGlobalInterpreter, undefined)).thenReturn(instance<PersistentState<PythonInterpreter | undefined>>(state));
+        when(stateFactory.createGlobalPersistentState<PythonInterpreter | undefined>(preferredGlobalInterpreter, undefined)).thenReturn(instance(state));
 
         await autoSelectionService.initializeStore();
         await autoSelectionService.initializeStore();
@@ -114,7 +114,7 @@ suite('Interpreters - Auto Selection', () => {
     test('Clear file stored in cache if it doesn\'t exist', async () => {
         const pythonPath = 'Hello World';
         const interpreterInfo = { path: pythonPath } as any;
-        when(stateFactory.createGlobalPersistentState<PythonInterpreter | undefined>(preferredGlobalInterpreter, undefined)).thenReturn(instance<PersistentState<PythonInterpreter | undefined>>(state));
+        when(stateFactory.createGlobalPersistentState<PythonInterpreter | undefined>(preferredGlobalInterpreter, undefined)).thenReturn(instance(state));
         when(state.value).thenReturn(interpreterInfo);
         when(fs.fileExists(pythonPath)).thenResolve(false);
 
@@ -128,7 +128,7 @@ suite('Interpreters - Auto Selection', () => {
     test('Should not clear file stored in cache if it does exist', async () => {
         const pythonPath = 'Hello World';
         const interpreterInfo = { path: pythonPath } as any;
-        when(stateFactory.createGlobalPersistentState<PythonInterpreter | undefined>(preferredGlobalInterpreter, undefined)).thenReturn(instance<PersistentState<PythonInterpreter | undefined>>(state));
+        when(stateFactory.createGlobalPersistentState<PythonInterpreter | undefined>(preferredGlobalInterpreter, undefined)).thenReturn(instance(state));
         when(state.value).thenReturn(interpreterInfo);
         when(fs.fileExists(pythonPath)).thenResolve(true);
 
@@ -143,7 +143,7 @@ suite('Interpreters - Auto Selection', () => {
         let eventFired = false;
         const pythonPath = 'Hello World';
         const interpreterInfo = { path: pythonPath } as any;
-        when(stateFactory.createGlobalPersistentState<PythonInterpreter | undefined>(preferredGlobalInterpreter, undefined)).thenReturn(instance<PersistentState<PythonInterpreter | undefined>>(state));
+        when(stateFactory.createGlobalPersistentState<PythonInterpreter | undefined>(preferredGlobalInterpreter, undefined)).thenReturn(instance(state));
         autoSelectionService.onDidChangeAutoSelectedInterpreter(() => eventFired = true);
 
         await autoSelectionService.initializeStore();
@@ -160,7 +160,7 @@ suite('Interpreters - Auto Selection', () => {
         const interpreterInfo = { path: pythonPath, version: new SemVer('1.0.0') } as any;
         const interpreterInfoInState = { path: pythonPath, version: new SemVer('2.0.0') } as any;
         when(fs.fileExists(interpreterInfoInState.path)).thenResolve(true);
-        when(stateFactory.createGlobalPersistentState<PythonInterpreter | undefined>(preferredGlobalInterpreter, undefined)).thenReturn(instance<PersistentState<PythonInterpreter | undefined>>(state));
+        when(stateFactory.createGlobalPersistentState<PythonInterpreter | undefined>(preferredGlobalInterpreter, undefined)).thenReturn(instance(state));
         autoSelectionService.onDidChangeAutoSelectedInterpreter(() => eventFired = true);
         when(state.value).thenReturn(interpreterInfoInState);
 
@@ -178,7 +178,7 @@ suite('Interpreters - Auto Selection', () => {
         const interpreterInfo = { path: pythonPath, version: new SemVer('3.0.0') } as any;
         const interpreterInfoInState = { path: pythonPath, version: new SemVer('2.0.0') } as any;
         when(fs.fileExists(interpreterInfoInState.path)).thenResolve(true);
-        when(stateFactory.createGlobalPersistentState<PythonInterpreter | undefined>(preferredGlobalInterpreter, undefined)).thenReturn(instance<PersistentState<PythonInterpreter | undefined>>(state));
+        when(stateFactory.createGlobalPersistentState<PythonInterpreter | undefined>(preferredGlobalInterpreter, undefined)).thenReturn(instance(state));
         autoSelectionService.onDidChangeAutoSelectedInterpreter(() => eventFired = true);
         when(state.value).thenReturn(interpreterInfoInState);
 
@@ -193,7 +193,7 @@ suite('Interpreters - Auto Selection', () => {
     test('Store global interpreter info in state store', async () => {
         const pythonPath = 'Hello World';
         const interpreterInfo = { path: pythonPath } as any;
-        when(stateFactory.createGlobalPersistentState<PythonInterpreter | undefined>(preferredGlobalInterpreter, undefined)).thenReturn(instance<PersistentState<PythonInterpreter | undefined>>(state));
+        when(stateFactory.createGlobalPersistentState<PythonInterpreter | undefined>(preferredGlobalInterpreter, undefined)).thenReturn(instance(state));
 
         await autoSelectionService.initializeStore();
         await autoSelectionService.setGlobalInterpreter(interpreterInfo);
@@ -207,7 +207,7 @@ suite('Interpreters - Auto Selection', () => {
         const pythonPath = 'Hello World';
         const interpreterInfo = { path: pythonPath } as any;
         const resource = Uri.parse('one');
-        when(stateFactory.createGlobalPersistentState<PythonInterpreter | undefined>(preferredGlobalInterpreter, undefined)).thenReturn(instance<PersistentState<PythonInterpreter | undefined>>(state));
+        when(stateFactory.createGlobalPersistentState<PythonInterpreter | undefined>(preferredGlobalInterpreter, undefined)).thenReturn(instance(state));
         when(workspaceService.getWorkspaceFolder(resource)).thenReturn({ name: '', index: 0, uri: resource });
         autoSelectionService.onDidChangeAutoSelectedInterpreter(() => eventFired = true);
 
@@ -223,7 +223,7 @@ suite('Interpreters - Auto Selection', () => {
         const pythonPath = 'Hello World';
         const interpreterInfo = { path: pythonPath } as any;
         const resource = Uri.parse('one');
-        when(stateFactory.createGlobalPersistentState<PythonInterpreter | undefined>(preferredGlobalInterpreter, undefined)).thenReturn(instance<PersistentState<PythonInterpreter | undefined>>(state));
+        when(stateFactory.createGlobalPersistentState<PythonInterpreter | undefined>(preferredGlobalInterpreter, undefined)).thenReturn(instance(state));
         when(workspaceService.getWorkspaceFolder(resource)).thenReturn({ name: '', index: 0, uri: resource });
 
         await autoSelectionService.initializeStore();
@@ -237,7 +237,7 @@ suite('Interpreters - Auto Selection', () => {
         const pythonPath = 'Hello World';
         const interpreterInfo = { path: pythonPath } as any;
         const resource = Uri.parse('one');
-        when(stateFactory.createGlobalPersistentState<PythonInterpreter | undefined>(preferredGlobalInterpreter, undefined)).thenReturn(instance<PersistentState<PythonInterpreter | undefined>>(state));
+        when(stateFactory.createGlobalPersistentState<PythonInterpreter | undefined>(preferredGlobalInterpreter, undefined)).thenReturn(instance(state));
         when(workspaceService.getWorkspaceFolder(resource)).thenReturn({ name: '', index: 0, uri: resource });
 
         await autoSelectionService.initializeStore();
@@ -251,7 +251,7 @@ suite('Interpreters - Auto Selection', () => {
         const pythonPath = 'Hello World';
         const interpreterInfo = { path: pythonPath } as any;
         const resource = Uri.parse('one');
-        when(stateFactory.createGlobalPersistentState<PythonInterpreter | undefined>(preferredGlobalInterpreter, undefined)).thenReturn(instance<PersistentState<PythonInterpreter | undefined>>(state));
+        when(stateFactory.createGlobalPersistentState<PythonInterpreter | undefined>(preferredGlobalInterpreter, undefined)).thenReturn(instance(state));
         when(workspaceService.getWorkspaceFolder(resource)).thenReturn({ name: '', index: 0, uri: resource });
         const globalInterpreterInfo = { path: 'global Value' };
         when(state.value).thenReturn(globalInterpreterInfo as any);

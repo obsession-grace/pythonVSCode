@@ -13,7 +13,7 @@ import { OSType } from '../../../common/utils/platform';
 import { IPythonPathUpdaterServiceManager } from '../../configuration/types';
 import { IInterpreterHelper, IInterpreterLocatorService, PIPENV_SERVICE, PythonInterpreter, WORKSPACE_VIRTUAL_ENV_SERVICE } from '../../contracts';
 import { AutoSelectionRule, IInterpreterAutoSeletionService } from '../types';
-import { BaseRuleService } from './baseRule';
+import { BaseRuleService, NextAction } from './baseRule';
 
 @injectable()
 export class WorkspaceVirtualEnvInterpretersAutoSelectionRule extends BaseRuleService {
@@ -29,17 +29,17 @@ export class WorkspaceVirtualEnvInterpretersAutoSelectionRule extends BaseRuleSe
 
         super(AutoSelectionRule.workspaceVirtualEnvs, fs, stateFactory);
     }
-    protected async onAutoSelectInterpreter(resource: Resource, manager?: IInterpreterAutoSeletionService): Promise<boolean> {
+    protected async onAutoSelectInterpreter(resource: Resource, manager?: IInterpreterAutoSeletionService): Promise<NextAction> {
         const workspacePath = this.helper.getActiveWorkspaceUri(resource);
         if (!workspacePath) {
-            return false;
+            return NextAction.runNextRule;
         }
 
         const pythonConfig = this.workspaceService.getConfiguration('python', workspacePath.folderUri)!;
         const pythonPathInConfig = pythonConfig.inspect<string>('pythonPath')!;
         // If user has defined custom values in settings for this workspace folder, then use that.
         if (pythonPathInConfig.workspaceFolderValue) {
-            return false;
+            return NextAction.runNextRule;
         }
         const pipEnvPromise = createDeferredFromPromise(this.pipEnvInterpreterLocator.getInterpreters(workspacePath.folderUri));
         const virtualEnvPromise = createDeferredFromPromise(this.getWorkspaceVirtualEnvInterpreters(workspacePath.folderUri));
@@ -57,11 +57,11 @@ export class WorkspaceVirtualEnvInterpretersAutoSelectionRule extends BaseRuleSe
             bestInterpreter = this.helper.getBestInterpreter(pipEnvList.concat(virtualEnvList));
         }
         if (!bestInterpreter || !manager) {
-            return false;
+            return NextAction.exit;
         }
         await this.cacheSelectedInterpreter(workspacePath.folderUri, bestInterpreter);
         await manager.setWorkspaceInterpreter(workspacePath.folderUri!, bestInterpreter);
-        return false;
+        return NextAction.runNextRule;
     }
     protected async getWorkspaceVirtualEnvInterpreters(resource: Resource): Promise<PythonInterpreter[] | undefined> {
         if (!resource) {

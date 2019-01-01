@@ -5,6 +5,7 @@
 
 // tslint:disable:no-unnecessary-override no-any max-func-body-length no-invalid-this
 
+import { expect } from 'chai';
 import { SemVer } from 'semver';
 import { anything, deepEqual, instance, mock, verify, when } from 'ts-mockito';
 import * as typemoq from 'typemoq';
@@ -14,7 +15,7 @@ import { FileSystem } from '../../../../client/common/platform/fileSystem';
 import { IFileSystem } from '../../../../client/common/platform/types';
 import { IPersistentStateFactory, Resource } from '../../../../client/common/types';
 import { InterpreterAutoSeletionService } from '../../../../client/interpreter/autoSelection';
-import { BaseRuleService } from '../../../../client/interpreter/autoSelection/rules/baseRule';
+import { NextAction } from '../../../../client/interpreter/autoSelection/rules/baseRule';
 import { CachedInterpretersAutoSelectionRule } from '../../../../client/interpreter/autoSelection/rules/cached';
 import { SystemWideInterpretersAutoSelectionRule } from '../../../../client/interpreter/autoSelection/rules/system';
 import { IInterpreterAutoSeletionRule, IInterpreterAutoSeletionService } from '../../../../client/interpreter/autoSelection/types';
@@ -35,8 +36,8 @@ suite('Interpreters - Auto Selection - Cached Rule', () => {
         public async setGlobalInterpreter(interpreter?: PythonInterpreter, manager?: IInterpreterAutoSeletionService): Promise<boolean> {
             return super.setGlobalInterpreter(interpreter, manager);
         }
-        public async next(resource: Resource, manager?: IInterpreterAutoSeletionService): Promise<void> {
-            return super.next(resource, manager);
+        public async onAutoSelectInterpreter(resource: Resource, manager?: IInterpreterAutoSeletionService): Promise<NextAction> {
+            return super.onAutoSelectInterpreter(resource, manager);
         }
     }
     setup(() => {
@@ -48,30 +49,26 @@ suite('Interpreters - Auto Selection - Cached Rule', () => {
         currentPathInterpreter = mock(SystemWideInterpretersAutoSelectionRule);
         winRegInterpreter = mock(SystemWideInterpretersAutoSelectionRule);
 
-        when(stateFactory.createGlobalPersistentState<PythonInterpreter | undefined>(anything(), undefined)).thenReturn(instance<PersistentState<PythonInterpreter | undefined>>(state));
+        when(stateFactory.createGlobalPersistentState<PythonInterpreter | undefined>(anything(), undefined)).thenReturn(instance(state));
         rule = new CachedInterpretersAutoSelectionRuleTest(instance(fs), instance(helper),
             instance(stateFactory), instance(systemInterpreter),
             instance(currentPathInterpreter), instance(winRegInterpreter));
     });
 
     test('Invoke next rule if there are no cached intepreters', async () => {
-        const nextRule = mock(BaseRuleService);
         const manager = mock(InterpreterAutoSeletionService);
         const resource = Uri.file('x');
 
-        rule.setNextRule(nextRule);
         when(systemInterpreter.getPreviouslyAutoSelectedInterpreter(resource)).thenReturn(undefined);
         when(currentPathInterpreter.getPreviouslyAutoSelectedInterpreter(resource)).thenReturn(undefined);
         when(winRegInterpreter.getPreviouslyAutoSelectedInterpreter(resource)).thenReturn(undefined);
-        when(nextRule.autoSelectInterpreter(resource, manager)).thenResolve();
 
-        rule.setNextRule(instance(nextRule));
-        await rule.autoSelectInterpreter(resource, manager);
+        const nextAction = await rule.onAutoSelectInterpreter(resource, manager);
 
         verify(systemInterpreter.getPreviouslyAutoSelectedInterpreter(resource)).once();
         verify(currentPathInterpreter.getPreviouslyAutoSelectedInterpreter(resource)).once();
         verify(winRegInterpreter.getPreviouslyAutoSelectedInterpreter(resource)).once();
-        verify(nextRule.autoSelectInterpreter(resource, manager)).once();
+        expect(nextAction).to.be.equal(NextAction.runNextRule);
     });
     test('Invoke next rule if fails to update global state', async () => {
         const manager = mock(InterpreterAutoSeletionService);
@@ -88,17 +85,16 @@ suite('Interpreters - Auto Selection - Cached Rule', () => {
         moq.setup(m => m.setGlobalInterpreter(typemoq.It.isAny(), typemoq.It.isAny()))
             .returns(() => Promise.resolve(false))
             .verifiable(typemoq.Times.once());
-        moq.setup(m => m.next(typemoq.It.isAny(), typemoq.It.isAny()))
-            .returns(() => Promise.resolve())
-            .verifiable(typemoq.Times.once());
-        await moq.object.autoSelectInterpreter(resource, manager);
+
+        const nextAction = await moq.object.onAutoSelectInterpreter(resource, manager);
 
         verify(systemInterpreter.getPreviouslyAutoSelectedInterpreter(anything())).once();
         verify(currentPathInterpreter.getPreviouslyAutoSelectedInterpreter(anything())).once();
         verify(winRegInterpreter.getPreviouslyAutoSelectedInterpreter(anything())).once();
         moq.verifyAll();
+        expect(nextAction).to.be.equal(NextAction.runNextRule);
     });
-    test('Not Invoke next rule if succeeds to update global state', async () => {
+    test('Must not Invoke next rule if updating global state is successful', async () => {
         const manager = mock(InterpreterAutoSeletionService);
         const winRegInterpreterInfo = { path: '1', version: new SemVer('1.0.0') } as any;
         const resource = Uri.file('x');
@@ -113,14 +109,13 @@ suite('Interpreters - Auto Selection - Cached Rule', () => {
         moq.setup(m => m.setGlobalInterpreter(typemoq.It.isAny(), typemoq.It.isAny()))
             .returns(() => Promise.resolve(true))
             .verifiable(typemoq.Times.once());
-        moq.setup(m => m.next(typemoq.It.isAny(), typemoq.It.isAny()))
-            .returns(() => Promise.resolve())
-            .verifiable(typemoq.Times.never());
-        await moq.object.autoSelectInterpreter(resource, manager);
+
+        const nextAction = await moq.object.onAutoSelectInterpreter(resource, manager);
 
         verify(systemInterpreter.getPreviouslyAutoSelectedInterpreter(anything())).once();
         verify(currentPathInterpreter.getPreviouslyAutoSelectedInterpreter(anything())).once();
         verify(winRegInterpreter.getPreviouslyAutoSelectedInterpreter(anything())).once();
         moq.verifyAll();
+        expect(nextAction).to.be.equal(NextAction.exit);
     });
 });

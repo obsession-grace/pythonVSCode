@@ -6,37 +6,39 @@
 // tslint:disable:no-unnecessary-override no-any max-func-body-length no-invalid-this
 
 import * as assert from 'assert';
+import { expect } from 'chai';
 import { SemVer } from 'semver';
-import { anything, instance, mock, verify, when } from 'ts-mockito';
+import { anything, deepEqual, instance, mock, verify, when } from 'ts-mockito';
 import { Uri } from 'vscode';
 import { PersistentState, PersistentStateFactory } from '../../../../client/common/persistentState';
 import { FileSystem } from '../../../../client/common/platform/fileSystem';
 import { PlatformService } from '../../../../client/common/platform/platformService';
 import { IFileSystem, IPlatformService } from '../../../../client/common/platform/types';
 import { IPersistentStateFactory, Resource } from '../../../../client/common/types';
+import { getNamesAndValues } from '../../../../client/common/utils/enum';
 import { OSType } from '../../../../client/common/utils/platform';
 import { InterpreterAutoSeletionService } from '../../../../client/interpreter/autoSelection';
-import { BaseRuleService } from '../../../../client/interpreter/autoSelection/rules/baseRule';
+import { NextAction } from '../../../../client/interpreter/autoSelection/rules/baseRule';
 import { WindowsRegistryInterpretersAutoSelectionRule } from '../../../../client/interpreter/autoSelection/rules/winRegistry';
 import { IInterpreterAutoSeletionService } from '../../../../client/interpreter/autoSelection/types';
 import { IInterpreterHelper, IInterpreterLocatorService, PythonInterpreter } from '../../../../client/interpreter/contracts';
 import { InterpreterHelper } from '../../../../client/interpreter/helpers';
-import { KnownPathsService } from '../../../../client/interpreter/locators/services/KnownPathsService';
+import { WindowsRegistryService } from '../../../../client/interpreter/locators/services/windowsRegistryService';
 
 suite('Interpreters - Auto Selection - Windows Registry Rule', () => {
     let rule: WindowsRegistryInterpretersAutoSelectionRuleTest;
     let stateFactory: IPersistentStateFactory;
     let fs: IFileSystem;
     let state: PersistentState<PythonInterpreter | undefined>;
-    let helper: IInterpreterHelper;
-    let platform: IPlatformService;
     let locator: IInterpreterLocatorService;
+    let platform: IPlatformService;
+    let helper: IInterpreterHelper;
     class WindowsRegistryInterpretersAutoSelectionRuleTest extends WindowsRegistryInterpretersAutoSelectionRule {
         public async setGlobalInterpreter(interpreter?: PythonInterpreter, manager?: IInterpreterAutoSeletionService): Promise<boolean> {
             return super.setGlobalInterpreter(interpreter, manager);
         }
-        public async next(resource: Resource, manager?: IInterpreterAutoSeletionService): Promise<void> {
-            return super.next(resource, manager);
+        public async onAutoSelectInterpreter(resource: Resource, manager?: IInterpreterAutoSeletionService): Promise<NextAction> {
+            return super.onAutoSelectInterpreter(resource, manager);
         }
     }
     setup(() => {
@@ -44,75 +46,92 @@ suite('Interpreters - Auto Selection - Windows Registry Rule', () => {
         state = mock(PersistentState);
         fs = mock(FileSystem);
         helper = mock(InterpreterHelper);
+        locator = mock(WindowsRegistryService);
         platform = mock(PlatformService);
-        locator = mock(KnownPathsService);
 
-        when(stateFactory.createGlobalPersistentState<PythonInterpreter|undefined>(anything(), undefined)).thenReturn(instance(state));
+        when(stateFactory.createGlobalPersistentState<PythonInterpreter | undefined>(anything(), undefined)).thenReturn(instance(state));
         rule = new WindowsRegistryInterpretersAutoSelectionRuleTest(instance(fs), instance(helper),
             instance(stateFactory), instance(platform), instance(locator));
     });
-    test('Invoke next rule if OS is not windows', async () => {
-        const nextRule = mock(BaseRuleService);
-        const manager = mock(InterpreterAutoSeletionService);
-        const resource = Uri.file('x');
 
-        rule.setNextRule(nextRule);
-        when(platform.osType).thenReturn(OSType.OSX);
-        when(locator.getInterpreters(anything())).thenResolve([]);
-        when(nextRule.autoSelectInterpreter(resource, manager)).thenResolve();
+    getNamesAndValues<OSType>(OSType).forEach(osType => {
+        test(`Invoke next rule if platform is not windows (${osType.name})`, async function () {
+            const manager = mock(InterpreterAutoSeletionService);
+            if (osType.value === OSType.Windows) {
+                return this.skip();
+            }
+            const resource = Uri.file('x');
+            when(platform.osType).thenReturn(osType.value);
 
-        rule.setNextRule(instance(nextRule));
-        await rule.autoSelectInterpreter(resource, manager);
+            const nextAction = await rule.onAutoSelectInterpreter(resource, instance(manager));
 
-        verify(nextRule.autoSelectInterpreter(resource, manager)).once();
-        verify(locator.getInterpreters(anything())).never();
+            verify(platform.osType).once();
+            expect(nextAction).to.be.equal(NextAction.runNextRule);
+        });
     });
-    test('Invoke next rule if OS is windows and there are no interpreters in the registry', async () => {
-        const nextRule = mock(BaseRuleService);
+    test('Invoke next rule if there are no interpreters in the registry', async () => {
         const manager = mock(InterpreterAutoSeletionService);
         const resource = Uri.file('x');
-
-        rule.setNextRule(nextRule);
+        let setGlobalInterpreterInvoked = false;
         when(platform.osType).thenReturn(OSType.Windows);
-        when(locator.getInterpreters(anything())).thenResolve([]);
-        when(nextRule.autoSelectInterpreter(resource, manager)).thenResolve();
+        when(locator.getInterpreters(resource)).thenResolve([]);
+        when(helper.getBestInterpreter(deepEqual([]))).thenReturn(undefined);
+        rule.setGlobalInterpreter = async (res: any) => {
+            setGlobalInterpreterInvoked = true;
+            assert.equal(res, undefined);
+            return Promise.resolve(false);
+        };
 
-        rule.setNextRule(instance(nextRule));
-        await rule.autoSelectInterpreter(resource, manager);
+        const nextAction = await rule.onAutoSelectInterpreter(resource, instance(manager));
 
-        verify(nextRule.autoSelectInterpreter(resource, manager)).once();
-        verify(locator.getInterpreters(anything())).once();
+        verify(locator.getInterpreters(resource)).once();
+        verify(platform.osType).once();
+        verify(helper.getBestInterpreter(deepEqual([]))).once();
+        expect(nextAction).to.be.equal(NextAction.runNextRule);
+        expect(setGlobalInterpreterInvoked).to.be.equal(true, 'setGlobalInterpreter not invoked');
     });
-    test('Invoke next rule if fails to update global state', async () => {
+    test('Invoke next rule if there are interpreters in the registry and update fails', async () => {
         const manager = mock(InterpreterAutoSeletionService);
+        const resource = Uri.file('x');
+        let setGlobalInterpreterInvoked = false;
         const interpreterInfo = { path: '1', version: new SemVer('1.0.0') } as any;
-        const resource = Uri.file('x');
-        let nextInvoked = false;
-
-        rule.next = async () => { nextInvoked = true; return Promise.resolve(); };
-        rule.setGlobalInterpreter = async () => Promise.resolve(false);
         when(platform.osType).thenReturn(OSType.Windows);
-        when(helper.getBestInterpreter(anything())).thenReturn(interpreterInfo);
         when(locator.getInterpreters(resource)).thenResolve([interpreterInfo]);
+        when(helper.getBestInterpreter(deepEqual([interpreterInfo]))).thenReturn(interpreterInfo);
+        rule.setGlobalInterpreter = async (res: any) => {
+            setGlobalInterpreterInvoked = true;
+            expect(res).to.deep.equal(interpreterInfo);
+            return Promise.resolve(false);
+        };
 
-        await rule.autoSelectInterpreter(resource, manager);
+        const nextAction = await rule.onAutoSelectInterpreter(resource, instance(manager));
 
-        assert.equal(nextInvoked, true);
+        verify(locator.getInterpreters(resource)).once();
+        verify(platform.osType).once();
+        verify(helper.getBestInterpreter(deepEqual([interpreterInfo]))).once();
+        expect(nextAction).to.be.equal(NextAction.runNextRule);
+        expect(setGlobalInterpreterInvoked).to.be.equal(true, 'setGlobalInterpreter not invoked');
     });
-    test('Not Invoke next rule if succeeeds to update global state', async () => {
+    test('Do not Invoke next rule if there are interpreters in the registry and update does not fail', async () => {
         const manager = mock(InterpreterAutoSeletionService);
-        const interpreterInfo = { path: '1', version: new SemVer('1.0.0') } as any;
         const resource = Uri.file('x');
-        let nextInvoked = false;
-
-        rule.next = async () => { nextInvoked = true; return Promise.resolve(); };
-        rule.setGlobalInterpreter = async () => Promise.resolve(true);
+        let setGlobalInterpreterInvoked = false;
+        const interpreterInfo = { path: '1', version: new SemVer('1.0.0') } as any;
         when(platform.osType).thenReturn(OSType.Windows);
-        when(helper.getBestInterpreter(anything())).thenReturn(interpreterInfo);
         when(locator.getInterpreters(resource)).thenResolve([interpreterInfo]);
+        when(helper.getBestInterpreter(deepEqual([interpreterInfo]))).thenReturn(interpreterInfo);
+        rule.setGlobalInterpreter = async (res: any) => {
+            setGlobalInterpreterInvoked = true;
+            expect(res).to.deep.equal(interpreterInfo);
+            return Promise.resolve(true);
+        };
 
-        await rule.autoSelectInterpreter(resource, manager);
+        const nextAction = await rule.onAutoSelectInterpreter(resource, instance(manager));
 
-        assert.equal(nextInvoked, false);
+        verify(locator.getInterpreters(resource)).once();
+        verify(platform.osType).once();
+        verify(helper.getBestInterpreter(deepEqual([interpreterInfo]))).once();
+        expect(nextAction).to.be.equal(NextAction.exit);
+        expect(setGlobalInterpreterInvoked).to.be.equal(true, 'setGlobalInterpreter not invoked');
     });
 });
