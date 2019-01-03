@@ -71,14 +71,14 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         this.initialize();
     }
     // tslint:disable-next-line:function-name
-    public static getInstance(resource: Uri | undefined, InterpreterAutoSelectionService: IInterpreterAutoSeletionProxyService,
+    public static getInstance(resource: Uri | undefined, interpreterAutoSelectionService: IInterpreterAutoSeletionProxyService,
         workspace?: IWorkspaceService): PythonSettings {
         workspace = workspace || new WorkspaceService();
         const workspaceFolderUri = PythonSettings.getSettingsUriAndTarget(resource, workspace).uri;
         const workspaceFolderKey = workspaceFolderUri ? workspaceFolderUri.fsPath : '';
 
         if (!PythonSettings.pythonSettings.has(workspaceFolderKey)) {
-            const settings = new PythonSettings(workspaceFolderUri, InterpreterAutoSelectionService, workspace);
+            const settings = new PythonSettings(workspaceFolderUri, interpreterAutoSelectionService, workspace);
             PythonSettings.pythonSettings.set(workspaceFolderKey, settings);
             // Pass null to avoid VSC from complaining about not passing in a value.
             // tslint:disable-next-line:no-any

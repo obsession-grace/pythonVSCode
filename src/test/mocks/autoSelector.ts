@@ -11,10 +11,10 @@ import { PythonInterpreter } from '../../client/interpreter/contracts';
 
 @injectable()
 export class MockAutoSelectionService implements IInterpreterAutoSelectionService, IInterpreterAutoSeletionProxyService {
-    public async setWorkspaceInterpreter(resource: Resource, interpreter: PythonInterpreter): Promise<void> {
-        return;
+    public async setWorkspaceInterpreter(_resource: Resource, _interpreter: PythonInterpreter): Promise<void> {
+        return Promise.resolve();
     }
-    public async setGlobalInterpreter(interpreter: PythonInterpreter): Promise<void> {
+    public async setGlobalInterpreter(_interpreter: PythonInterpreter): Promise<void> {
         return;
     }
     get onDidChangeAutoSelectedInterpreter(): Event<void> {

@@ -7,7 +7,7 @@
 
 import { expect } from 'chai';
 import * as path from 'path';
-import { instance, mock, verify, when } from 'ts-mockito';
+import { anything, instance, mock, verify, when } from 'ts-mockito';
 import * as typemoq from 'typemoq';
 import { Uri, WorkspaceConfiguration } from 'vscode';
 import {
@@ -82,7 +82,7 @@ suite('Python Settings - pythonPath', () => {
 
         expect(configSettings.pythonPath).to.be.equal(path.join(workspaceFolderUri.fsPath, 'This is the python Path'));
     });
-    test('If we don\t have a custom python path and no auto selected interpreters, then use default', () => {
+    test('If we don\'t have a custom python path and no auto selected interpreters, then use default', () => {
         const workspaceFolderUri = Uri.file(__dirname);
         const selectionService = mock(MockAutoSelectionService);
         configSettings = new CustomPythonSettings(workspaceFolderUri, instance(selectionService));
@@ -94,12 +94,13 @@ suite('Python Settings - pythonPath', () => {
 
         expect(configSettings.pythonPath).to.be.equal('python');
     });
-    test('If we don\t have a custom python path and we do have an auto selected interpreter, then use it', () => {
+    test('If we don\'t have a custom python path and we do have an auto selected interpreter, then use it', () => {
         const pythonPath = path.join(__dirname, 'this is a python path that was auto selected');
         const interpreter: any = { path: pythonPath };
         const workspaceFolderUri = Uri.file(__dirname);
         const selectionService = mock(MockAutoSelectionService);
         when(selectionService.getAutoSelectedInterpreter(workspaceFolderUri)).thenReturn(interpreter);
+        when(selectionService.setWorkspaceInterpreter(workspaceFolderUri, anything())).thenResolve();
         configSettings = new CustomPythonSettings(workspaceFolderUri, instance(selectionService));
         pythonSettings.setup(p => p.get(typemoq.It.isValue('pythonPath')))
             .returns(() => 'python')
