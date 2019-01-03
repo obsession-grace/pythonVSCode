@@ -62,12 +62,17 @@ export class IocContainer {
         this.serviceManager.addSingleton<IInterpreterAutoSelectionService>(IInterpreterAutoSelectionService, MockAutoSelectionService);
         this.serviceManager.addSingleton<IInterpreterAutoSeletionProxyService>(IInterpreterAutoSeletionProxyService, MockAutoSelectionService);
     }
-    public dispose() {
-        this.disposables.forEach(disposable => {
+    public async dispose() : Promise<void> {
+        for (let i = 0; i < this.disposables.length; i += 1) {
+            const disposable = this.disposables[i];
             if (disposable) {
-                disposable.dispose();
+                // tslint:disable-next-line:no-any
+                const promise = disposable.dispose() as Promise<any>;
+                if (promise) {
+                    await promise;
+                }
             }
-        });
+        }
     }
 
     public registerCommonTypes(registerFileSystem: boolean = true) {

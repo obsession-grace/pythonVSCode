@@ -3,7 +3,6 @@ import * as path from 'path';
 import { Disposable, Event, EventEmitter, Uri } from 'vscode';
 import '../../client/common/extensions';
 import { IDocumentManager, IWorkspaceService } from '../common/application/types';
-import { PythonSettings } from '../common/configSettings';
 import { getArchitectureDisplayName } from '../common/platform/registry';
 import { IFileSystem } from '../common/platform/types';
 import { IPythonExecutionFactory } from '../common/process/types';
@@ -25,12 +24,16 @@ export class InterpreterService implements Disposable, IInterpreterService {
     private readonly locator: IInterpreterLocatorService;
     private readonly fs: IFileSystem;
     private readonly persistentStateFactory: IPersistentStateFactory;
+    private readonly helper: IInterpreterHelper;
+    private readonly configService: IConfigurationService;
     private readonly didChangeInterpreterEmitter = new EventEmitter<void>();
+    private pythonPathSetting: string = '';
 
     constructor(@inject(IServiceContainer) private serviceContainer: IServiceContainer) {
         this.locator = serviceContainer.get<IInterpreterLocatorService>(IInterpreterLocatorService, INTERPRETER_LOCATOR_SERVICE);
         this.fs = this.serviceContainer.get<IFileSystem>(IFileSystem);
         this.persistentStateFactory = this.serviceContainer.get<IPersistentStateFactory>(IPersistentStateFactory);
+        this.configService = this.serviceContainer.get<IConfigurationService>(IConfigurationService);
     }
     public get hasInterpreters(): Promise<boolean> {
         return this.locator.hasInterpreters;
@@ -46,6 +49,8 @@ export class InterpreterService implements Disposable, IInterpreterService {
         const documentManager = this.serviceContainer.get<IDocumentManager>(IDocumentManager);
         disposables.push(documentManager.onDidChangeActiveTextEditor((e) => e ? this.refresh(e.document.uri) : undefined));
         const workspaceService = this.serviceContainer.get<IWorkspaceService>(IWorkspaceService);
+        const pySettings = this.configService.getSettings();
+        this.pythonPathSetting = pySettings.pythonPath;
         const disposable = workspaceService.onDidChangeConfiguration(e => {
             if (e.affectsConfiguration('python.pythonPath', undefined)) {
                 this.onConfigChanged();
@@ -65,8 +70,6 @@ export class InterpreterService implements Disposable, IInterpreterService {
 
     public dispose(): void {
         this.locator.dispose();
-        const configService = this.serviceContainer.get<IConfigurationService>(IConfigurationService);
-        (configService.getSettings() as PythonSettings).removeListener('change', this.onConfigChanged);
         this.didChangeInterpreterEmitter.dispose();
     }
 
@@ -198,10 +201,15 @@ export class InterpreterService implements Disposable, IInterpreterService {
         return displayName;
     }
     private onConfigChanged = () => {
-        this.didChangeInterpreterEmitter.fire();
-        const interpreterDisplay = this.serviceContainer.get<IInterpreterDisplay>(IInterpreterDisplay);
-        interpreterDisplay.refresh()
-            .catch(ex => console.error('Python Extension: display.refresh', ex));
+        // Check if we actually changed our python path
+        const pySettings = this.configService.getSettings();
+        if (this.pythonPathSetting !== pySettings.pythonPath) {
+            this.pythonPathSetting = pySettings.pythonPath;
+            this.didChangeInterpreterEmitter.fire();
+            const interpreterDisplay = this.serviceContainer.get<IInterpreterDisplay>(IInterpreterDisplay);
+            interpreterDisplay.refresh()
+                .catch(ex => console.error('Python Extension: display.refresh', ex));
+        }
     }
     private async collectInterpreterDetails(pythonPath: string, resource: Uri | undefined) {
         const interpreterHelper = this.serviceContainer.get<IInterpreterHelper>(IInterpreterHelper);

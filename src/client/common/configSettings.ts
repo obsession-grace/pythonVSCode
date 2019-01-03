@@ -3,10 +3,7 @@
 import * as child_process from 'child_process';
 import { EventEmitter } from 'events';
 import * as path from 'path';
-import {
-    ConfigurationTarget, DiagnosticSeverity, Disposable, Uri,
-    WorkspaceConfiguration
-} from 'vscode';
+import { ConfigurationChangeEvent, ConfigurationTarget, DiagnosticSeverity, Disposable, Uri, WorkspaceConfiguration } from 'vscode';
 import '../common/extensions';
 import { IInterpreterAutoSeletionProxyService } from '../interpreter/autoSelection/types';
 import { sendTelemetryEvent } from '../telemetry';
@@ -380,7 +377,11 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
             setTimeout(() => this.emit('change'), 1);
         };
         this.disposables.push(this.InterpreterAutoSelectionService.onDidChangeAutoSelectedInterpreter(onDidChange.bind(this)));
-        this.disposables.push(this.workspace.onDidChangeConfiguration(onDidChange.bind(this)));
+        this.disposables.push(this.workspace.onDidChangeConfiguration((event: ConfigurationChangeEvent) => {
+            if (event.affectsConfiguration('python')) {
+                onDidChange();
+            }
+        }));
 
         const initialConfig = this.workspace.getConfiguration('python', this.workspaceRoot);
         if (initialConfig) {
