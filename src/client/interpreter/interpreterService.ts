@@ -24,7 +24,6 @@ export class InterpreterService implements Disposable, IInterpreterService {
     private readonly locator: IInterpreterLocatorService;
     private readonly fs: IFileSystem;
     private readonly persistentStateFactory: IPersistentStateFactory;
-    private readonly helper: IInterpreterHelper;
     private readonly configService: IConfigurationService;
     private readonly didChangeInterpreterEmitter = new EventEmitter<void>();
     private pythonPathSetting: string = '';
