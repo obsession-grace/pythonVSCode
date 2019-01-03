@@ -11,7 +11,7 @@ import { InstallationChannelManager } from '../../client/common/installer/channe
 import { IModuleInstaller } from '../../client/common/installer/types';
 import { Product } from '../../client/common/types';
 import { Architecture } from '../../client/common/utils/platform';
-import { IInterpreterAutoSeletionProxyService, IInterpreterAutoSeletionService } from '../../client/interpreter/autoSelection/types';
+import { IInterpreterAutoSelectionService, IInterpreterAutoSeletionProxyService } from '../../client/interpreter/autoSelection/types';
 import { IInterpreterLocatorService, InterpreterType, PIPENV_SERVICE, PythonInterpreter } from '../../client/interpreter/contracts';
 import { ServiceContainer } from '../../client/ioc/container';
 import { ServiceManager } from '../../client/ioc/serviceManager';
@@ -42,7 +42,7 @@ suite('Installation - installation channels', () => {
         serviceContainer = new ServiceContainer(cont);
         pipEnv = TypeMoq.Mock.ofType<IInterpreterLocatorService>();
         serviceManager.addSingletonInstance<IInterpreterLocatorService>(IInterpreterLocatorService, pipEnv.object, PIPENV_SERVICE);
-        serviceManager.addSingleton<IInterpreterAutoSeletionService>(IInterpreterAutoSeletionService, MockAutoSelectionService);
+        serviceManager.addSingleton<IInterpreterAutoSelectionService>(IInterpreterAutoSelectionService, MockAutoSelectionService);
         serviceManager.addSingleton<IInterpreterAutoSeletionProxyService>(IInterpreterAutoSeletionProxyService, MockAutoSelectionService);
     });
 

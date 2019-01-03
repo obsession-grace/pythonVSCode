@@ -7,7 +7,7 @@ import { inject, injectable } from 'inversify';
 import { IWorkspaceService } from '../../../common/application/types';
 import { IFileSystem } from '../../../common/platform/types';
 import { IPersistentStateFactory, Resource } from '../../../common/types';
-import { AutoSelectionRule, IInterpreterAutoSeletionService } from '../types';
+import { AutoSelectionRule, IInterpreterAutoSelectionService } from '../types';
 import { BaseRuleService, NextAction } from './baseRule';
 
 @injectable()
@@ -19,7 +19,7 @@ export class SettingsInterpretersAutoSelectionRule extends BaseRuleService {
 
         super(AutoSelectionRule.settings, fs, stateFactory);
     }
-    protected async onAutoSelectInterpreter(_resource: Resource, _manager?: IInterpreterAutoSeletionService): Promise<NextAction> {
+    protected async onAutoSelectInterpreter(_resource: Resource, _manager?: IInterpreterAutoSelectionService): Promise<NextAction> {
         // tslint:disable-next-line:no-any
         const pythonConfig = this.workspaceService.getConfiguration('python', null as any)!;
         const pythonPathInConfig = pythonConfig.inspect<string>('pythonPath')!;

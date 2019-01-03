@@ -14,7 +14,7 @@ import {
     IPythonSettings, Product
 } from '../../client/common/types';
 import { createDeferred } from '../../client/common/utils/async';
-import { IInterpreterAutoSeletionProxyService, IInterpreterAutoSeletionService } from '../../client/interpreter/autoSelection/types';
+import { IInterpreterAutoSelectionService, IInterpreterAutoSeletionProxyService } from '../../client/interpreter/autoSelection/types';
 import { IInterpreterService } from '../../client/interpreter/contracts';
 import { ServiceContainer } from '../../client/ioc/container';
 import { ServiceManager } from '../../client/ioc/serviceManager';
@@ -84,7 +84,7 @@ suite('Linting - Provider', () => {
         serviceManager.addSingletonInstance<IInstaller>(IInstaller, linterInstaller.object);
         serviceManager.addSingletonInstance<IWorkspaceService>(IWorkspaceService, workspaceService.object);
         serviceManager.add(IAvailableLinterActivator, AvailableLinterActivator);
-        serviceManager.addSingleton<IInterpreterAutoSeletionService>(IInterpreterAutoSeletionService, MockAutoSelectionService);
+        serviceManager.addSingleton<IInterpreterAutoSelectionService>(IInterpreterAutoSelectionService, MockAutoSelectionService);
         serviceManager.addSingleton<IInterpreterAutoSeletionProxyService>(IInterpreterAutoSeletionProxyService, MockAutoSelectionService);
         lm = new LinterManager(serviceContainer, workspaceService.object);
         serviceManager.addSingletonInstance<ILinterManager>(ILinterManager, lm);

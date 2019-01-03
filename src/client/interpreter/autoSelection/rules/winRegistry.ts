@@ -8,7 +8,7 @@ import { IFileSystem, IPlatformService } from '../../../common/platform/types';
 import { IPersistentStateFactory, Resource } from '../../../common/types';
 import { OSType } from '../../../common/utils/platform';
 import { IInterpreterHelper, IInterpreterLocatorService, WINDOWS_REGISTRY_SERVICE } from '../../contracts';
-import { AutoSelectionRule, IInterpreterAutoSeletionService } from '../types';
+import { AutoSelectionRule, IInterpreterAutoSelectionService } from '../types';
 import { BaseRuleService, NextAction } from './baseRule';
 
 @injectable()
@@ -22,7 +22,7 @@ export class WindowsRegistryInterpretersAutoSelectionRule extends BaseRuleServic
 
         super(AutoSelectionRule.windowsRegistry, fs, stateFactory);
     }
-    protected async onAutoSelectInterpreter(resource: Resource, manager?: IInterpreterAutoSeletionService): Promise<NextAction> {
+    protected async onAutoSelectInterpreter(resource: Resource, manager?: IInterpreterAutoSelectionService): Promise<NextAction> {
         if (this.platform.osType !== OSType.Windows) {
             return NextAction.runNextRule;
         }

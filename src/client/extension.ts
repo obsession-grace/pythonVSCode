@@ -64,7 +64,7 @@ import { IDebugSessionEventHandlers } from './debugger/extension/hooks/types';
 import { registerTypes as debugConfigurationRegisterTypes } from './debugger/extension/serviceRegistry';
 import { IDebugConfigurationService, IDebuggerBanner } from './debugger/extension/types';
 import { registerTypes as formattersRegisterTypes } from './formatters/serviceRegistry';
-import { AutoSelectionRule, IInterpreterAutoSeletionRule, IInterpreterAutoSeletionService } from './interpreter/autoSelection/types';
+import { AutoSelectionRule, IInterpreterAutoSelectionRule, IInterpreterAutoSelectionService } from './interpreter/autoSelection/types';
 import { IInterpreterSelector } from './interpreter/configuration/types';
 import {
     ICondaService,
@@ -111,7 +111,7 @@ export async function activate(context: ExtensionContext): Promise<IExtensionApi
     registerServices(context, serviceManager, serviceContainer);
     initializeServices(context, serviceManager, serviceContainer);
 
-    const autoSelection = serviceContainer.get<IInterpreterAutoSeletionService>(IInterpreterAutoSeletionService);
+    const autoSelection = serviceContainer.get<IInterpreterAutoSelectionService>(IInterpreterAutoSelectionService);
     await autoSelection.autoSelectInterpreter(undefined);
 
     // When testing, do not perform health checks, as modal dialogs can be displayed.
@@ -328,7 +328,7 @@ function hasUserDefinedPythonPath(resource: Resource, serviceContainer: IService
         (settings.globalValue && settings.globalValue !== 'python');
 }
 function getPreferredWorkspaceInterpreter(resource: Resource, serviceContainer: IServiceContainer) {
-    const workspaceInterpreterSelector = serviceContainer.get<IInterpreterAutoSeletionRule>(IInterpreterAutoSeletionRule, AutoSelectionRule.workspaceVirtualEnvs);
+    const workspaceInterpreterSelector = serviceContainer.get<IInterpreterAutoSelectionRule>(IInterpreterAutoSelectionRule, AutoSelectionRule.workspaceVirtualEnvs);
     const interpreter = workspaceInterpreterSelector.getPreviouslyAutoSelectedInterpreter(resource);
     return interpreter ? interpreter.path : undefined;
 }

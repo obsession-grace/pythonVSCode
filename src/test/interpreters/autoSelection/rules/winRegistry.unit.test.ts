@@ -17,10 +17,10 @@ import { IFileSystem, IPlatformService } from '../../../../client/common/platfor
 import { IPersistentStateFactory, Resource } from '../../../../client/common/types';
 import { getNamesAndValues } from '../../../../client/common/utils/enum';
 import { OSType } from '../../../../client/common/utils/platform';
-import { InterpreterAutoSeletionService } from '../../../../client/interpreter/autoSelection';
+import { InterpreterAutoSelectionService } from '../../../../client/interpreter/autoSelection';
 import { NextAction } from '../../../../client/interpreter/autoSelection/rules/baseRule';
 import { WindowsRegistryInterpretersAutoSelectionRule } from '../../../../client/interpreter/autoSelection/rules/winRegistry';
-import { IInterpreterAutoSeletionService } from '../../../../client/interpreter/autoSelection/types';
+import { IInterpreterAutoSelectionService } from '../../../../client/interpreter/autoSelection/types';
 import { IInterpreterHelper, IInterpreterLocatorService, PythonInterpreter } from '../../../../client/interpreter/contracts';
 import { InterpreterHelper } from '../../../../client/interpreter/helpers';
 import { WindowsRegistryService } from '../../../../client/interpreter/locators/services/windowsRegistryService';
@@ -34,10 +34,10 @@ suite('Interpreters - Auto Selection - Windows Registry Rule', () => {
     let platform: IPlatformService;
     let helper: IInterpreterHelper;
     class WindowsRegistryInterpretersAutoSelectionRuleTest extends WindowsRegistryInterpretersAutoSelectionRule {
-        public async setGlobalInterpreter(interpreter?: PythonInterpreter, manager?: IInterpreterAutoSeletionService): Promise<boolean> {
+        public async setGlobalInterpreter(interpreter?: PythonInterpreter, manager?: IInterpreterAutoSelectionService): Promise<boolean> {
             return super.setGlobalInterpreter(interpreter, manager);
         }
-        public async onAutoSelectInterpreter(resource: Resource, manager?: IInterpreterAutoSeletionService): Promise<NextAction> {
+        public async onAutoSelectInterpreter(resource: Resource, manager?: IInterpreterAutoSelectionService): Promise<NextAction> {
             return super.onAutoSelectInterpreter(resource, manager);
         }
     }
@@ -56,7 +56,7 @@ suite('Interpreters - Auto Selection - Windows Registry Rule', () => {
 
     getNamesAndValues<OSType>(OSType).forEach(osType => {
         test(`Invoke next rule if platform is not windows (${osType.name})`, async function () {
-            const manager = mock(InterpreterAutoSeletionService);
+            const manager = mock(InterpreterAutoSelectionService);
             if (osType.value === OSType.Windows) {
                 return this.skip();
             }
@@ -70,7 +70,7 @@ suite('Interpreters - Auto Selection - Windows Registry Rule', () => {
         });
     });
     test('Invoke next rule if there are no interpreters in the registry', async () => {
-        const manager = mock(InterpreterAutoSeletionService);
+        const manager = mock(InterpreterAutoSelectionService);
         const resource = Uri.file('x');
         let setGlobalInterpreterInvoked = false;
         when(platform.osType).thenReturn(OSType.Windows);
@@ -91,7 +91,7 @@ suite('Interpreters - Auto Selection - Windows Registry Rule', () => {
         expect(setGlobalInterpreterInvoked).to.be.equal(true, 'setGlobalInterpreter not invoked');
     });
     test('Invoke next rule if there are interpreters in the registry and update fails', async () => {
-        const manager = mock(InterpreterAutoSeletionService);
+        const manager = mock(InterpreterAutoSelectionService);
         const resource = Uri.file('x');
         let setGlobalInterpreterInvoked = false;
         const interpreterInfo = { path: '1', version: new SemVer('1.0.0') } as any;
@@ -113,7 +113,7 @@ suite('Interpreters - Auto Selection - Windows Registry Rule', () => {
         expect(setGlobalInterpreterInvoked).to.be.equal(true, 'setGlobalInterpreter not invoked');
     });
     test('Do not Invoke next rule if there are interpreters in the registry and update does not fail', async () => {
-        const manager = mock(InterpreterAutoSeletionService);
+        const manager = mock(InterpreterAutoSelectionService);
         const resource = Uri.file('x');
         let setGlobalInterpreterInvoked = false;
         const interpreterInfo = { path: '1', version: new SemVer('1.0.0') } as any;

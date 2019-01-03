@@ -21,6 +21,9 @@ suite('Interpreters - Auto Selection Proxy', () => {
         public getAutoSelectedInterpreter(_resource: Uri): PythonInterpreter {
             return { path: this.pythonPath } as any;
         }
+        public async setWorkspaceInterpreter(_resource: Uri, _interpreter: PythonInterpreter | undefined): Promise<void>{
+            return;
+        }
     }
 
     let proxy: InterpreterAutoSeletionProxyService;
@@ -28,7 +31,6 @@ suite('Interpreters - Auto Selection Proxy', () => {
         proxy = new InterpreterAutoSeletionProxyService([] as any);
     });
 
-    // test(`Change evnet is fired ${suffix}`, () => {
     test('Change evnet is fired', () => {
         const obj = new InstanceClass();
         proxy.registerInstance(obj);

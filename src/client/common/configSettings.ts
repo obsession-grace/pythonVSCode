@@ -7,6 +7,7 @@ import {
     ConfigurationTarget, DiagnosticSeverity, Disposable, Uri,
     WorkspaceConfiguration
 } from 'vscode';
+import '../common/extensions';
 import { IInterpreterAutoSeletionProxyService } from '../interpreter/autoSelection/types';
 import { sendTelemetryEvent } from '../telemetry';
 import { COMPLETION_ADD_BRACKETS, FORMAT_ON_TYPE } from '../telemetry/constants';
@@ -62,7 +63,7 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
     private _pythonPath = '';
     private readonly workspace: IWorkspaceService;
 
-    constructor(workspaceFolder: Uri | undefined, private readonly interpreterAutoSeletionService: IInterpreterAutoSeletionProxyService,
+    constructor(workspaceFolder: Uri | undefined, private readonly InterpreterAutoSelectionService: IInterpreterAutoSeletionProxyService,
         workspace?: IWorkspaceService) {
         super();
         this.workspace = workspace || new WorkspaceService();
@@ -70,14 +71,14 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         this.initialize();
     }
     // tslint:disable-next-line:function-name
-    public static getInstance(resource: Uri | undefined, interpreterAutoSeletionService: IInterpreterAutoSeletionProxyService,
+    public static getInstance(resource: Uri | undefined, InterpreterAutoSelectionService: IInterpreterAutoSeletionProxyService,
         workspace?: IWorkspaceService): PythonSettings {
         workspace = workspace || new WorkspaceService();
         const workspaceFolderUri = PythonSettings.getSettingsUriAndTarget(resource, workspace).uri;
         const workspaceFolderKey = workspaceFolderUri ? workspaceFolderUri.fsPath : '';
 
         if (!PythonSettings.pythonSettings.has(workspaceFolderKey)) {
-            const settings = new PythonSettings(workspaceFolderUri, interpreterAutoSeletionService, workspace);
+            const settings = new PythonSettings(workspaceFolderUri, InterpreterAutoSelectionService, workspace);
             PythonSettings.pythonSettings.set(workspaceFolderKey, settings);
             // Pass null to avoid VSC from complaining about not passing in a value.
             // tslint:disable-next-line:no-any
@@ -127,8 +128,11 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
         this.pythonPath = systemVariables.resolveAny(pythonSettings.get<string>('pythonPath'))!;
         // If user has defined a custom value, use it else try to get the best interpreter ourselves.
         if (this.pythonPath.length === 0 || this.pythonPath === 'python') {
-            const autoSelectedPythonPath = this.interpreterAutoSeletionService.getAutoSelectedInterpreter(this.workspaceRoot);
-            this.pythonPath = autoSelectedPythonPath ? autoSelectedPythonPath.path : this.pythonPath;
+            const autoSelectedPythonInterpreter = this.InterpreterAutoSelectionService.getAutoSelectedInterpreter(this.workspaceRoot);
+            if (autoSelectedPythonInterpreter) {
+                this.InterpreterAutoSelectionService.setWorkspaceInterpreter(this.workspaceRoot, autoSelectedPythonInterpreter).ignoreErrors();
+            }
+            this.pythonPath = autoSelectedPythonInterpreter ? autoSelectedPythonInterpreter.path : this.pythonPath;
         }
         this.pythonPath = getAbsolutePath(this.pythonPath, workspaceRoot);
         // tslint:disable-next-line:no-backbone-get-set-outside-model no-non-null-assertion
@@ -375,7 +379,7 @@ export class PythonSettings extends EventEmitter implements IPythonSettings {
             // Let's defer the change notification.
             setTimeout(() => this.emit('change'), 1);
         };
-        this.disposables.push(this.interpreterAutoSeletionService.onDidChangeAutoSelectedInterpreter(onDidChange.bind(this)));
+        this.disposables.push(this.InterpreterAutoSelectionService.onDidChangeAutoSelectedInterpreter(onDidChange.bind(this)));
         this.disposables.push(this.workspace.onDidChangeConfiguration(onDidChange.bind(this)));
 
         const initialConfig = this.workspace.getConfiguration('python', this.workspaceRoot);

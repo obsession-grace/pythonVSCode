@@ -13,10 +13,10 @@ import { PersistentState, PersistentStateFactory } from '../../../../client/comm
 import { FileSystem } from '../../../../client/common/platform/fileSystem';
 import { IFileSystem } from '../../../../client/common/platform/types';
 import { IPersistentStateFactory, Resource } from '../../../../client/common/types';
-import { InterpreterAutoSeletionService } from '../../../../client/interpreter/autoSelection';
+import { InterpreterAutoSelectionService } from '../../../../client/interpreter/autoSelection';
 import { NextAction } from '../../../../client/interpreter/autoSelection/rules/baseRule';
 import { SettingsInterpretersAutoSelectionRule } from '../../../../client/interpreter/autoSelection/rules/settings';
-import { IInterpreterAutoSeletionService } from '../../../../client/interpreter/autoSelection/types';
+import { IInterpreterAutoSelectionService } from '../../../../client/interpreter/autoSelection/types';
 import { PythonInterpreter } from '../../../../client/interpreter/contracts';
 
 suite('Interpreters - Auto Selection - Settings Rule', () => {
@@ -26,7 +26,7 @@ suite('Interpreters - Auto Selection - Settings Rule', () => {
     let state: PersistentState<PythonInterpreter | undefined>;
     let workspaceService: IWorkspaceService;
     class SettingsInterpretersAutoSelectionRuleTest extends SettingsInterpretersAutoSelectionRule {
-        public async onAutoSelectInterpreter(resource: Resource, manager?: IInterpreterAutoSeletionService): Promise<NextAction> {
+        public async onAutoSelectInterpreter(resource: Resource, manager?: IInterpreterAutoSelectionService): Promise<NextAction> {
             return super.onAutoSelectInterpreter(resource, manager);
         }
     }
@@ -42,7 +42,7 @@ suite('Interpreters - Auto Selection - Settings Rule', () => {
     });
 
     test('Invoke next rule if python Path in user settings is default', async () => {
-        const manager = mock(InterpreterAutoSeletionService);
+        const manager = mock(InterpreterAutoSelectionService);
         const pythonPathInConfig = {};
         const pythonPath = { inspect: () => pythonPathInConfig };
 
@@ -53,7 +53,7 @@ suite('Interpreters - Auto Selection - Settings Rule', () => {
         expect(nextAction).to.be.equal(NextAction.runNextRule);
     });
     test('Invoke next rule if python Path in user settings is not defined', async () => {
-        const manager = mock(InterpreterAutoSeletionService);
+        const manager = mock(InterpreterAutoSelectionService);
         const pythonPathInConfig = { globalValue: 'python' };
         const pythonPath = { inspect: () => pythonPathInConfig };
 
@@ -64,7 +64,7 @@ suite('Interpreters - Auto Selection - Settings Rule', () => {
         expect(nextAction).to.be.equal(NextAction.runNextRule);
     });
     test('Must not Invoke next rule if python Path in user settings is not default', async () => {
-        const manager = mock(InterpreterAutoSeletionService);
+        const manager = mock(InterpreterAutoSelectionService);
         const pythonPathInConfig = { globalValue: 'something else' };
         const pythonPath = { inspect: () => pythonPathInConfig };
 

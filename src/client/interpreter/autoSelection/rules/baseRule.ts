@@ -12,7 +12,7 @@ import { StopWatch } from '../../../common/utils/stopWatch';
 import { sendTelemetryEvent } from '../../../telemetry';
 import { PYTHON_INTERPRETER_AUTO_SELECTION } from '../../../telemetry/constants';
 import { PythonInterpreter } from '../../contracts';
-import { AutoSelectionRule, IInterpreterAutoSeletionRule, IInterpreterAutoSeletionService } from '../types';
+import { AutoSelectionRule, IInterpreterAutoSelectionRule, IInterpreterAutoSelectionService } from '../types';
 
 export enum NextAction {
     runNextRule = 'runNextRule',
@@ -20,18 +20,18 @@ export enum NextAction {
 }
 
 @injectable()
-export abstract class BaseRuleService implements IInterpreterAutoSeletionRule {
-    protected nextRule?: IInterpreterAutoSeletionRule;
+export abstract class BaseRuleService implements IInterpreterAutoSelectionRule {
+    protected nextRule?: IInterpreterAutoSelectionRule;
     private readonly stateStore: IPersistentState<PythonInterpreter | undefined>;
     constructor(@unmanaged() private readonly ruleName: AutoSelectionRule,
         @inject(IFileSystem) private readonly fs: IFileSystem,
         @inject(IPersistentStateFactory) stateFactory: IPersistentStateFactory) {
-        this.stateStore = stateFactory.createGlobalPersistentState<PythonInterpreter | undefined>(`IInterpreterAutoSeletionRule-${this.ruleName}`, undefined);
+        this.stateStore = stateFactory.createGlobalPersistentState<PythonInterpreter | undefined>(`InterpreterAutoSeletionRule-${this.ruleName}`, undefined);
     }
-    public setNextRule(rule: IInterpreterAutoSeletionRule): void {
+    public setNextRule(rule: IInterpreterAutoSelectionRule): void {
         this.nextRule = rule;
     }
-    public async autoSelectInterpreter(resource: Resource, manager?: IInterpreterAutoSeletionService): Promise<void> {
+    public async autoSelectInterpreter(resource: Resource, manager?: IInterpreterAutoSelectionService): Promise<void> {
         await this.clearCachedInterpreterIfInvalid(resource);
         const stopWatch = new StopWatch();
         const action = await this.onAutoSelectInterpreter(resource, manager);
@@ -44,14 +44,14 @@ export abstract class BaseRuleService implements IInterpreterAutoSeletionRule {
     public getPreviouslyAutoSelectedInterpreter(_resource: Resource): PythonInterpreter | undefined {
         return this.stateStore.value;
     }
-    protected abstract onAutoSelectInterpreter(resource: Resource, manager?: IInterpreterAutoSeletionService): Promise<NextAction>;
-    protected async setGlobalInterpreter(interpreter?: PythonInterpreter, manager?: IInterpreterAutoSeletionService): Promise<boolean> {
+    protected abstract onAutoSelectInterpreter(resource: Resource, manager?: IInterpreterAutoSelectionService): Promise<NextAction>;
+    protected async setGlobalInterpreter(interpreter?: PythonInterpreter, manager?: IInterpreterAutoSelectionService): Promise<boolean> {
         await this.cacheSelectedInterpreter(undefined, interpreter);
         if (!interpreter || !manager || !interpreter.version) {
             return false;
         }
         const preferredInterpreter = manager.getAutoSelectedInterpreter(undefined);
-        const comparison = preferredInterpreter && preferredInterpreter.version ? compare(interpreter.version.raw, preferredInterpreter.version.raw) : -1;
+        const comparison = preferredInterpreter && preferredInterpreter.version ? compare(interpreter.version.raw, preferredInterpreter.version.raw) : 1;
         if (comparison > 0) {
             await manager.setGlobalInterpreter(interpreter);
             return true;
@@ -76,7 +76,7 @@ export abstract class BaseRuleService implements IInterpreterAutoSeletionRule {
         sendTelemetryEvent(PYTHON_INTERPRETER_AUTO_SELECTION, {}, { rule: this.ruleName, updated });
         await this.stateStore.updateValue(interpreter);
     }
-    protected async next(resource: Resource, manager?: IInterpreterAutoSeletionService): Promise<void> {
+    protected async next(resource: Resource, manager?: IInterpreterAutoSelectionService): Promise<void> {
         return this.nextRule && manager ? this.nextRule.autoSelectInterpreter(resource, manager) : undefined;
     }
 }

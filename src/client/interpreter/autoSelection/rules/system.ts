@@ -6,8 +6,8 @@
 import { inject, injectable } from 'inversify';
 import { IFileSystem } from '../../../common/platform/types';
 import { IPersistentStateFactory, Resource } from '../../../common/types';
-import { IInterpreterHelper, IInterpreterService } from '../../contracts';
-import { AutoSelectionRule, IInterpreterAutoSeletionService } from '../types';
+import { IInterpreterHelper, IInterpreterService, InterpreterType } from '../../contracts';
+import { AutoSelectionRule, IInterpreterAutoSelectionService } from '../types';
 import { BaseRuleService, NextAction } from './baseRule';
 
 @injectable()
@@ -20,9 +20,13 @@ export class SystemWideInterpretersAutoSelectionRule extends BaseRuleService {
 
         super(AutoSelectionRule.systemWide, fs, stateFactory);
     }
-    protected async onAutoSelectInterpreter(resource: Resource, manager?: IInterpreterAutoSeletionService): Promise<NextAction> {
+    protected async onAutoSelectInterpreter(resource: Resource, manager?: IInterpreterAutoSelectionService): Promise<NextAction> {
         const interpreters = await this.interpreterService.getInterpreters(resource);
-        const bestInterpreter = this.helper.getBestInterpreter(interpreters);
+        // Exclude non-local interpreters.
+        const filteredInterpreters = interpreters.filter(int => int.type !== InterpreterType.VirtualEnv &&
+            int.type !== InterpreterType.Venv &&
+            int.type !== InterpreterType.PipEnv);
+        const bestInterpreter = this.helper.getBestInterpreter(filteredInterpreters);
         return await this.setGlobalInterpreter(bestInterpreter, manager) ? NextAction.exit : NextAction.runNextRule;
     }
 }

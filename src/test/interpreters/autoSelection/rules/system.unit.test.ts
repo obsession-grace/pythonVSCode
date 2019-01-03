@@ -14,10 +14,10 @@ import { PersistentState, PersistentStateFactory } from '../../../../client/comm
 import { FileSystem } from '../../../../client/common/platform/fileSystem';
 import { IFileSystem } from '../../../../client/common/platform/types';
 import { IPersistentStateFactory, Resource } from '../../../../client/common/types';
-import { InterpreterAutoSeletionService } from '../../../../client/interpreter/autoSelection';
+import { InterpreterAutoSelectionService } from '../../../../client/interpreter/autoSelection';
 import { NextAction } from '../../../../client/interpreter/autoSelection/rules/baseRule';
 import { SystemWideInterpretersAutoSelectionRule } from '../../../../client/interpreter/autoSelection/rules/system';
-import { IInterpreterAutoSeletionService } from '../../../../client/interpreter/autoSelection/types';
+import { IInterpreterAutoSelectionService } from '../../../../client/interpreter/autoSelection/types';
 import { IInterpreterHelper, IInterpreterService, PythonInterpreter } from '../../../../client/interpreter/contracts';
 import { InterpreterHelper } from '../../../../client/interpreter/helpers';
 import { InterpreterService } from '../../../../client/interpreter/interpreterService';
@@ -30,10 +30,10 @@ suite('Interpreters - Auto Selection - System Interpreters Rule', () => {
     let interpreterService: IInterpreterService;
     let helper: IInterpreterHelper;
     class SystemWideInterpretersAutoSelectionRuleTest extends SystemWideInterpretersAutoSelectionRule {
-        public async setGlobalInterpreter(interpreter?: PythonInterpreter, manager?: IInterpreterAutoSeletionService): Promise<boolean> {
+        public async setGlobalInterpreter(interpreter?: PythonInterpreter, manager?: IInterpreterAutoSelectionService): Promise<boolean> {
             return super.setGlobalInterpreter(interpreter, manager);
         }
-        public async onAutoSelectInterpreter(resource: Resource, manager?: IInterpreterAutoSeletionService): Promise<NextAction> {
+        public async onAutoSelectInterpreter(resource: Resource, manager?: IInterpreterAutoSelectionService): Promise<NextAction> {
             return super.onAutoSelectInterpreter(resource, manager);
         }
     }
@@ -50,7 +50,7 @@ suite('Interpreters - Auto Selection - System Interpreters Rule', () => {
     });
 
     test('Invoke next rule if there are no intepreters in the current path', async () => {
-        const manager = mock(InterpreterAutoSeletionService);
+        const manager = mock(InterpreterAutoSelectionService);
         const resource = Uri.file('x');
         let setGlobalInterpreterInvoked = false;
         when(interpreterService.getInterpreters(resource)).thenResolve([]);
@@ -68,7 +68,7 @@ suite('Interpreters - Auto Selection - System Interpreters Rule', () => {
         expect(setGlobalInterpreterInvoked).to.be.equal(true, 'setGlobalInterpreter not invoked');
     });
     test('Invoke next rule if there intepreters in the current path but update fails', async () => {
-        const manager = mock(InterpreterAutoSeletionService);
+        const manager = mock(InterpreterAutoSelectionService);
         const resource = Uri.file('x');
         let setGlobalInterpreterInvoked = false;
         const interpreterInfo = { path: '1', version: new SemVer('1.0.0') } as any;
@@ -87,7 +87,7 @@ suite('Interpreters - Auto Selection - System Interpreters Rule', () => {
         expect(setGlobalInterpreterInvoked).to.be.equal(true, 'setGlobalInterpreter not invoked');
     });
     test('Do not Invoke next rule if there intepreters in the current path and update does not fail', async () => {
-        const manager = mock(InterpreterAutoSeletionService);
+        const manager = mock(InterpreterAutoSelectionService);
         const resource = Uri.file('x');
         let setGlobalInterpreterInvoked = false;
         const interpreterInfo = { path: '1', version: new SemVer('1.0.0') } as any;

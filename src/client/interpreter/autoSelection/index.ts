@@ -10,32 +10,34 @@ import { IWorkspaceService } from '../../common/application/types';
 import '../../common/extensions';
 import { IFileSystem } from '../../common/platform/types';
 import { IPersistentState, IPersistentStateFactory, Resource } from '../../common/types';
-import { PythonInterpreter } from '../contracts';
-import { AutoSelectionRule, IInterpreterAutoSeletionRule, IInterpreterAutoSeletionService } from './types';
+import { IInterpreterHelper, PythonInterpreter } from '../contracts';
+import { AutoSelectionRule, IInterpreterAutoSelectionRule, IInterpreterAutoSelectionService, IInterpreterAutoSeletionProxyService } from './types';
 
-const preferredGlobalInterpreter = 'preferredGlobalInterpreter';
+const preferredGlobalInterpreter = 'preferredGlobalPyInterpreter';
 const workspacePathNameForGlobalWorkspaces = '';
 
 @injectable()
-export class InterpreterAutoSeletionService implements IInterpreterAutoSeletionService, IInterpreterAutoSeletionService {
+export class InterpreterAutoSelectionService implements IInterpreterAutoSelectionService {
     private readonly didAutoSelectedInterpreterEmitter = new EventEmitter<void>();
     private readonly autoSelectedInterpreterByWorkspace = new Map<string, PythonInterpreter | undefined>();
     private globallyPreferredInterpreter!: IPersistentState<PythonInterpreter | undefined>;
-    private readonly rules: IInterpreterAutoSeletionRule[] = [];
+    private readonly rules: IInterpreterAutoSelectionRule[] = [];
     constructor(@inject(IWorkspaceService) private readonly workspaceService: IWorkspaceService,
         @inject(IPersistentStateFactory) private readonly stateFactory: IPersistentStateFactory,
         @inject(IFileSystem) private readonly fs: IFileSystem,
-        @inject(IInterpreterAutoSeletionRule) @named(AutoSelectionRule.systemWide) systemInterpreter: IInterpreterAutoSeletionRule,
-        @inject(IInterpreterAutoSeletionRule) @named(AutoSelectionRule.currentPath) currentPathInterpreter: IInterpreterAutoSeletionRule,
-        @inject(IInterpreterAutoSeletionRule) @named(AutoSelectionRule.windowsRegistry) winRegInterpreter: IInterpreterAutoSeletionRule,
-        @inject(IInterpreterAutoSeletionRule) @named(AutoSelectionRule.cachedInterpreters) cachedPaths: IInterpreterAutoSeletionRule,
-        @inject(IInterpreterAutoSeletionRule) @named(AutoSelectionRule.settings) private readonly userDefinedInterpreter: IInterpreterAutoSeletionRule,
-        @inject(IInterpreterAutoSeletionRule) @named(AutoSelectionRule.workspaceVirtualEnvs) workspaceInterpreter: IInterpreterAutoSeletionRule) {
+        @inject(IInterpreterAutoSelectionRule) @named(AutoSelectionRule.systemWide) systemInterpreter: IInterpreterAutoSelectionRule,
+        @inject(IInterpreterAutoSelectionRule) @named(AutoSelectionRule.currentPath) currentPathInterpreter: IInterpreterAutoSelectionRule,
+        @inject(IInterpreterAutoSelectionRule) @named(AutoSelectionRule.windowsRegistry) winRegInterpreter: IInterpreterAutoSelectionRule,
+        @inject(IInterpreterAutoSelectionRule) @named(AutoSelectionRule.cachedInterpreters) cachedPaths: IInterpreterAutoSelectionRule,
+        @inject(IInterpreterAutoSelectionRule) @named(AutoSelectionRule.settings) private readonly userDefinedInterpreter: IInterpreterAutoSelectionRule,
+        @inject(IInterpreterAutoSelectionRule) @named(AutoSelectionRule.workspaceVirtualEnvs) workspaceInterpreter: IInterpreterAutoSelectionRule,
+        @inject(IInterpreterAutoSeletionProxyService) proxy: IInterpreterAutoSeletionProxyService,
+        @inject(IInterpreterHelper) private readonly interpreterHelper: IInterpreterHelper) {
 
         // It is possible we area always opening the same workspace folder, but we still need to determine and cache
         // the best available interpreters based on other rules (cache for furture use).
         this.rules.push(...[winRegInterpreter, currentPathInterpreter, systemInterpreter, cachedPaths, userDefinedInterpreter, workspaceInterpreter]);
-
+        proxy.registerInstance!(this);
         // Rules are as follows in order
         // 1. First check user settings.json
         //      If we have user settings, then always use that, do not proceed.
@@ -63,6 +65,7 @@ export class InterpreterAutoSeletionService implements IInterpreterAutoSeletionS
         Promise.all(this.rules.map(item => item.autoSelectInterpreter(undefined))).ignoreErrors();
         await this.initializeStore();
         await this.userDefinedInterpreter.autoSelectInterpreter(resource, this);
+        this.didAutoSelectedInterpreterEmitter.fire();
     }
     public get onDidChangeAutoSelectedInterpreter(): Event<void> {
         return this.didAutoSelectedInterpreterEmitter.event;
@@ -71,6 +74,11 @@ export class InterpreterAutoSeletionService implements IInterpreterAutoSeletionS
         // Do not execute anycode other than fetching fromm a property.
         // This method gets invoked from settings class, and this class in turn uses classes that relies on settings.
         // I.e. we can end up in a recursive loop.
+        const workspaceState = this.getWorkspaceState(resource);
+        if (workspaceState && workspaceState.value) {
+            return workspaceState.value;
+        }
+
         const workspaceFolderPath = this.getWorkspacePathKey(resource);
         if (this.autoSelectedInterpreterByWorkspace.has(workspaceFolderPath)) {
             return this.autoSelectedInterpreterByWorkspace.get(workspaceFolderPath);
@@ -99,6 +107,10 @@ export class InterpreterAutoSeletionService implements IInterpreterAutoSeletionS
             await this.globallyPreferredInterpreter.updateValue(interpreter);
             this.autoSelectedInterpreterByWorkspace.set(workspaceFolderPath, interpreter);
         } else {
+            const workspaceState = this.getWorkspaceState(resource);
+            if (workspaceState && interpreter) {
+                await workspaceState.updateValue(interpreter);
+            }
             this.autoSelectedInterpreterByWorkspace.set(workspaceFolderPath, interpreter);
         }
 
@@ -119,5 +131,13 @@ export class InterpreterAutoSeletionService implements IInterpreterAutoSeletionS
     private getWorkspacePathKey(resource: Resource): string {
         const workspaceFolder = resource ? this.workspaceService.getWorkspaceFolder(resource) : undefined;
         return workspaceFolder ? workspaceFolder.uri.fsPath : workspacePathNameForGlobalWorkspaces;
+    }
+    private getWorkspaceState(resource: Resource): undefined | IPersistentState<PythonInterpreter | undefined> {
+        const workspaceUri = this.interpreterHelper.getActiveWorkspaceUri(resource);
+        if (!workspaceUri) {
+            return;
+        }
+        const key = `autoSelectedWorkspacePythonInterpreter-${workspaceUri.folderUri.fsPath}`;
+        return this.stateFactory.createWorkspacePersistentState(key, undefined);
     }
 }

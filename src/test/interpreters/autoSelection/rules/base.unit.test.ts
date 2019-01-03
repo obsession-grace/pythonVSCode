@@ -14,10 +14,10 @@ import { PersistentState, PersistentStateFactory } from '../../../../client/comm
 import { FileSystem } from '../../../../client/common/platform/fileSystem';
 import { IFileSystem } from '../../../../client/common/platform/types';
 import { IPersistentStateFactory, Resource } from '../../../../client/common/types';
-import { InterpreterAutoSeletionService } from '../../../../client/interpreter/autoSelection';
+import { InterpreterAutoSelectionService } from '../../../../client/interpreter/autoSelection';
 import { BaseRuleService, NextAction } from '../../../../client/interpreter/autoSelection/rules/baseRule';
 import { CurrentPathInterpretersAutoSelectionRule } from '../../../../client/interpreter/autoSelection/rules/currentPath';
-import { AutoSelectionRule, IInterpreterAutoSeletionService } from '../../../../client/interpreter/autoSelection/types';
+import { AutoSelectionRule, IInterpreterAutoSelectionService } from '../../../../client/interpreter/autoSelection/types';
 import { PythonInterpreter } from '../../../../client/interpreter/contracts';
 
 suite('Interpreters - Auto Selection - Base Rule', () => {
@@ -26,16 +26,16 @@ suite('Interpreters - Auto Selection - Base Rule', () => {
     let fs: IFileSystem;
     let state: PersistentState<PythonInterpreter | undefined>;
     class BaseRuleServiceTest extends BaseRuleService {
-        public async next(resource: Resource, manager?: IInterpreterAutoSeletionService): Promise<void> {
+        public async next(resource: Resource, manager?: IInterpreterAutoSelectionService): Promise<void> {
             return super.next(resource, manager);
         }
         public async cacheSelectedInterpreter(resource: Resource, interpreter: PythonInterpreter | undefined) {
             return super.cacheSelectedInterpreter(resource, interpreter);
         }
-        public async setGlobalInterpreter(interpreter?: PythonInterpreter, manager?: IInterpreterAutoSeletionService): Promise<boolean> {
+        public async setGlobalInterpreter(interpreter?: PythonInterpreter, manager?: IInterpreterAutoSelectionService): Promise<boolean> {
             return super.setGlobalInterpreter(interpreter, manager);
         }
-        protected async onAutoSelectInterpreter(_resource: Uri, _manager?: IInterpreterAutoSeletionService): Promise<NextAction> {
+        protected async onAutoSelectInterpreter(_resource: Uri, _manager?: IInterpreterAutoSelectionService): Promise<NextAction> {
             return NextAction.runNextRule;
         }
     }
@@ -48,17 +48,17 @@ suite('Interpreters - Auto Selection - Base Rule', () => {
     });
 
     test('State store is created', () => {
-        verify(stateFactory.createGlobalPersistentState(`IInterpreterAutoSeletionRule-${AutoSelectionRule.cachedInterpreters}`, undefined)).once();
+        verify(stateFactory.createGlobalPersistentState(`InterpreterAutoSeletionRule-${AutoSelectionRule.cachedInterpreters}`, undefined)).once();
     });
     test('Next rule should be invoked', async () => {
         const nextRule = mock(CurrentPathInterpretersAutoSelectionRule);
-        const manager = mock(InterpreterAutoSeletionService);
+        const manager = mock(InterpreterAutoSelectionService);
         const resource = Uri.parse('x');
 
         rule.setNextRule(instance(nextRule));
         await rule.next(resource, manager);
 
-        verify(stateFactory.createGlobalPersistentState(`IInterpreterAutoSeletionRule-${AutoSelectionRule.cachedInterpreters}`, undefined)).once();
+        verify(stateFactory.createGlobalPersistentState(`InterpreterAutoSeletionRule-${AutoSelectionRule.cachedInterpreters}`, undefined)).once();
         verify(nextRule.autoSelectInterpreter(resource, manager)).once();
     });
     test('Next rule should not be invoked', async () => {
@@ -68,7 +68,7 @@ suite('Interpreters - Auto Selection - Base Rule', () => {
         rule.setNextRule(instance(nextRule));
         await rule.next(resource);
 
-        verify(stateFactory.createGlobalPersistentState(`IInterpreterAutoSeletionRule-${AutoSelectionRule.cachedInterpreters}`, undefined)).once();
+        verify(stateFactory.createGlobalPersistentState(`InterpreterAutoSeletionRule-${AutoSelectionRule.cachedInterpreters}`, undefined)).once();
         verify(nextRule.autoSelectInterpreter(anything(), anything())).never();
     });
     test('State store must be updated', async () => {
@@ -122,7 +122,7 @@ suite('Interpreters - Auto Selection - Base Rule', () => {
         verify(state.value).atLeast(1);
     });
     test('setGlobalInterpreter should do nothing if interprter is undefined or version is empty', async () => {
-        const manager = mock(InterpreterAutoSeletionService);
+        const manager = mock(InterpreterAutoSelectionService);
         const interpreterInfo = { path: '1324' } as any;
 
         const result1 = await rule.setGlobalInterpreter(undefined, instance(manager));
@@ -133,7 +133,7 @@ suite('Interpreters - Auto Selection - Base Rule', () => {
         assert.equal(result2, false);
     });
     test('setGlobalInterpreter should not update manager if interpreter is not better than one stored in manager', async () => {
-        const manager = mock(InterpreterAutoSeletionService);
+        const manager = mock(InterpreterAutoSelectionService);
         const interpreterInfo = { path: '1324', version: new SemVer('1.0.0') } as any;
         const interpreterInfoInManager = { path: '2', version: new SemVer('2.0.0') } as any;
         when(manager.getAutoSelectedInterpreter(undefined)).thenReturn(interpreterInfoInManager);
@@ -145,7 +145,7 @@ suite('Interpreters - Auto Selection - Base Rule', () => {
         assert.equal(result, false);
     });
     test('setGlobalInterpreter should update manager if interpreter is better than one stored in manager', async () => {
-        const manager = mock(InterpreterAutoSeletionService);
+        const manager = mock(InterpreterAutoSelectionService);
         const interpreterInfo = { path: '1324', version: new SemVer('3.0.0') } as any;
         const interpreterInfoInManager = { path: '2', version: new SemVer('2.0.0') } as any;
         when(manager.getAutoSelectedInterpreter(undefined)).thenReturn(interpreterInfoInManager);

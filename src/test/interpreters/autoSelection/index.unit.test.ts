@@ -16,31 +16,35 @@ import { PersistentState, PersistentStateFactory } from '../../../client/common/
 import { FileSystem } from '../../../client/common/platform/fileSystem';
 import { IFileSystem } from '../../../client/common/platform/types';
 import { IPersistentStateFactory, Resource } from '../../../client/common/types';
-import { InterpreterAutoSeletionService } from '../../../client/interpreter/autoSelection';
+import { InterpreterAutoSelectionService } from '../../../client/interpreter/autoSelection';
+import { InterpreterAutoSeletionProxyService } from '../../../client/interpreter/autoSelection/proxy';
 import { CachedInterpretersAutoSelectionRule } from '../../../client/interpreter/autoSelection/rules/cached';
 import { CurrentPathInterpretersAutoSelectionRule } from '../../../client/interpreter/autoSelection/rules/currentPath';
 import { SettingsInterpretersAutoSelectionRule } from '../../../client/interpreter/autoSelection/rules/settings';
 import { SystemWideInterpretersAutoSelectionRule } from '../../../client/interpreter/autoSelection/rules/system';
 import { WindowsRegistryInterpretersAutoSelectionRule } from '../../../client/interpreter/autoSelection/rules/winRegistry';
 import { WorkspaceVirtualEnvInterpretersAutoSelectionRule } from '../../../client/interpreter/autoSelection/rules/workspaceEnv';
-import { IInterpreterAutoSeletionRule } from '../../../client/interpreter/autoSelection/types';
-import { PythonInterpreter } from '../../../client/interpreter/contracts';
+import { IInterpreterAutoSelectionRule, IInterpreterAutoSeletionProxyService } from '../../../client/interpreter/autoSelection/types';
+import { IInterpreterHelper, PythonInterpreter } from '../../../client/interpreter/contracts';
+import { InterpreterHelper } from '../../../client/interpreter/helpers';
 
-const preferredGlobalInterpreter = 'preferredGlobalInterpreter';
+const preferredGlobalInterpreter = 'preferredGlobalPyInterpreter';
 
 suite('Interpreters - Auto Selection', () => {
-    let autoSelectionService: InterpreterAutoSeletionServiceTest;
+    let autoSelectionService: InterpreterAutoSelectionServiceTest;
     let workspaceService: IWorkspaceService;
     let stateFactory: IPersistentStateFactory;
     let fs: IFileSystem;
-    let systemInterpreter: IInterpreterAutoSeletionRule;
-    let currentPathInterpreter: IInterpreterAutoSeletionRule;
-    let winRegInterpreter: IInterpreterAutoSeletionRule;
-    let cachedPaths: IInterpreterAutoSeletionRule;
-    let userDefinedInterpreter: IInterpreterAutoSeletionRule;
-    let workspaceInterpreter: IInterpreterAutoSeletionRule;
+    let systemInterpreter: IInterpreterAutoSelectionRule;
+    let currentPathInterpreter: IInterpreterAutoSelectionRule;
+    let winRegInterpreter: IInterpreterAutoSelectionRule;
+    let cachedPaths: IInterpreterAutoSelectionRule;
+    let userDefinedInterpreter: IInterpreterAutoSelectionRule;
+    let workspaceInterpreter: IInterpreterAutoSelectionRule;
     let state: PersistentState<PythonInterpreter | undefined>;
-    class InterpreterAutoSeletionServiceTest extends InterpreterAutoSeletionService {
+    let helper: IInterpreterHelper;
+    let proxy: IInterpreterAutoSeletionProxyService;
+    class InterpreterAutoSelectionServiceTest extends InterpreterAutoSelectionService {
         public initializeStore(): Promise<void> {
             return super.initializeStore();
         }
@@ -59,15 +63,21 @@ suite('Interpreters - Auto Selection', () => {
         cachedPaths = mock(CachedInterpretersAutoSelectionRule);
         userDefinedInterpreter = mock(SettingsInterpretersAutoSelectionRule);
         workspaceInterpreter = mock(WorkspaceVirtualEnvInterpretersAutoSelectionRule);
+        helper = mock(InterpreterHelper);
+        proxy = mock(InterpreterAutoSeletionProxyService);
 
-        autoSelectionService = new InterpreterAutoSeletionServiceTest(
+        autoSelectionService = new InterpreterAutoSelectionServiceTest(
             instance(workspaceService), instance(stateFactory), instance(fs),
             instance(systemInterpreter), instance(currentPathInterpreter),
             instance(winRegInterpreter), instance(cachedPaths),
-            instance(userDefinedInterpreter), instance(workspaceInterpreter)
+            instance(userDefinedInterpreter), instance(workspaceInterpreter),
+            instance(proxy), instance(helper)
         );
     });
 
+    test('Instance is registere in proxy', () => {
+        verify(proxy.registerInstance!(autoSelectionService)).once();
+    });
     test('Rules are chained in order of preference', () => {
         verify(userDefinedInterpreter.setNextRule(instance(workspaceInterpreter))).once();
         verify(workspaceInterpreter.setNextRule(instance(cachedPaths))).once();

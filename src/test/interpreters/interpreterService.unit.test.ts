@@ -21,7 +21,7 @@ import { IConfigurationService, IDisposableRegistry, IPersistentStateFactory } f
 import * as EnumEx from '../../client/common/utils/enum';
 import { noop } from '../../client/common/utils/misc';
 import { Architecture } from '../../client/common/utils/platform';
-import { IInterpreterAutoSeletionProxyService, IInterpreterAutoSeletionService } from '../../client/interpreter/autoSelection/types';
+import { IInterpreterAutoSelectionService, IInterpreterAutoSeletionProxyService } from '../../client/interpreter/autoSelection/types';
 import { IPythonPathUpdaterServiceManager } from '../../client/interpreter/configuration/types';
 import {
     IInterpreterDisplay,
@@ -38,18 +38,6 @@ import { ServiceManager } from '../../client/ioc/serviceManager';
 import { MockAutoSelectionService } from '../mocks/autoSelector';
 
 use(chaiAsPromised);
-
-// const info: PythonInterpreter = {
-//     architecture: Architecture.Unknown,
-//     companyDisplayName: '',
-//     displayName: '',
-//     envName: '',
-//     path: '',
-//     type: InterpreterType.Unknown,
-//     version: new SemVer('0.0.0-alpha'),
-//     sysPrefix: '',
-//     sysVersion: ''
-// };
 
 suite('Interpreters service', () => {
     let serviceManager: ServiceManager;
@@ -112,7 +100,7 @@ suite('Interpreters service', () => {
         serviceManager.addSingletonInstance<IPersistentStateFactory>(IPersistentStateFactory, persistentStateFactory.object);
         serviceManager.addSingletonInstance<IPythonExecutionFactory>(IPythonExecutionFactory, pythonExecutionFactory.object);
         serviceManager.addSingletonInstance<IPythonExecutionService>(IPythonExecutionService, pythonExecutionService.object);
-        serviceManager.addSingleton<IInterpreterAutoSeletionService>(IInterpreterAutoSeletionService, MockAutoSelectionService);
+        serviceManager.addSingleton<IInterpreterAutoSelectionService>(IInterpreterAutoSelectionService, MockAutoSelectionService);
         serviceManager.addSingleton<IInterpreterAutoSeletionProxyService>(IInterpreterAutoSeletionProxyService, MockAutoSelectionService);
 
         // pipenvLocator = TypeMoq.Mock.ofType<IInterpreterLocatorService>();

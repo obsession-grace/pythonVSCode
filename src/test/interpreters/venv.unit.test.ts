@@ -10,7 +10,7 @@ import { Uri, WorkspaceFolder } from 'vscode';
 import { IWorkspaceService } from '../../client/common/application/types';
 import { PlatformService } from '../../client/common/platform/platformService';
 import { IConfigurationService, ICurrentProcess, IPythonSettings } from '../../client/common/types';
-import { IInterpreterAutoSeletionProxyService, IInterpreterAutoSeletionService } from '../../client/interpreter/autoSelection/types';
+import { IInterpreterAutoSelectionService, IInterpreterAutoSeletionProxyService } from '../../client/interpreter/autoSelection/types';
 import { GlobalVirtualEnvironmentsSearchPathProvider } from '../../client/interpreter/locators/services/globalVirtualEnvService';
 import { WorkspaceVirtualEnvironmentsSearchPathProvider } from '../../client/interpreter/locators/services/workspaceVirtualEnvService';
 import { IVirtualEnvironmentManager } from '../../client/interpreter/virtualEnvs/types';
@@ -44,7 +44,7 @@ suite('Virtual environments', () => {
         serviceManager.addSingletonInstance<IWorkspaceService>(IWorkspaceService, workspace.object);
         serviceManager.addSingletonInstance<ICurrentProcess>(ICurrentProcess, process.object);
         serviceManager.addSingletonInstance<IVirtualEnvironmentManager>(IVirtualEnvironmentManager, virtualEnvMgr.object);
-        serviceManager.addSingleton<IInterpreterAutoSeletionService>(IInterpreterAutoSeletionService, MockAutoSelectionService);
+        serviceManager.addSingleton<IInterpreterAutoSelectionService>(IInterpreterAutoSelectionService, MockAutoSelectionService);
         serviceManager.addSingleton<IInterpreterAutoSeletionProxyService>(IInterpreterAutoSeletionProxyService, MockAutoSelectionService);
     });
 

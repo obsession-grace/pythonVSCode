@@ -9,7 +9,7 @@ import { PythonInterpreter } from '../contracts';
 
 export const IInterpreterAutoSeletionProxyService = Symbol('IInterpreterAutoSeletionProxyService');
 /**
- * Interface similar to IInterpreterAutoSeletionService, to avoid chickn n egg situation.
+ * Interface similar to IInterpreterAutoSelectionService, to avoid chickn n egg situation.
  * Do we get python path from config first or get auto selected interpreter first!?
  * However, the class that reads python Path, must first give preference to selected interpreter.
  * But all classes everywhere make use of python settings!
@@ -22,13 +22,13 @@ export interface IInterpreterAutoSeletionProxyService {
     readonly onDidChangeAutoSelectedInterpreter: Event<void>;
     getAutoSelectedInterpreter(resource: Resource): PythonInterpreter | undefined;
     registerInstance?(instance: IInterpreterAutoSeletionProxyService): void;
+    setWorkspaceInterpreter(resource: Uri, interpreter: PythonInterpreter | undefined): Promise<void>;
 }
 
-export const IInterpreterAutoSeletionService = Symbol('IInterpreterAutoSeletionService');
-export interface IInterpreterAutoSeletionService extends IInterpreterAutoSeletionProxyService {
+export const IInterpreterAutoSelectionService = Symbol('IInterpreterAutoSelectionService');
+export interface IInterpreterAutoSelectionService extends IInterpreterAutoSeletionProxyService {
     readonly onDidChangeAutoSelectedInterpreter: Event<void>;
     autoSelectInterpreter(resource: Resource): Promise<void>;
-    setWorkspaceInterpreter(resource: Uri, interpreter: PythonInterpreter | undefined): Promise<void>;
     setGlobalInterpreter(interpreter: PythonInterpreter | undefined): Promise<void>;
 }
 
@@ -41,9 +41,9 @@ export enum AutoSelectionRule {
     windowsRegistry = 'windowsRegistry'
 }
 
-export const IInterpreterAutoSeletionRule = Symbol('IInterpreterAutoSeletionRule');
-export interface IInterpreterAutoSeletionRule {
-    setNextRule(rule: IInterpreterAutoSeletionRule): void;
-    autoSelectInterpreter(resource: Resource, manager?: IInterpreterAutoSeletionService): Promise<void>;
+export const IInterpreterAutoSelectionRule = Symbol('IInterpreterAutoSelectionRule');
+export interface IInterpreterAutoSelectionRule {
+    setNextRule(rule: IInterpreterAutoSelectionRule): void;
+    autoSelectInterpreter(resource: Resource, manager?: IInterpreterAutoSelectionService): Promise<void>;
     getPreviouslyAutoSelectedInterpreter(resource: Resource): PythonInterpreter | undefined;
 }

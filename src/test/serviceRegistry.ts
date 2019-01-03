@@ -22,7 +22,7 @@ import { registerTypes as commonRegisterTypes } from '../client/common/serviceRe
 import { GLOBAL_MEMENTO, ICurrentProcess, IDisposableRegistry, ILogger, IMemento, IOutputChannel, IPathUtils, IsWindows, WORKSPACE_MEMENTO } from '../client/common/types';
 import { registerTypes as variableRegisterTypes } from '../client/common/variables/serviceRegistry';
 import { registerTypes as formattersRegisterTypes } from '../client/formatters/serviceRegistry';
-import { IInterpreterAutoSeletionProxyService, IInterpreterAutoSeletionService } from '../client/interpreter/autoSelection/types';
+import { IInterpreterAutoSelectionService, IInterpreterAutoSeletionProxyService } from '../client/interpreter/autoSelection/types';
 import { registerTypes as interpretersRegisterTypes } from '../client/interpreter/serviceRegistry';
 import { ServiceContainer } from '../client/ioc/container';
 import { ServiceManager } from '../client/ioc/serviceManager';
@@ -59,7 +59,7 @@ export class IocContainer {
         this.disposables.push(testOutputChannel);
         this.serviceManager.addSingletonInstance<OutputChannel>(IOutputChannel, testOutputChannel, TEST_OUTPUT_CHANNEL);
 
-        this.serviceManager.addSingleton<IInterpreterAutoSeletionService>(IInterpreterAutoSeletionService, MockAutoSelectionService);
+        this.serviceManager.addSingleton<IInterpreterAutoSelectionService>(IInterpreterAutoSelectionService, MockAutoSelectionService);
         this.serviceManager.addSingleton<IInterpreterAutoSeletionProxyService>(IInterpreterAutoSeletionProxyService, MockAutoSelectionService);
     }
     public dispose() {

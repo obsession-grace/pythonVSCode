@@ -6,11 +6,11 @@
 import { injectable } from 'inversify';
 import { Event, EventEmitter } from 'vscode';
 import { Resource } from '../../client/common/types';
-import { IInterpreterAutoSeletionProxyService, IInterpreterAutoSeletionService } from '../../client/interpreter/autoSelection/types';
+import { IInterpreterAutoSelectionService, IInterpreterAutoSeletionProxyService } from '../../client/interpreter/autoSelection/types';
 import { PythonInterpreter } from '../../client/interpreter/contracts';
 
 @injectable()
-export class MockAutoSelectionService implements IInterpreterAutoSeletionService, IInterpreterAutoSeletionProxyService {
+export class MockAutoSelectionService implements IInterpreterAutoSelectionService, IInterpreterAutoSeletionProxyService {
     public async setWorkspaceInterpreter(resource: Resource, interpreter: PythonInterpreter): Promise<void> {
         return;
     }

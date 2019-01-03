@@ -16,9 +16,8 @@ export class ConfigurationService implements IConfigurationService {
         this.workspaceService = this.serviceContainer.get<IWorkspaceService>(IWorkspaceService);
     }
     public getSettings(resource?: Uri): IPythonSettings {
-        const interpreterAutoSeletionService = this.serviceContainer.get<IInterpreterAutoSeletionProxyService>(IInterpreterAutoSeletionProxyService);
-        return PythonSettings.getInstance(resource, interpreterAutoSeletionService, this.workspaceService);
-        // return PythonSettings.getInstance(resource);
+        const InterpreterAutoSelectionService = this.serviceContainer.get<IInterpreterAutoSeletionProxyService>(IInterpreterAutoSeletionProxyService);
+        return PythonSettings.getInstance(resource, InterpreterAutoSelectionService, this.workspaceService);
     }
 
     public async updateSectionSetting(section: string, setting: string, value?: {}, resource?: Uri, configTarget?: ConfigurationTarget): Promise<void> {
@@ -26,7 +25,10 @@ export class ConfigurationService implements IConfigurationService {
             uri: resource,
             target: configTarget || ConfigurationTarget.WorkspaceFolder
         };
-        const settingsInfo = section === 'python' && configTarget !== ConfigurationTarget.Global ? PythonSettings.getSettingsUriAndTarget(resource, this.workspaceService) : defaultSetting;
+        let settingsInfo = defaultSetting;
+        if (section === 'python' && configTarget !== ConfigurationTarget.Global) {
+            settingsInfo = PythonSettings.getSettingsUriAndTarget(resource, this.workspaceService);
+        }
 
         const configSection = workspace.getConfiguration(section, settingsInfo.uri);
         const currentValue = configSection.inspect(setting);

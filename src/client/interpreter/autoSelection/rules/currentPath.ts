@@ -7,7 +7,7 @@ import { inject, injectable, named } from 'inversify';
 import { IFileSystem } from '../../../common/platform/types';
 import { IPersistentStateFactory, Resource } from '../../../common/types';
 import { CURRENT_PATH_SERVICE, IInterpreterHelper, IInterpreterLocatorService } from '../../contracts';
-import { AutoSelectionRule, IInterpreterAutoSeletionService } from '../types';
+import { AutoSelectionRule, IInterpreterAutoSelectionService } from '../types';
 import { BaseRuleService, NextAction } from './baseRule';
 
 @injectable()
@@ -20,7 +20,7 @@ export class CurrentPathInterpretersAutoSelectionRule extends BaseRuleService {
 
         super(AutoSelectionRule.currentPath, fs, stateFactory);
     }
-    protected async onAutoSelectInterpreter(resource: Resource, manager?: IInterpreterAutoSeletionService): Promise<NextAction> {
+    protected async onAutoSelectInterpreter(resource: Resource, manager?: IInterpreterAutoSelectionService): Promise<NextAction> {
         const interpreters = await this.currentPathInterpreterLocator.getInterpreters(resource);
         const bestInterpreter = this.helper.getBestInterpreter(interpreters);
         return await this.setGlobalInterpreter(bestInterpreter, manager) ? NextAction.exit : NextAction.runNextRule;

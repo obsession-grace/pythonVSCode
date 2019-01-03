@@ -14,10 +14,10 @@ import { PersistentState, PersistentStateFactory } from '../../../../client/comm
 import { FileSystem } from '../../../../client/common/platform/fileSystem';
 import { IFileSystem } from '../../../../client/common/platform/types';
 import { IPersistentStateFactory, Resource } from '../../../../client/common/types';
-import { InterpreterAutoSeletionService } from '../../../../client/interpreter/autoSelection';
+import { InterpreterAutoSelectionService } from '../../../../client/interpreter/autoSelection';
 import { NextAction } from '../../../../client/interpreter/autoSelection/rules/baseRule';
 import { CurrentPathInterpretersAutoSelectionRule } from '../../../../client/interpreter/autoSelection/rules/currentPath';
-import { IInterpreterAutoSeletionService } from '../../../../client/interpreter/autoSelection/types';
+import { IInterpreterAutoSelectionService } from '../../../../client/interpreter/autoSelection/types';
 import { IInterpreterHelper, IInterpreterLocatorService, PythonInterpreter } from '../../../../client/interpreter/contracts';
 import { InterpreterHelper } from '../../../../client/interpreter/helpers';
 import { KnownPathsService } from '../../../../client/interpreter/locators/services/KnownPathsService';
@@ -30,10 +30,10 @@ suite('Interpreters - Auto Selection - Current Path Rule', () => {
     let locator: IInterpreterLocatorService;
     let helper: IInterpreterHelper;
     class CurrentPathInterpretersAutoSelectionRuleTest extends CurrentPathInterpretersAutoSelectionRule {
-        public async setGlobalInterpreter(interpreter?: PythonInterpreter, manager?: IInterpreterAutoSeletionService): Promise<boolean> {
+        public async setGlobalInterpreter(interpreter?: PythonInterpreter, manager?: IInterpreterAutoSelectionService): Promise<boolean> {
             return super.setGlobalInterpreter(interpreter, manager);
         }
-        public async onAutoSelectInterpreter(resource: Resource, manager?: IInterpreterAutoSeletionService): Promise<NextAction> {
+        public async onAutoSelectInterpreter(resource: Resource, manager?: IInterpreterAutoSelectionService): Promise<NextAction> {
             return super.onAutoSelectInterpreter(resource, manager);
         }
     }
@@ -50,7 +50,7 @@ suite('Interpreters - Auto Selection - Current Path Rule', () => {
     });
 
     test('Invoke next rule if there are no intepreters in the current path', async () => {
-        const manager = mock(InterpreterAutoSeletionService);
+        const manager = mock(InterpreterAutoSelectionService);
         const resource = Uri.file('x');
 
         when(locator.getInterpreters(resource)).thenResolve([]);
@@ -61,7 +61,7 @@ suite('Interpreters - Auto Selection - Current Path Rule', () => {
         expect(nextAction).to.be.equal(NextAction.runNextRule);
     });
     test('Invoke next rule if fails to update global state', async () => {
-        const manager = mock(InterpreterAutoSeletionService);
+        const manager = mock(InterpreterAutoSelectionService);
         const interpreterInfo = { path: '1', version: new SemVer('1.0.0') } as any;
         const resource = Uri.file('x');
 
@@ -80,7 +80,7 @@ suite('Interpreters - Auto Selection - Current Path Rule', () => {
         expect(nextAction).to.be.equal(NextAction.runNextRule);
     });
     test('Not Invoke next rule if succeeds to update global state', async () => {
-        const manager = mock(InterpreterAutoSeletionService);
+        const manager = mock(InterpreterAutoSelectionService);
         const interpreterInfo = { path: '1', version: new SemVer('1.0.0') } as any;
         const resource = Uri.file('x');
 

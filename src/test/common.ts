@@ -122,6 +122,9 @@ export function getExtensionSettings(resource: Uri | undefined): IPythonSettings
         public getAutoSelectedInterpreter(_resource: Resource): PythonInterpreter | undefined {
             return;
         }
+        public async setWorkspaceInterpreter(_resource: Uri, _interpreter: PythonInterpreter | undefined): Promise<void> {
+            return;
+        }
     }
     const pythonSettings = require('../client/common/configSettings') as typeof import('../client/common/configSettings');
     return pythonSettings.PythonSettings.getInstance(resource, new AutoSelectionService());

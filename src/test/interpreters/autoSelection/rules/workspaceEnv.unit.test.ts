@@ -20,10 +20,10 @@ import { IFileSystem, IPlatformService } from '../../../../client/common/platfor
 import { IPersistentStateFactory, Resource } from '../../../../client/common/types';
 import { createDeferred } from '../../../../client/common/utils/async';
 import { OSType } from '../../../../client/common/utils/platform';
-import { InterpreterAutoSeletionService } from '../../../../client/interpreter/autoSelection';
+import { InterpreterAutoSelectionService } from '../../../../client/interpreter/autoSelection';
 import { BaseRuleService } from '../../../../client/interpreter/autoSelection/rules/baseRule';
 import { WorkspaceVirtualEnvInterpretersAutoSelectionRule } from '../../../../client/interpreter/autoSelection/rules/workspaceEnv';
-import { IInterpreterAutoSeletionService } from '../../../../client/interpreter/autoSelection/types';
+import { IInterpreterAutoSelectionService } from '../../../../client/interpreter/autoSelection/types';
 import { PythonPathUpdaterService } from '../../../../client/interpreter/configuration/pythonPathUpdaterService';
 import { IPythonPathUpdaterServiceManager } from '../../../../client/interpreter/configuration/types';
 import { IInterpreterHelper, IInterpreterLocatorService, PythonInterpreter, WorkspacePythonPath } from '../../../../client/interpreter/contracts';
@@ -42,10 +42,10 @@ suite('Interpreters - Auto Selection - Workspace Virtual Envs Rule', () => {
     let pythonPathUpdaterService: IPythonPathUpdaterServiceManager;
     let workspaceService: IWorkspaceService;
     class WorkspaceVirtualEnvInterpretersAutoSelectionRuleTest extends WorkspaceVirtualEnvInterpretersAutoSelectionRule {
-        public async setGlobalInterpreter(interpreter?: PythonInterpreter, manager?: IInterpreterAutoSeletionService): Promise<boolean> {
+        public async setGlobalInterpreter(interpreter?: PythonInterpreter, manager?: IInterpreterAutoSelectionService): Promise<boolean> {
             return super.setGlobalInterpreter(interpreter, manager);
         }
-        public async next(resource: Resource, manager?: IInterpreterAutoSeletionService): Promise<void> {
+        public async next(resource: Resource, manager?: IInterpreterAutoSelectionService): Promise<void> {
             return super.next(resource, manager);
         }
         public async cacheSelectedInterpreter(resource: Resource, interpreter: PythonInterpreter | undefined) {
@@ -74,7 +74,7 @@ suite('Interpreters - Auto Selection - Workspace Virtual Envs Rule', () => {
     });
     test('Invoke next rule if there is no workspace', async () => {
         const nextRule = mock(BaseRuleService);
-        const manager = mock(InterpreterAutoSeletionService);
+        const manager = mock(InterpreterAutoSelectionService);
         const resource = Uri.file('x');
 
         rule.setNextRule(nextRule);
@@ -90,7 +90,7 @@ suite('Interpreters - Auto Selection - Workspace Virtual Envs Rule', () => {
     });
     test('Invoke next rule if resource is undefined', async () => {
         const nextRule = mock(BaseRuleService);
-        const manager = mock(InterpreterAutoSeletionService);
+        const manager = mock(InterpreterAutoSelectionService);
 
         rule.setNextRule(nextRule);
         when(platform.osType).thenReturn(OSType.OSX);
@@ -105,7 +105,7 @@ suite('Interpreters - Auto Selection - Workspace Virtual Envs Rule', () => {
     });
     test('Invoke next rule if user has defined a python path in settings', async () => {
         const nextRule = mock(BaseRuleService);
-        const manager = mock(InterpreterAutoSeletionService);
+        const manager = mock(InterpreterAutoSelectionService);
         type PythonPathInConfig = { workspaceFolderValue: string };
         const pythonPathInConfig = typemoq.Mock.ofType<PythonPathInConfig>();
         const pythonPathValue = 'Hello there.exe';
@@ -230,7 +230,7 @@ suite('Interpreters - Auto Selection - Workspace Virtual Envs Rule', () => {
     });
     test('Invoke next rule if there is no workspace', async () => {
         const nextRule = mock(BaseRuleService);
-        const manager = mock(InterpreterAutoSeletionService);
+        const manager = mock(InterpreterAutoSelectionService);
         const resource = Uri.file('x');
 
         when(nextRule.autoSelectInterpreter(resource, manager)).thenResolve();
@@ -244,7 +244,7 @@ suite('Interpreters - Auto Selection - Workspace Virtual Envs Rule', () => {
     });
     test('Invoke next rule if there is no resouece', async () => {
         const nextRule = mock(BaseRuleService);
-        const manager = mock(InterpreterAutoSeletionService);
+        const manager = mock(InterpreterAutoSelectionService);
 
         when(nextRule.autoSelectInterpreter(undefined, manager)).thenResolve();
         when(helper.getActiveWorkspaceUri(undefined)).thenReturn(undefined);
@@ -268,7 +268,7 @@ suite('Interpreters - Auto Selection - Workspace Virtual Envs Rule', () => {
         when(workspaceService.getConfiguration('python', folderUri)).thenReturn(pythonPath as any);
 
         const resource = Uri.file('x');
-        const manager = mock(InterpreterAutoSeletionService);
+        const manager = mock(InterpreterAutoSelectionService);
         const interpreterInfo = { path: '1', version: new SemVer('1.0.0') } as any;
         const virtualEnvPromise = createDeferred<PythonInterpreter[]>();
         const nextInvoked = createDeferred();
@@ -299,7 +299,7 @@ suite('Interpreters - Auto Selection - Workspace Virtual Envs Rule', () => {
         when(workspaceService.getConfiguration('python', folderUri)).thenReturn(pythonPath as any);
 
         const resource = Uri.file('x');
-        const manager = mock(InterpreterAutoSeletionService);
+        const manager = mock(InterpreterAutoSelectionService);
         const interpreterInfo = { path: '1', version: new SemVer('1.0.0') } as any;
         const pipEnvPromise = createDeferred<PythonInterpreter[]>();
         const nextInvoked = createDeferred();
@@ -329,7 +329,7 @@ suite('Interpreters - Auto Selection - Workspace Virtual Envs Rule', () => {
         when(helper.getActiveWorkspaceUri(anything())).thenReturn({ folderUri } as any);
         when(workspaceService.getConfiguration('python', folderUri)).thenReturn(pythonPath as any);
 
-        const manager = mock(InterpreterAutoSeletionService);
+        const manager = mock(InterpreterAutoSelectionService);
         const resource = Uri.file('x');
         const interpreterInfo = { path: '1', version: new SemVer('1.0.0') } as any;
         const virtualEnvPromise = createDeferred<PythonInterpreter[]>();
@@ -360,7 +360,7 @@ suite('Interpreters - Auto Selection - Workspace Virtual Envs Rule', () => {
         when(helper.getActiveWorkspaceUri(anything())).thenReturn({ folderUri } as any);
         when(workspaceService.getConfiguration('python', folderUri)).thenReturn(pythonPath as any);
 
-        const manager = mock(InterpreterAutoSeletionService);
+        const manager = mock(InterpreterAutoSelectionService);
         const resource = Uri.file('x');
         const interpreterInfo = { path: '1', version: new SemVer('1.0.0') } as any;
         const pipEnvPromise = createDeferred<PythonInterpreter[]>();

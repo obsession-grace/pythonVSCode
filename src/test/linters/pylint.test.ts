@@ -11,7 +11,7 @@ import { IWorkspaceService } from '../../client/common/application/types';
 import { IFileSystem, IPlatformService } from '../../client/common/platform/types';
 import { IPythonToolExecutionService } from '../../client/common/process/types';
 import { ExecutionInfo, IConfigurationService, IInstaller, ILogger, IPythonSettings } from '../../client/common/types';
-import { IInterpreterAutoSeletionProxyService, IInterpreterAutoSeletionService } from '../../client/interpreter/autoSelection/types';
+import { IInterpreterAutoSelectionService, IInterpreterAutoSeletionProxyService } from '../../client/interpreter/autoSelection/types';
 import { ServiceContainer } from '../../client/ioc/container';
 import { ServiceManager } from '../../client/ioc/serviceManager';
 import { LinterManager } from '../../client/linters/linterManager';
@@ -53,7 +53,7 @@ suite('Linting - Pylint', () => {
         serviceManager.addSingletonInstance<IWorkspaceService>(IWorkspaceService, workspace.object);
         serviceManager.addSingletonInstance<IPythonToolExecutionService>(IPythonToolExecutionService, execService.object);
         serviceManager.addSingletonInstance<IPlatformService>(IPlatformService, platformService.object);
-        serviceManager.addSingleton<IInterpreterAutoSeletionService>(IInterpreterAutoSeletionService, MockAutoSelectionService);
+        serviceManager.addSingleton<IInterpreterAutoSelectionService>(IInterpreterAutoSelectionService, MockAutoSelectionService);
         serviceManager.addSingleton<IInterpreterAutoSeletionProxyService>(IInterpreterAutoSeletionProxyService, MockAutoSelectionService);
         config = TypeMoq.Mock.ofType<IConfigurationService>();
         serviceManager.addSingletonInstance<IConfigurationService>(IConfigurationService, config.object);
