@@ -39,7 +39,7 @@ suite('Installer', () => {
         await resetSettings();
     });
     teardown(async () => {
-        ioc.dispose();
+        await ioc.dispose();
         await closeActiveWindows();
     });
 

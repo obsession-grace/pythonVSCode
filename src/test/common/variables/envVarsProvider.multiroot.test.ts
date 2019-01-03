@@ -50,7 +50,7 @@ suite('Multiroot Environment Variables Provider', () => {
     });
     suiteTeardown(closeActiveWindows);
     teardown(async () => {
-        ioc.dispose();
+        await ioc.dispose();
         await closeActiveWindows();
         await clearPythonPathInWorkspaceFolder(workspace4Path);
         await updateSetting('envFile', undefined, workspace4PyFile, ConfigurationTarget.WorkspaceFolder);
