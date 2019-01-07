@@ -39,7 +39,8 @@ suite('Application Diagnostics - ApplicationDiagnostics', () => {
             .returns(() => outputChannel.object);
         serviceContainer.setup(d => d.get(typemoq.It.isValue(ILogger)))
             .returns(() => logger.object);
-        serviceContainer.setup(d => d.get(typemoq.It.isValue(InvalidMacPythonInterpreterServiceId)))
+        serviceContainer.setup(d => d.get(typemoq.It.isValue(IDiagnosticsService),
+            typemoq.It.isValue(InvalidMacPythonInterpreterServiceId)))
             .returns(() => macInterperterCheck.object);
 
         appDiagnostics = new ApplicationDiagnostics(serviceContainer.object, outputChannel.object);

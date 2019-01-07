@@ -30,7 +30,7 @@ export class ApplicationDiagnostics implements IApplicationDiagnostics {
         }));
 
         // Validate the Mac interperter in the background.
-        const maccInterpreterService = this.serviceContainer.get<IDiagnosticsService>(InvalidMacPythonInterpreterServiceId);
+        const maccInterpreterService = this.serviceContainer.get<IDiagnosticsService>(IDiagnosticsService, InvalidMacPythonInterpreterServiceId);
         maccInterpreterService.diagnose()
             .then(diagnostics => maccInterpreterService.handle(diagnostics))
             .ignoreErrors();
