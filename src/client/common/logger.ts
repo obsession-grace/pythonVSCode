@@ -110,6 +110,7 @@ function trace(message: string, options: LogOptions = LogOptions.None, logLevel?
         const originalMethod = descriptor.value;
         // tslint:disable-next-line:no-function-expression no-any
         descriptor.value = function (...args: any[]) {
+            const className = _ && _.constructor ? _.constructor.name : '';
             // tslint:disable-next-line:no-any
             function writeSuccess(returnValue?: any) {
                 if (logLevel === LogLevel.Error) {
@@ -123,6 +124,7 @@ function trace(message: string, options: LogOptions = LogOptions.None, logLevel?
             // tslint:disable-next-line:no-any
             function writeToLog(returnValue?: any, ex?: Error) {
                 const messagesToLog = [message];
+                messagesToLog.push(`Class name = ${className}`);
                 if ((options && LogOptions.Arguments) === LogOptions.Arguments) {
                     messagesToLog.push(argsToLogString(args));
                 }
