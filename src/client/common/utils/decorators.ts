@@ -49,21 +49,19 @@ function storeCachedData(key: string, data: any, expiryDurationMs: number): void
 export function getCacheKeyFromFunctionArgs(fnArgs: any[], vscode: vsCodeType = require('vscode')): string {
     const keys: string[] = [];
     fnArgs.forEach((arg, index) => {
-        if (index === 0) {
-            // get workspace related to this resource
-            if (!Array.isArray(vscode.workspace.workspaceFolders) || vscode.workspace.workspaceFolders.length === 0) {
-                return keys.push('undefined');
-            }
-            const folder = vscode.workspace.getWorkspaceFolder(arg as Uri);
-            if (folder) {
-                const pythonPath = vscode.workspace.getConfiguration('python', arg as Uri).get<string>('pythonPath');
-                keys.push(`${folder.uri.fsPath}-${pythonPath}`);
-            } else {
-                keys.push('undefined');
-            }
-        } else {
-            keys.push(`${arg}`);
+        if (index > 0) {
+            return keys.push(`${arg}`);
         }
+        // get workspace related to this resource
+        if (!Array.isArray(vscode.workspace.workspaceFolders) || vscode.workspace.workspaceFolders.length === 0) {
+            return keys.push('undefined');
+        }
+        const folder = vscode.workspace.getWorkspaceFolder(arg as Uri);
+        if (!folder) {
+            return keys.push('undefined');
+        }
+        const pythonPath = vscode.workspace.getConfiguration('python', arg as Uri).get<string>('pythonPath');
+        keys.push(`${folder.uri.fsPath}-${pythonPath}`);
     });
 
     return keys.join('-Arg-Separator-');
