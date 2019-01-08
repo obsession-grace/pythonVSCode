@@ -1,5 +1,10 @@
-import { ProgressLocation, ProgressOptions, window } from 'vscode';
+// tslint:disable:no-any
+
+import { ProgressLocation, ProgressOptions, Uri, window } from 'vscode';
+import '../../common/extensions';
 import { isTestExecution } from '../constants';
+import { traceError, traceVerbose } from '../logger';
+
 // tslint:disable-next-line:no-require-imports no-var-requires
 const _debounce = require('lodash/debounce') as typeof import('lodash/debounce');
 
@@ -20,8 +25,76 @@ export function debounce(wait?: number) {
     };
 }
 
+type vsCodeType = typeof import('vscode');
+type cacheData = {
+    value: any;
+    expiry: number;
+};
+const simpleCache = new Map<string, cacheData>();
+
+function getCachedData(key: string): undefined | cacheData {
+    const data = simpleCache.get(key);
+    if (!data) {
+        return;
+    }
+    return data.expiry < Date.now() ? undefined : data;
+}
+function storeCachedData(key: string, data: any, expiryDurationMs: number): void {
+    simpleCache.set(key, {
+        value: data,
+        expiry: Date.now() + expiryDurationMs
+    });
+}
+// tslint:disable-next-line:no-any no-require-imports
+export function getCacheKeyFromFunctionArgs(fnArgs: any[], vscode: vsCodeType = require('vscode')): string {
+    const keys: string[] = [];
+    fnArgs.forEach((arg, index) => {
+        if (index === 0) {
+            // get workspace related to this resource
+            if (!Array.isArray(vscode.workspace.workspaceFolders) || vscode.workspace.workspaceFolders.length === 0) {
+                return keys.push('undefined');
+            }
+            const folder = vscode.workspace.getWorkspaceFolder(arg as Uri);
+            if (folder) {
+                const pythonPath = vscode.workspace.getConfiguration('python', arg as Uri).get<string>('pythonPath');
+                keys.push(`${folder.uri.fsPath}-${pythonPath}`);
+            } else {
+                keys.push('undefined');
+            }
+        } else {
+            keys.push(`${arg}`);
+        }
+    });
+
+    return keys.join('-Arg-Separator-');
+}
+
+// tslint:disable-next-line:no-any
+type PromiseFunctionWithFirstArgOfResource = (...any: [Uri | undefined, ...any[]]) => Promise<any>;
+
+// tslint:disable-next-line:no-require-imports
+export function cacheResourceSpecificIngterpreterData(expiryDurationMs: number, vscode: vsCodeType = require('vscode')) {
+    return function (_target: Object, _propertyName: string, descriptor: TypedPropertyDescriptor<PromiseFunctionWithFirstArgOfResource>) {
+        const originalMethod = descriptor.value!;
+        // tslint:disable-next-line:no-any no-function-expression
+        descriptor.value = async function (...args: [Uri | undefined, ...any[]]) {
+            const cacheKey = getCacheKeyFromFunctionArgs(args, vscode);
+            const data = getCachedData(cacheKey);
+            if (data) {
+                traceVerbose(`Cached data exists ${cacheKey}`);
+                return Promise.resolve(data.value);
+            }
+            // tslint:disable-next-line:no-invalid-this
+            const promise = originalMethod.apply(this, args) as Promise<any>;
+            promise.then(result => storeCachedData(cacheKey, result, expiryDurationMs)).ignoreErrors();
+            return promise;
+        };
+    };
+}
+
 /**
  * Swallows exceptions thrown by a function. Function must return either a void or a promise that resolves to a void.
+ * When exceptions (including in promises) are caught, this will return `undefined` to calling code.
  * @export
  * @param {string} [scopeName] Scope for the error message to be logged along with the error.
  * @returns void
@@ -43,14 +116,14 @@ export function swallowExceptions(scopeName: string) {
                         if (isTestExecution()) {
                             return;
                         }
-                        console.error(errorMessage, error);
+                        traceError(errorMessage, error);
                     });
                 }
             } catch (error) {
                 if (isTestExecution()) {
                     return;
                 }
-                console.error(errorMessage, error);
+                traceError(errorMessage, error);
             }
         };
     };

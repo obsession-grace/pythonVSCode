@@ -2,10 +2,16 @@
 // Licensed under the MIT License.
 
 import { expect } from 'chai';
+import { instance, mock } from 'ts-mockito';
 import * as TypeMoq from 'typemoq';
 import { Disposable, WorkspaceConfiguration } from 'vscode';
 import { ITerminalManager, IWorkspaceService } from '../../../client/common/application/types';
 import { IPlatformService } from '../../../client/common/platform/types';
+import { Bash } from '../../../client/common/terminal/environmentActivationProviders/bash';
+import { CommandPromptAndPowerShell } from '../../../client/common/terminal/environmentActivationProviders/commandPrompt';
+import { CondaActivationCommandProvider } from '../../../client/common/terminal/environmentActivationProviders/condaActivationProvider';
+import { PipEnvActivationCommandProvider } from '../../../client/common/terminal/environmentActivationProviders/pipEnvActivationProvider';
+import { PyEnvActivationCommandProvider } from '../../../client/common/terminal/environmentActivationProviders/pyenvActivationProvider';
 import { TerminalHelper } from '../../../client/common/terminal/helper';
 import { ITerminalHelper, TerminalShellType } from '../../../client/common/terminal/types';
 import { IDisposableRegistry } from '../../../client/common/types';
@@ -37,7 +43,11 @@ suite('Terminal Service helpers', () => {
         serviceContainer.setup(c => c.get(IWorkspaceService)).returns(() => workspaceService.object);
         serviceContainer.setup(c => c.get(IInterpreterService)).returns(() => interpreterService.object);
 
-        helper = new TerminalHelper(serviceContainer.object);
+        helper = new TerminalHelper(serviceContainer.object, platformService.object,
+            instance(mock(CondaActivationCommandProvider)),
+            instance(mock(Bash)), instance(mock(CommandPromptAndPowerShell)),
+            instance(mock(PyEnvActivationCommandProvider)),
+            instance(mock(PipEnvActivationCommandProvider)));
     });
     teardown(() => {
         disposables.filter(item => !!item).forEach(item => item.dispose());

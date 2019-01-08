@@ -20,6 +20,8 @@ import { RefactorProxy } from '../../client/refactor/proxy';
 import { PYTHON_PATH } from '../common';
 import { closeActiveWindows, initialize, initializeTest } from './../initialize';
 
+// tslint:disable:no-any
+
 type RenameResponse = {
     results: [{ diff: string }];
 };
@@ -40,7 +42,7 @@ suite('Refactor Rename', () => {
         serviceContainer = typeMoq.Mock.ofType<IServiceContainer>();
         serviceContainer.setup(s => s.get(typeMoq.It.isValue(IConfigurationService), typeMoq.It.isAny())).returns(() => configService.object);
         serviceContainer.setup(s => s.get(typeMoq.It.isValue(IProcessServiceFactory), typeMoq.It.isAny())).returns(() => processServiceFactory.object);
-        serviceContainer.setup(s => s.get(typeMoq.It.isValue(IPythonExecutionFactory), typeMoq.It.isAny())).returns(() => new PythonExecutionFactory(serviceContainer.object));
+        serviceContainer.setup(s => s.get(typeMoq.It.isValue(IPythonExecutionFactory), typeMoq.It.isAny())).returns(() => new PythonExecutionFactory(serviceContainer.object, undefined as any, undefined as any));
         await initializeTest();
     });
     teardown(closeActiveWindows);

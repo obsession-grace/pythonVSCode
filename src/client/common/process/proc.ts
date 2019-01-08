@@ -4,7 +4,7 @@ import { exec, spawn } from 'child_process';
 import { Observable } from 'rxjs/Observable';
 import * as tk from 'tree-kill';
 import { Disposable } from 'vscode';
-
+import { LogOptions, traceDecorators } from '../logger';
 import { createDeferred } from '../utils/async';
 import { EnvironmentVariables } from '../variables/types';
 import { DEFAULT_ENCODING } from './constants';
@@ -149,7 +149,7 @@ export class ProcessService implements IProcessService {
 
         return deferred.promise;
     }
-
+    @traceDecorators.verbose('Invokeing shellExec', LogOptions.None)
     public shellExec(command: string, options: ShellOptions = {}): Promise<ExecutionResult<string>> {
         const shellOptions = this.getDefaultOptions(options);
         return new Promise((resolve, reject) => {

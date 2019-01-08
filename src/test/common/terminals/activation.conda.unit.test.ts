@@ -6,6 +6,7 @@
 import { expect } from 'chai';
 import * as path from 'path';
 import { parse } from 'semver';
+import { instance, mock } from 'ts-mockito';
 import * as TypeMoq from 'typemoq';
 import { Disposable } from 'vscode';
 import '../../../client/common/extensions';
@@ -15,9 +16,13 @@ import {
 import {
     IProcessService, IProcessServiceFactory
 } from '../../../client/common/process/types';
+import { Bash } from '../../../client/common/terminal/environmentActivationProviders/bash';
+import { CommandPromptAndPowerShell } from '../../../client/common/terminal/environmentActivationProviders/commandPrompt';
 import {
     CondaActivationCommandProvider
 } from '../../../client/common/terminal/environmentActivationProviders/condaActivationProvider';
+import { PipEnvActivationCommandProvider } from '../../../client/common/terminal/environmentActivationProviders/pipEnvActivationProvider';
+import { PyEnvActivationCommandProvider } from '../../../client/common/terminal/environmentActivationProviders/pyenvActivationProvider';
 import { TerminalHelper } from '../../../client/common/terminal/helper';
 import {
     ITerminalActivationCommandProvider, TerminalShellType
@@ -72,7 +77,11 @@ suite('Terminal Environment Activation conda', () => {
         terminalSettings = TypeMoq.Mock.ofType<ITerminalSettings>();
         pythonSettings.setup(s => s.terminal).returns(() => terminalSettings.object);
 
-        terminalHelper = new TerminalHelper(serviceContainer.object);
+        terminalHelper = new TerminalHelper(serviceContainer.object, platformService.object,
+            instance(mock(CondaActivationCommandProvider)),
+            instance(mock(Bash)), instance(mock(CommandPromptAndPowerShell)),
+            instance(mock(PyEnvActivationCommandProvider)),
+            instance(mock(PipEnvActivationCommandProvider)));
     });
     teardown(() => {
         disposables.forEach(disposable => {

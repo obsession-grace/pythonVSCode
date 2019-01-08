@@ -46,7 +46,7 @@ export class Logger implements ILogger {
     }
 }
 
-enum LogOptions {
+export enum LogOptions {
     None = 0,
     Arguments = 1,
     ReturnValue = 2
@@ -91,8 +91,8 @@ export function traceInfo(message: string) {
 }
 
 export namespace traceDecorators {
-    export function verbose(message: string) {
-        return trace(message, LogOptions.Arguments | LogOptions.ReturnValue);
+    export function verbose(message: string, options: LogOptions = LogOptions.Arguments | LogOptions.ReturnValue) {
+        return trace(message, options);
     }
     export function error(message: string, ex?: Error) {
         return trace(message, LogOptions.Arguments | LogOptions.ReturnValue, LogLevel.Error);

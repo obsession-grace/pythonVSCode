@@ -2,12 +2,16 @@
 // Licensed under the MIT License.
 
 import { expect } from 'chai';
+import { instance, mock } from 'ts-mockito';
 import * as TypeMoq from 'typemoq';
 import { Disposable } from 'vscode';
 import { ITerminalManager, IWorkspaceService } from '../../../client/common/application/types';
 import { IPlatformService } from '../../../client/common/platform/types';
 import { Bash } from '../../../client/common/terminal/environmentActivationProviders/bash';
 import { CommandPromptAndPowerShell } from '../../../client/common/terminal/environmentActivationProviders/commandPrompt';
+import { CondaActivationCommandProvider } from '../../../client/common/terminal/environmentActivationProviders/condaActivationProvider';
+import { PipEnvActivationCommandProvider } from '../../../client/common/terminal/environmentActivationProviders/pipEnvActivationProvider';
+import { PyEnvActivationCommandProvider } from '../../../client/common/terminal/environmentActivationProviders/pyenvActivationProvider';
 import { TerminalHelper } from '../../../client/common/terminal/helper';
 import { ITerminalActivationCommandProvider, ITerminalHelper, TerminalShellType } from '../../../client/common/terminal/types';
 import { IConfigurationService, IDisposableRegistry, IPythonSettings, ITerminalSettings } from '../../../client/common/types';
@@ -51,7 +55,12 @@ suite('Terminal Service helpers', () => {
         condaService.setup(c => c.isCondaEnvironment(TypeMoq.It.isAny())).returns(() => Promise.resolve(false));
         serviceContainer.setup(c => c.get(TypeMoq.It.isValue(ICondaService))).returns(() => condaService.object);
 
-        helper = new TerminalHelper(serviceContainer.object);
+        helper = new TerminalHelper(serviceContainer.object, platformService.object,
+            instance(mock(CondaActivationCommandProvider)),
+            instance(mock(Bash)), instance(mock(CommandPromptAndPowerShell)),
+            instance(mock(PyEnvActivationCommandProvider)),
+            instance(mock(PipEnvActivationCommandProvider)));
+
     });
     teardown(() => {
         disposables.filter(item => !!item).forEach(item => item.dispose());
@@ -112,7 +121,11 @@ getNamesAndValues<TerminalShellType>(TerminalShellType).forEach(terminalShell =>
             condaService.setup(c => c.isCondaEnvironment(TypeMoq.It.isAny())).returns(() => Promise.resolve(false));
             serviceContainer.setup(c => c.get(TypeMoq.It.isValue(ICondaService))).returns(() => condaService.object);
 
-            helper = new TerminalHelper(serviceContainer.object);
+            helper = new TerminalHelper(serviceContainer.object, platformService.object,
+                instance(mock(CondaActivationCommandProvider)),
+                instance(mock(Bash)), instance(mock(CommandPromptAndPowerShell)),
+                instance(mock(PyEnvActivationCommandProvider)),
+                instance(mock(PipEnvActivationCommandProvider)));
         });
         teardown(() => {
             disposables.filter(disposable => !!disposable).forEach(disposable => disposable.dispose());
