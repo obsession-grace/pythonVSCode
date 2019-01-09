@@ -88,7 +88,7 @@ export class InMemoryInterpreterSpecificCache<T> {
     }
     /**
      * Returns undefined if there is no data.
-     * Use of `hasData` to determine whether cached data exists.
+     * Uses `hasData` to determine whether any cached data exists.
      *
      * @type {(T | undefined)}
      * @memberof InMemoryInterpreterSpecificCache
