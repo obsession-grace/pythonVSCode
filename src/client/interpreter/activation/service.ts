@@ -71,6 +71,7 @@ export class EnvironmentActivationService implements IEnvironmentActivationServi
         // In order to make sure we know where the environment output is,
         // put in a dummy echo we can look for
         const command = `${activationCommand} && echo '${getEnvironmentPrefix}' && ${listEnv}`;
+        traceVerbose(`Activating Environment to capture Environment variables, ${command}`);
         const result = await processService.shellExec(command, { env, shell });
         if (result.stderr && result.stderr.length > 0) {
             throw new Error(`StdErr from ShellExec, ${result.stderr}`);
