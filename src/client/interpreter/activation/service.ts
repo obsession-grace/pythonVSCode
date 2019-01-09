@@ -10,6 +10,7 @@ import { IProcessServiceFactory } from '../../common/process/types';
 import { ITerminalHelper } from '../../common/terminal/types';
 import { ICurrentProcess, IDisposable, Resource } from '../../common/types';
 import { cacheResourceSpecificIngterpreterData, clearCachedResourceSpecificIngterpreterData, swallowExceptions } from '../../common/utils/decorators';
+import { OSType } from '../../common/utils/platform';
 import { IEnvironmentVariablesProvider } from '../../common/variables/types';
 import { IEnvironmentActivationService } from './types';
 
@@ -18,6 +19,14 @@ const getEnvironmentPrefix = 'e8b39361-0157-4923-80e1-22d70d46dee6';
 // Regex for splitting environment strings
 const environmentSplitRegex = /^\s*([^=]+)\s*=\s*(.+)\s*$/;
 const cacheDuration = 60 * 60 * 1000;
+
+// The shell under which we'll execute activation scripts.
+const defaultShells = {
+    [OSType.Windows]: 'cmd',
+    [OSType.OSX]: 'bash',
+    [OSType.Linux]: 'bash',
+    [OSType.Unknown]: undefined
+};
 
 @injectable()
 export class EnvironmentActivationService implements IEnvironmentActivationService, IDisposable {
@@ -38,6 +47,11 @@ export class EnvironmentActivationService implements IEnvironmentActivationServi
     @swallowExceptions('getActivatedEnvironmentVariables')
     @cacheResourceSpecificIngterpreterData('ActivatedEnvironmentVariables', cacheDuration)
     public async getActivatedEnvironmentVariables(resource: Resource): Promise<NodeJS.ProcessEnv | undefined> {
+        const shell = defaultShells[this.platform.osType];
+        if (!shell) {
+            return;
+        }
+
         const activationCommands = await this.helper.getEnvironmentActivationShellCommands(resource);
         traceVerbose(`Activation Commands received ${activationCommands}`);
         if (!activationCommands || !Array.isArray(activationCommands) || activationCommands.length === 0) {
@@ -57,7 +71,7 @@ export class EnvironmentActivationService implements IEnvironmentActivationServi
         // In order to make sure we know where the environment output is,
         // put in a dummy echo we can look for
         const command = `${activationCommand} && echo '${getEnvironmentPrefix}' && ${listEnv}`;
-        const result = await processService.shellExec(command, { env });
+        const result = await processService.shellExec(command, { env, shell });
         if (result.stderr && result.stderr.length > 0) {
             throw new Error(`StdErr from ShellExec, ${result.stderr}`);
         }
