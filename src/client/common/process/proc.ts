@@ -148,6 +148,7 @@ export class ProcessService implements IProcessService {
 
         return deferred.promise;
     }
+
     public shellExec(command: string, options: ShellOptions = {}): Promise<ExecutionResult<string>> {
         const shellOptions = this.getDefaultOptions(options);
         return new Promise((resolve, reject) => {

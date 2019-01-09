@@ -11,13 +11,11 @@ import { ExecutionFactoryCreationOptions, IBufferDecoder, IProcessServiceFactory
 
 @injectable()
 export class PythonExecutionFactory implements IPythonExecutionFactory {
-    private readonly configService: IConfigurationService;
-    private processServiceFactory: IProcessServiceFactory;
     constructor(@inject(IServiceContainer) private serviceContainer: IServiceContainer,
         @inject(IEnvironmentActivationService) private readonly activationHelper: IEnvironmentActivationService,
+        @inject(IProcessServiceFactory) private readonly processServiceFactory: IProcessServiceFactory,
+        @inject(IConfigurationService) private readonly configService: IConfigurationService,
         @inject(IBufferDecoder) private readonly decoder: IBufferDecoder) {
-        this.processServiceFactory = serviceContainer.get<IProcessServiceFactory>(IProcessServiceFactory);
-        this.configService = serviceContainer.get<IConfigurationService>(IConfigurationService);
     }
     public async create(options: ExecutionFactoryCreationOptions): Promise<IPythonExecutionService> {
         const pythonPath = options.pythonPath ? options.pythonPath : this.configService.getSettings(options.resource).pythonPath;

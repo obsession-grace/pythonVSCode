@@ -6,19 +6,18 @@
 import { inject, injectable } from 'inversify';
 import { Uri } from 'vscode';
 import { IInterpreterService, InterpreterType } from '../../../interpreter/contracts';
-import { IServiceContainer } from '../../../ioc/types';
 import { ITerminalActivationCommandProvider, TerminalShellType } from '../types';
 
 @injectable()
 export class PipEnvActivationCommandProvider implements ITerminalActivationCommandProvider {
-    constructor(@inject(IServiceContainer) private readonly serviceContainer: IServiceContainer) { }
+    constructor(@inject(IInterpreterService) private readonly interpreterService: IInterpreterService) { }
 
     public isShellSupported(_targetShell: TerminalShellType): boolean {
         return true;
     }
 
     public async getActivationCommands(resource: Uri | undefined, _: TerminalShellType): Promise<string[] | undefined> {
-        const interpreter = await this.serviceContainer.get<IInterpreterService>(IInterpreterService).getActiveInterpreter(resource);
+        const interpreter = await this.interpreterService.getActiveInterpreter(resource);
         if (!interpreter || interpreter.type !== InterpreterType.PipEnv) {
             return;
         }

@@ -4,7 +4,6 @@
 import { inject, injectable, named } from 'inversify';
 import { Terminal, Uri } from 'vscode';
 import { ICondaService } from '../../interpreter/contracts';
-import { IServiceContainer } from '../../ioc/types';
 import { ITerminalManager, IWorkspaceService } from '../application/types';
 import '../extensions';
 import { IPlatformService } from '../platform/types';
@@ -36,8 +35,12 @@ const defaultOSShells = {
 @injectable()
 export class TerminalHelper implements ITerminalHelper {
     private readonly detectableShells: Map<TerminalShellType, RegExp>;
-    constructor(@inject(IServiceContainer) private serviceContainer: IServiceContainer,
-        @inject(IPlatformService) private readonly platform: IPlatformService,
+    constructor(@inject(IPlatformService) private readonly platform: IPlatformService,
+        @inject(ITerminalManager) private readonly terminalManager: ITerminalManager,
+        @inject(IWorkspaceService) private readonly workspace: IWorkspaceService,
+        @inject(IPlatformService) private readonly platformService: IPlatformService,
+        @inject(ICondaService) private readonly condaService: ICondaService,
+        @inject(IConfigurationService) private readonly configurationService: IConfigurationService,
         @inject(ITerminalActivationCommandProvider) @named(TerminalActivationProviders.conda) private readonly conda: ITerminalActivationCommandProvider,
         @inject(ITerminalActivationCommandProvider) @named(TerminalActivationProviders.bashCShellFish) private readonly bashCShellFish: ITerminalActivationCommandProvider,
         @inject(ITerminalActivationCommandProvider) @named(TerminalActivationProviders.commandPromptAndPowerShell) private readonly commandPromptAndPowerShell: ITerminalActivationCommandProvider,
@@ -59,8 +62,7 @@ export class TerminalHelper implements ITerminalHelper {
         this.detectableShells.set(TerminalShellType.xonsh, IS_XONSH);
     }
     public createTerminal(title?: string): Terminal {
-        const terminalManager = this.serviceContainer.get<ITerminalManager>(ITerminalManager);
-        return terminalManager.createTerminal({ name: title });
+        return this.terminalManager.createTerminal({ name: title });
     }
     public identifyTerminalShell(shellPath: string): TerminalShellType {
         return Array.from(this.detectableShells.keys())
@@ -72,19 +74,24 @@ export class TerminalHelper implements ITerminalHelper {
             }, TerminalShellType.other);
     }
     public getTerminalShellPath(): string {
-        const workspace = this.serviceContainer.get<IWorkspaceService>(IWorkspaceService);
-        const shellConfig = workspace.getConfiguration('terminal.integrated.shell');
-        const platformService = this.serviceContainer.get<IPlatformService>(IPlatformService);
+        const shellConfig = this.workspace.getConfiguration('terminal.integrated.shell');
         let osSection = '';
-        if (platformService.isWindows) {
-            osSection = 'windows';
-        } else if (platformService.isMac) {
-            osSection = 'osx';
-        } else if (platformService.isLinux) {
-            osSection = 'linux';
-        }
-        if (osSection.length === 0) {
-            return '';
+        switch (this.platformService.osType) {
+            case OSType.Windows: {
+                osSection = 'windows';
+                break;
+            }
+            case OSType.OSX: {
+                osSection = 'osx';
+                break;
+            }
+            case OSType.Linux: {
+                osSection = 'linux';
+                break;
+            }
+            default: {
+                return '';
+            }
         }
         return shellConfig.get<string>(osSection)!;
     }
@@ -103,17 +110,17 @@ export class TerminalHelper implements ITerminalHelper {
             return;
         }
         const providers = [this.bashCShellFish, this.commandPromptAndPowerShell];
-        return this.getActivationCommands(resource || undefined, shell, providers);
+        return this.getActivationCommands(resource, shell, providers);
     }
     protected async getActivationCommands(resource: Resource, terminalShellType: TerminalShellType, providers: ITerminalActivationCommandProvider[]): Promise<string[] | undefined> {
-        const settings = this.serviceContainer.get<IConfigurationService>(IConfigurationService).getSettings(resource);
+        const settings = this.configurationService.getSettings(resource);
         const activateEnvironment = settings.terminal.activateEnvironment;
         if (!activateEnvironment) {
             return;
         }
 
         // If we have a conda environment, then use that.
-        const isCondaEnvironment = await this.serviceContainer.get<ICondaService>(ICondaService).isCondaEnvironment(settings.pythonPath);
+        const isCondaEnvironment = await this.condaService.isCondaEnvironment(settings.pythonPath);
         if (isCondaEnvironment) {
             const activationCommands = await this.conda.getActivationCommands(resource, terminalShellType);
             if (Array.isArray(activationCommands)) {
@@ -126,7 +133,7 @@ export class TerminalHelper implements ITerminalHelper {
 
         for (const provider of supportedProviders) {
             const activationCommands = await provider.getActivationCommands(resource, terminalShellType);
-            if (Array.isArray(activationCommands)) {
+            if (Array.isArray(activationCommands) && activationCommands.length > 0) {
                 return activationCommands;
             }
         }
