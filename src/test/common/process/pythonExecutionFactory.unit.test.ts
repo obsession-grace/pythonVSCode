@@ -52,7 +52,7 @@ suite('Process - PythonExecutionFactory', () => {
                 verify(pythonSettings.pythonPath).once();
                 expect(service).instanceOf(PythonExecutionService);
             });
-            test('Ensure we use existing create method if there are no environment variables for activated env', async () => {
+            test('Ensure we use an existing `create` method if there are no environment variables for the activated env', async () => {
                 let createInvoked = false;
                 const mockExecService = 'something';
                 factory.create = async (_options: ExecutionFactoryCreationOptions) => {
