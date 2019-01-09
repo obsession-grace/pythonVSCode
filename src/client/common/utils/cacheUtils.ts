@@ -40,7 +40,7 @@ function getCacheKey(resource: Resource, vscode: VSCodeType = require('vscode'))
     return `${folder.uri.fsPath}-${workspacePythonPath}`;
 }
 /**
- * Gets the cache store for a resource that's specific to the interpreter as well.
+ * Gets the cache store for a resource that's specific to the interpreter.
  * @param {string} keyPrefix
  * @param {Resource} resource
  * @param {VSCodeType} [vscode=require('vscode')]
