@@ -33,7 +33,7 @@ suite('Terminals Activation - Pipenv', () => {
                     assert.equal(cmd, undefined);
                 }
             });
-            test('No commands for an interpreter that is not pipEnv', async () => {
+            test('No commands for an interpreter that is not Pipenv', async () => {
                 const nonPipInterpreterTypes = getNamesAndValues<InterpreterType>(InterpreterType)
                     .filter(t => t.value !== InterpreterType.PipEnv);
                 for (const interpreterType of nonPipInterpreterTypes) {
