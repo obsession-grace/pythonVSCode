@@ -26,18 +26,18 @@ const resourceSpecificCacheStores = new Map<string, Map<string, CacheData>>();
  * @param {VSCodeType} [vscode=require('vscode')]
  * @returns
  */
-function getCacheKey(keyPrefix: string, resource: Resource, vscode: VSCodeType = require('vscode')) {
-    const globalPythonPath = vscode.workspace.getConfiguration('python', null as any).get<string>('pythonPath');
+function getCacheKey(resource: Resource, vscode: VSCodeType = require('vscode')) {
+    const globalPythonPath = vscode.workspace.getConfiguration('python', null as any).get<string>('pythonPath') || 'python';
     // get workspace related to this resource
     if (!Array.isArray(vscode.workspace.workspaceFolders) || vscode.workspace.workspaceFolders.length === 0) {
-        return `${keyPrefix}-${globalPythonPath}`;
+        return globalPythonPath;
     }
     const folder = resource ? vscode.workspace.getWorkspaceFolder(resource) : vscode.workspace.workspaceFolders[0];
     if (!folder) {
-        return `${keyPrefix}-${globalPythonPath}`;
+        return globalPythonPath;
     }
-    const workspacePythonPath = vscode.workspace.getConfiguration('python', resource).get<string>('pythonPath');
-    return `${keyPrefix}-${folder.uri.fsPath}-${workspacePythonPath}`;
+    const workspacePythonPath = vscode.workspace.getConfiguration('python', resource).get<string>('pythonPath') || 'python';
+    return `${folder.uri.fsPath}-${workspacePythonPath}`;
 }
 /**
  * Gets the cache store for a resource that's specific to the interpreter as well.
@@ -46,16 +46,17 @@ function getCacheKey(keyPrefix: string, resource: Resource, vscode: VSCodeType =
  * @param {VSCodeType} [vscode=require('vscode')]
  * @returns
  */
-function getCacheStore(keyPrefix: string, resource: Resource, vscode: VSCodeType = require('vscode')) {
-    const key = getCacheKey(keyPrefix, resource, vscode);
+function getCacheStore(resource: Resource, vscode: VSCodeType = require('vscode')) {
+    const key = getCacheKey(resource, vscode);
     if (!resourceSpecificCacheStores.has(key)) {
         resourceSpecificCacheStores.set(key, new Map<string, CacheData>());
     }
     return resourceSpecificCacheStores.get(key)!;
 }
 
-function getCacheKeyFromFunctionArgs(fnArgs: any[]): string {
-    return fnArgs.map(arg => `${arg}`).join('-Arg-Separator-');
+function getCacheKeyFromFunctionArgs(keyPrefix: string, fnArgs: any[]): string {
+    const argsKey = fnArgs.map(arg => `${arg}`).join('-Arg-Separator-');
+    return `KeyPrefix=${keyPrefix}-Args=${argsKey}`;
 }
 
 export function clearCache() {
@@ -70,11 +71,11 @@ export class InMemoryInterpreterSpecificCache<T> {
         args: [Uri | undefined, ...any[]],
         private readonly vscode: VSCodeType = require('vscode')) {
         this.resource = args[0];
-        this.args = args.splice(1);
+        this.args = args.slice(1);
     }
     public get hasData() {
-        const store = getCacheStore(this.keyPrefix, this.resource, this.vscode);
-        const key = getCacheKeyFromFunctionArgs(this.args);
+        const store = getCacheStore(this.resource, this.vscode);
+        const key = getCacheKeyFromFunctionArgs(this.keyPrefix, this.args);
         const data = store.get(key);
         if (!store.has(key) || !data) {
             return false;
@@ -96,8 +97,8 @@ export class InMemoryInterpreterSpecificCache<T> {
         if (!this.hasData) {
             return;
         }
-        const store = getCacheStore(this.keyPrefix, this.resource, this.vscode);
-        const key = getCacheKeyFromFunctionArgs(this.args);
+        const store = getCacheStore(this.resource, this.vscode);
+        const key = getCacheKeyFromFunctionArgs(this.keyPrefix, this.args);
         const data = store.get(key);
         if (!store.has(key) || !data) {
             return;
@@ -105,16 +106,16 @@ export class InMemoryInterpreterSpecificCache<T> {
         return data.value as T;
     }
     public set data(value: T | undefined) {
-        const store = getCacheStore(this.keyPrefix, this.resource, this.vscode);
-        const key = getCacheKeyFromFunctionArgs(this.args);
+        const store = getCacheStore(this.resource, this.vscode);
+        const key = getCacheKeyFromFunctionArgs(this.keyPrefix, this.args);
         store.set(key, {
             expiry: Date.now() + this.expiryDurationMs,
             value
         });
     }
     public clear() {
-        const store = getCacheStore(this.keyPrefix, this.resource, this.vscode);
-        const key = getCacheKeyFromFunctionArgs(this.args);
+        const store = getCacheStore(this.resource, this.vscode);
+        const key = getCacheKeyFromFunctionArgs(this.keyPrefix, this.args);
         store.delete(key);
     }
 }
