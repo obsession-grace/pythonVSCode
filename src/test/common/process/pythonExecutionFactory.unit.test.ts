@@ -68,7 +68,7 @@ suite('Process - PythonExecutionFactory', () => {
                 assert.deepEqual(service, mockExecService);
                 assert.equal(createInvoked, true);
             });
-            test('Ensure we use existing create method if there are no environment variables (0 length) for activated env', async () => {
+            test('Ensure we use an existing `create` method if there are no environment variables (0 length) for the activated env', async () => {
                 let createInvoked = false;
                 const mockExecService = 'something';
                 factory.create = async (_options: ExecutionFactoryCreationOptions) => {
