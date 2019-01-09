@@ -48,7 +48,6 @@ export class InterpreterLocatorProgressService implements IInterpreterLocatorPro
     private notifyRefreshing() {
         this.refreshing.fire();
     }
-    @traceDecorators.verbose('Checking whether locactors have completed locating')
     private checkProgress() {
         if (this.areAllItemsCcomplete()) {
             return this.notifyCompleted();
@@ -58,6 +57,7 @@ export class InterpreterLocatorProgressService implements IInterpreterLocatorPro
             .then(() => this.checkProgress())
             .ignoreErrors();
     }
+    @traceDecorators.verbose('Checking whether locactors have completed locating')
     private areAllItemsCcomplete() {
         this.deferreds = this.deferreds.filter(item => !item.completed);
         return this.deferreds.length === 0;
