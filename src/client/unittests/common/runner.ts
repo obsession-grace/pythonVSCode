@@ -102,7 +102,7 @@ function getExecutablePath(testProvider: TestProvider, settings: IPythonSettings
 function getTestModuleName(testProvider: TestProvider) {
     switch (testProvider) {
         case NOSETEST_PROVIDER: {
-            return 'nose2';
+            return 'nose';
         }
         case PYTEST_PROVIDER: {
             return 'pytest';

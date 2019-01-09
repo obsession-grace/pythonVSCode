@@ -55,7 +55,7 @@ suite('ArgsService: Common', () => {
                         }
                         case Product.nosetest: {
                             argumentsService = new NoseTestArgumentsService(serviceContainer.object);
-                            moduleName = 'noses';
+                            moduleName = 'nose';
                             break;
                         }
                         case Product.pytest: {

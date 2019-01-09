@@ -54,7 +54,7 @@ export class UnitTestConfigurationService implements IUnitTestConfigurationServi
             detail: 'http://docs.pytest.org/'
         },
         {
-            label: 'nose2',
+            label: 'nose',
             product: Product.nosetest,
             description: 'nose framework',
             detail: 'https://nose.readthedocs.io/'

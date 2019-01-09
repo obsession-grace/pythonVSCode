@@ -317,7 +317,9 @@ export class ProductInstaller implements IInstaller {
 function translateProductToModule(product: Product, purpose: ModuleNamePurpose): string {
     switch (product) {
         case Product.mypy: return 'mypy';
-        case Product.nosetest: return 'nose2';
+        case Product.nosetest: {
+            return purpose === ModuleNamePurpose.install ? 'nose' : 'nosetests';
+        }
         case Product.pylama: return 'pylama';
         case Product.prospector: return 'prospector';
         case Product.pylint: return 'pylint';
