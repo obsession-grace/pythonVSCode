@@ -14,7 +14,7 @@ import { InterpreterService } from '../../../../client/interpreter/interpreterSe
 
 // tslint:disable:no-any
 
-suite('Terminals Activation - PipEnv', () => {
+suite('Terminals Activation - Pipenv', () => {
     [undefined, Uri.parse('x')].forEach(resource => {
         suite(resource ? 'With a resource' : 'Without a resource', () => {
             let activationProvider: ITerminalActivationCommandProvider;
