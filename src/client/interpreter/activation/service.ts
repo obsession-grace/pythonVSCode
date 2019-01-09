@@ -8,8 +8,8 @@ import { LogOptions, traceDecorators, traceVerbose } from '../../common/logger';
 import { IPlatformService } from '../../common/platform/types';
 import { IProcessServiceFactory } from '../../common/process/types';
 import { ITerminalHelper } from '../../common/terminal/types';
-import { ICurrentProcess, Resource } from '../../common/types';
-import { cacheResourceSpecificIngterpreterData, swallowExceptions } from '../../common/utils/decorators';
+import { ICurrentProcess, IDisposable, Resource } from '../../common/types';
+import { cacheResourceSpecificIngterpreterData, clearCachedResourceSpecificIngterpreterData, swallowExceptions } from '../../common/utils/decorators';
 import { IEnvironmentVariablesProvider } from '../../common/variables/types';
 import { IEnvironmentActivationService } from './types';
 
@@ -20,16 +20,23 @@ const environmentSplitRegex = /^\s*([^=]+)\s*=\s*(.+)\s*$/;
 const cacheDuration = 60 * 60 * 1000;
 
 @injectable()
-export class EnvironmentActivationService implements IEnvironmentActivationService {
+export class EnvironmentActivationService implements IEnvironmentActivationService, IDisposable {
+    private readonly disposables: IDisposable[] = [];
     constructor(@inject(ITerminalHelper) private readonly helper: ITerminalHelper,
         @inject(IPlatformService) private readonly platform: IPlatformService,
         @inject(IProcessServiceFactory) private processServiceFactory: IProcessServiceFactory,
         @inject(ICurrentProcess) private currentProcess: ICurrentProcess,
         @inject(IEnvironmentVariablesProvider) private readonly envVarsService: IEnvironmentVariablesProvider) {
+
+        this.envVarsService.onDidEnvironmentVariablesChange(this.onDidEnvironmentVariablesChange, this, this.disposables);
+    }
+
+    public dispose(): void | Promise<void> {
+        this.disposables.forEach(d => d.dispose());
     }
     @traceDecorators.verbose('getActivatedEnvironmentVariables', LogOptions.Arguments)
     @swallowExceptions('getActivatedEnvironmentVariables')
-    @cacheResourceSpecificIngterpreterData(cacheDuration)
+    @cacheResourceSpecificIngterpreterData('ActivatedEnvironmentVariables', cacheDuration)
     public async getActivatedEnvironmentVariables(resource: Resource): Promise<NodeJS.ProcessEnv | undefined> {
         const activationCommands = await this.helper.getEnvironmentActivationShellCommands(resource);
         traceVerbose(`Activation Commands received ${activationCommands}`);
@@ -41,6 +48,7 @@ export class EnvironmentActivationService implements IEnvironmentActivationServi
         const listEnv = this.platform.isWindows ? 'set' : 'printenv';
         const activationCommand = this.fixActivationCommands(activationCommands).join(' && ');
         const processService = await this.processServiceFactory.create(resource);
+
         const customEnvVars = await this.envVarsService.getEnvironmentVariables(resource);
         const hasCustomEnvVars = Object.keys(customEnvVars).length;
         const env = hasCustomEnvVars ? this.currentProcess.env : customEnvVars;
@@ -54,6 +62,9 @@ export class EnvironmentActivationService implements IEnvironmentActivationServi
             throw new Error(`StdErr from ShellExec, ${result.stderr}`);
         }
         return this.parseEnvironmentOutput(result.stdout);
+    }
+    protected onDidEnvironmentVariablesChange(affectedResource: Resource) {
+        clearCachedResourceSpecificIngterpreterData('ActivatedEnvironmentVariables', affectedResource);
     }
     protected fixActivationCommands(commands: string[]): string[] {
         // Replace 'source ' with '. ' as that works in shell exec

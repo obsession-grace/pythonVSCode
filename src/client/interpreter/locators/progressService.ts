@@ -49,6 +49,9 @@ export class InterpreterLocatorProgressService implements IInterpreterLocatorPro
         this.refreshing.fire();
     }
     private checkProgress() {
+        if (this.deferreds.length === 0) {
+            return;
+        }
         if (this.areAllItemsComplete()) {
             return this.notifyCompleted();
         }

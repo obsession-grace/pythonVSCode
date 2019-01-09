@@ -1,9 +1,11 @@
-// tslint:disable:no-any
+// tslint:disable:no-any no-require-imports no-function-expression no-invalid-this
 
 import { ProgressLocation, ProgressOptions, Uri, window } from 'vscode';
 import '../../common/extensions';
 import { isTestExecution } from '../constants';
 import { traceError, traceVerbose } from '../logger';
+import { Resource } from '../types';
+import { InMemoryInterpreterSpecificCache } from './cacheUtils';
 
 // tslint:disable-next-line:no-require-imports no-var-requires
 const _debounce = require('lodash/debounce') as typeof import('lodash/debounce');
@@ -25,66 +27,24 @@ export function debounce(wait?: number) {
     };
 }
 
-type vsCodeType = typeof import('vscode');
-type cacheData = {
-    value: any;
-    expiry: number;
-};
-const simpleCache = new Map<string, cacheData>();
-
-function getCachedData(key: string): undefined | cacheData {
-    const data = simpleCache.get(key);
-    if (!data) {
-        return;
-    }
-    return data.expiry < Date.now() ? undefined : data;
-}
-function storeCachedData(key: string, data: any, expiryDurationMs: number): void {
-    simpleCache.set(key, {
-        value: data,
-        expiry: Date.now() + expiryDurationMs
-    });
-}
-// tslint:disable-next-line:no-any no-require-imports
-export function getCacheKeyFromFunctionArgs(fnArgs: any[], vscode: vsCodeType = require('vscode')): string {
-    const keys: string[] = [];
-    fnArgs.forEach((arg, index) => {
-        if (index > 0) {
-            return keys.push(`${arg}`);
-        }
-        // get workspace related to this resource
-        if (!Array.isArray(vscode.workspace.workspaceFolders) || vscode.workspace.workspaceFolders.length === 0) {
-            return keys.push('undefined');
-        }
-        const folder = vscode.workspace.getWorkspaceFolder(arg as Uri);
-        if (!folder) {
-            return keys.push('undefined');
-        }
-        const pythonPath = vscode.workspace.getConfiguration('python', arg as Uri).get<string>('pythonPath');
-        keys.push(`${folder.uri.fsPath}-${pythonPath}`);
-    });
-
-    return keys.join('-Arg-Separator-');
-}
-
-// tslint:disable-next-line:no-any
+type VSCodeType = typeof import('vscode');
 type PromiseFunctionWithFirstArgOfResource = (...any: [Uri | undefined, ...any[]]) => Promise<any>;
 
-// tslint:disable-next-line:no-require-imports
-export function cacheResourceSpecificIngterpreterData(expiryDurationMs: number, vscode: vsCodeType = require('vscode')) {
+export function clearCachedResourceSpecificIngterpreterData(key: string, resource: Resource, vscode: VSCodeType = require('vscode')) {
+    const cache = new InMemoryInterpreterSpecificCache(key, 0, [resource], vscode);
+    cache.clear();
+}
+export function cacheResourceSpecificIngterpreterData(key: string, expiryDurationMs: number, vscode: VSCodeType = require('vscode')) {
     return function (_target: Object, _propertyName: string, descriptor: TypedPropertyDescriptor<PromiseFunctionWithFirstArgOfResource>) {
         const originalMethod = descriptor.value!;
-        // tslint:disable-next-line:no-any no-function-expression
         descriptor.value = async function (...args: [Uri | undefined, ...any[]]) {
-            const cacheKey = getCacheKeyFromFunctionArgs(args, vscode);
-            const data = getCachedData(cacheKey);
-            if (data) {
-                traceVerbose(`Cached data exists ${cacheKey}`);
-                return Promise.resolve(data.value);
+            const cache = new InMemoryInterpreterSpecificCache(key, expiryDurationMs, args, vscode);
+            if (cache.hasData) {
+                traceVerbose(`Cached data exists ${key}, ${args[0] ? args[0].fsPath : '<No Resource>'}`);
+                return Promise.resolve(cache.data);
             }
-            // tslint:disable-next-line:no-invalid-this
             const promise = originalMethod.apply(this, args) as Promise<any>;
-            promise.then(result => storeCachedData(cacheKey, result, expiryDurationMs)).ignoreErrors();
+            promise.then(result => cache.data = result).ignoreErrors();
             return promise;
         };
     };

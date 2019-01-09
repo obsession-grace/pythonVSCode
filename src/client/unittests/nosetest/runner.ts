@@ -61,7 +61,7 @@ export class TestManagerRunner implements ITestManagerRunner {
 
             if (options.debug === true) {
                 const debugLauncher = this.serviceContainer.get<ITestDebugLauncher>(ITestDebugLauncher);
-                const debuggerArgs = [options.cwd, 'nose'].concat(testArgs);
+                const debuggerArgs = [options.cwd, 'nose2'].concat(testArgs);
                 const launchOptions: LaunchOptions = { cwd: options.cwd, args: debuggerArgs, token: options.token, outChannel: options.outChannel, testProvider: NOSETEST_PROVIDER };
                 await debugLauncher.launchDebugger(launchOptions);
             } else {

@@ -30,7 +30,7 @@ export class PythonExecutionFactory implements IPythonExecutionFactory {
             return this.create({ resource });
         }
         const pythonPath = this.configService.getSettings(resource).pythonPath;
-        const processService = new ProcessService(this.decoder, envVars);
+        const processService = new ProcessService(this.decoder, { ...envVars });
         return new PythonExecutionService(this.serviceContainer, processService, pythonPath);
     }
 }

@@ -5,11 +5,12 @@ import { inject, injectable } from 'inversify';
 import { Disposable, Event, EventEmitter, FileSystemWatcher, Uri, workspace } from 'vscode';
 import { IPlatformService } from '../platform/types';
 import { IConfigurationService, ICurrentProcess, IDisposableRegistry } from '../types';
+import { cacheResourceSpecificIngterpreterData, clearCachedResourceSpecificIngterpreterData } from '../utils/decorators';
 import { EnvironmentVariables, IEnvironmentVariablesProvider, IEnvironmentVariablesService } from './types';
 
+const cacheDuration = 60 * 60 * 1000;
 @injectable()
 export class EnvironmentVariablesProvider implements IEnvironmentVariablesProvider, Disposable {
-    private cache = new Map<string, EnvironmentVariables>();
     private fileWatchers = new Map<string, FileSystemWatcher>();
     private disposables: Disposable[] = [];
     private changeEventEmitter: EventEmitter<Uri | undefined>;
@@ -32,27 +33,25 @@ export class EnvironmentVariablesProvider implements IEnvironmentVariablesProvid
             watcher.dispose();
         });
     }
+    @cacheResourceSpecificIngterpreterData('getEnvironmentVariables', cacheDuration)
     public async getEnvironmentVariables(resource?: Uri): Promise<EnvironmentVariables> {
         const settings = this.configurationService.getSettings(resource);
-        if (!this.cache.has(settings.envFile)) {
-            const workspaceFolderUri = this.getWorkspaceFolderUri(resource);
-            this.createFileWatcher(settings.envFile, workspaceFolderUri);
-            let mergedVars = await this.envVarsService.parseFile(settings.envFile);
-            if (!mergedVars) {
-                mergedVars = {};
-            }
-            this.envVarsService.mergeVariables(this.process.env, mergedVars!);
-            const pathVariable = this.platformService.pathVariableName;
-            const pathValue = this.process.env[pathVariable];
-            if (pathValue) {
-                this.envVarsService.appendPath(mergedVars!, pathValue);
-            }
-            if (this.process.env.PYTHONPATH) {
-                this.envVarsService.appendPythonPath(mergedVars!, this.process.env.PYTHONPATH);
-            }
-            this.cache.set(settings.envFile, mergedVars);
+        const workspaceFolderUri = this.getWorkspaceFolderUri(resource);
+        this.createFileWatcher(settings.envFile, workspaceFolderUri);
+        let mergedVars = await this.envVarsService.parseFile(settings.envFile);
+        if (!mergedVars) {
+            mergedVars = {};
         }
-        return this.cache.get(settings.envFile)!;
+        this.envVarsService.mergeVariables(this.process.env, mergedVars!);
+        const pathVariable = this.platformService.pathVariableName;
+        const pathValue = this.process.env[pathVariable];
+        if (pathValue) {
+            this.envVarsService.appendPath(mergedVars!, pathValue);
+        }
+        if (this.process.env.PYTHONPATH) {
+            this.envVarsService.appendPythonPath(mergedVars!, this.process.env.PYTHONPATH);
+        }
+        return mergedVars;
     }
     private getWorkspaceFolderUri(resource?: Uri): Uri | undefined {
         if (!resource) {
@@ -74,7 +73,8 @@ export class EnvironmentVariablesProvider implements IEnvironmentVariablesProvid
         }
     }
     private onEnvironmentFileChanged(envFile, workspaceFolderUri?: Uri) {
-        this.cache.delete(envFile);
+        clearCachedResourceSpecificIngterpreterData('getEnvironmentVariables', workspaceFolderUri);
+        clearCachedResourceSpecificIngterpreterData('CustomEnvironmentVariables', workspaceFolderUri);
         this.changeEventEmitter.fire(workspaceFolderUri);
     }
 }

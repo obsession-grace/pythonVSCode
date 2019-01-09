@@ -57,6 +57,9 @@ function argsToLogString(args: any[]): string {
     try {
         return (args || []).map((item, index) => {
             try {
+                if (item.fsPath) {
+                    return `Arg ${index + 1}: <Uri:${item.fsPath}>`;
+                }
                 return `Arg ${index + 1}: ${JSON.stringify(item)}`;
             } catch {
                 return `Arg ${index + 1}: UNABLE TO DETERMINE VALUE`;
@@ -69,15 +72,18 @@ function argsToLogString(args: any[]): string {
 
 // tslint:disable-next-line:no-any
 function returnValueToLogString(returnValue: any): string {
-    let returnValueMessage = 'Return Value: ';
-    if (returnValue) {
-        try {
-            returnValueMessage += `${JSON.stringify(returnValue)}`;
-        } catch {
-            returnValueMessage += 'UNABLE TO DETERMINE VALUE';
-        }
+    const returnValueMessage = 'Return Value: ';
+    if (returnValue === undefined) {
+        return `${returnValueMessage}undefined`;
     }
-    return returnValueMessage;
+    if (returnValue === null) {
+        return `${returnValueMessage}null`;
+    }
+    try {
+        return `${returnValueMessage}${JSON.stringify(returnValue)}`;
+    } catch {
+        return `${returnValueMessage}<Return value cannot be serialized for logging>`;
+    }
 }
 
 export function traceVerbose(message: string) {
