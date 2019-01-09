@@ -18,7 +18,7 @@ const getEnvironmentPrefix = 'e8b39361-0157-4923-80e1-22d70d46dee6';
 
 // Regex for splitting environment strings
 const environmentSplitRegex = /^\s*([^=]+)\s*=\s*(.+)\s*$/;
-const cacheDuration = 60 * 60 * 1000;
+const cacheDuration = 10 * 60 * 1000;
 
 // The shell under which we'll execute activation scripts.
 const defaultShells = {
