@@ -49,7 +49,7 @@ export class InterpreterLocatorProgressService implements IInterpreterLocatorPro
         this.refreshing.fire();
     }
     private checkProgress() {
-        if (this.areAllItemsCcomplete()) {
+        if (this.areAllItemsComplete()) {
             return this.notifyCompleted();
         }
         Promise.all(this.deferreds.map(item => item.promise))
@@ -58,7 +58,7 @@ export class InterpreterLocatorProgressService implements IInterpreterLocatorPro
             .ignoreErrors();
     }
     @traceDecorators.verbose('Checking whether locactors have completed locating')
-    private areAllItemsCcomplete() {
+    private areAllItemsComplete() {
         this.deferreds = this.deferreds.filter(item => !item.completed);
         return this.deferreds.length === 0;
     }
