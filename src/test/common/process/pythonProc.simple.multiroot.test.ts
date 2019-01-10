@@ -10,6 +10,7 @@ import * as fs from 'fs-extra';
 import { Container } from 'inversify';
 import { EOL } from 'os';
 import * as path from 'path';
+import { anything, instance, mock, when } from 'ts-mockito';
 import { ConfigurationTarget, Disposable, Uri } from 'vscode';
 import { IWorkspaceService } from '../../../client/common/application/types';
 import { WorkspaceService } from '../../../client/common/application/workspace';
@@ -30,6 +31,8 @@ import { OSType } from '../../../client/common/utils/platform';
 import {
     registerTypes as variablesRegisterTypes
 } from '../../../client/common/variables/serviceRegistry';
+import { EnvironmentActivationService } from '../../../client/interpreter/activation/service';
+import { IEnvironmentActivationService } from '../../../client/interpreter/activation/types';
 import { IInterpreterAutoSelectionService, IInterpreterAutoSeletionProxyService } from '../../../client/interpreter/autoSelection/types';
 import { ServiceContainer } from '../../../client/ioc/container';
 import { ServiceManager } from '../../../client/ioc/serviceManager';
@@ -84,6 +87,10 @@ suite('PythonExecutableService', () => {
         serviceManager.addSingleton<IInterpreterAutoSeletionProxyService>(IInterpreterAutoSeletionProxyService, MockAutoSelectionService);
         processRegisterTypes(serviceManager);
         variablesRegisterTypes(serviceManager);
+
+        const mockEnvironmentActivationService = mock(EnvironmentActivationService);
+        when(mockEnvironmentActivationService.getActivatedEnvironmentVariables(anything())).thenResolve();
+        serviceManager.addSingletonInstance<IEnvironmentActivationService>(IEnvironmentActivationService, instance(mockEnvironmentActivationService));
 
         configService = serviceManager.get<IConfigurationService>(IConfigurationService);
         pythonExecFactory = serviceContainer.get<IPythonExecutionFactory>(IPythonExecutionFactory);
