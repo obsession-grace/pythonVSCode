@@ -39,12 +39,13 @@ suite('Refactor Rename', () => {
         configService.setup(c => c.getSettings(typeMoq.It.isAny())).returns(() => pythonSettings.object);
         const processServiceFactory = typeMoq.Mock.ofType<IProcessServiceFactory>();
         processServiceFactory.setup(p => p.create(typeMoq.It.isAny())).returns(() => Promise.resolve(new ProcessService(new BufferDecoder())));
-
+        const envActivationService = typeMoq.Mock.ofType<IEnvironmentActivationService>();
+        envActivationService.setup(e => e.getActivatedEnvironmentVariables(typeMoq.It.isAny())).returns(() => Promise.resolve(undefined));
         serviceContainer = typeMoq.Mock.ofType<IServiceContainer>();
         serviceContainer.setup(s => s.get(typeMoq.It.isValue(IConfigurationService), typeMoq.It.isAny())).returns(() => configService.object);
         serviceContainer.setup(s => s.get(typeMoq.It.isValue(IProcessServiceFactory), typeMoq.It.isAny())).returns(() => processServiceFactory.object);
         serviceContainer.setup(s => s.get(typeMoq.It.isValue(IEnvironmentActivationService), typeMoq.It.isAny()))
-            .returns(() => typeMoq.Mock.ofType<IEnvironmentActivationService>().object);
+            .returns(() => envActivationService.object);
         serviceContainer
             .setup(s => s.get(typeMoq.It.isValue(IPythonExecutionFactory), typeMoq.It.isAny()))
             .returns(() => new PythonExecutionFactory(serviceContainer.object, undefined as any, undefined as any,
