@@ -86,7 +86,7 @@ suite('Common Utils - Decorators', () => {
         expect(result).to.equal(3);
         expect(cls.invoked).to.equal(false, 'Must not be invoked');
 
-        await sleep(100);
+        await sleep(110);
 
         cls.invoked = false;
         result = await cls.doSomething(uri, 1, 2);
