@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 import { Container } from 'inversify';
+import { anything, instance, mock, when } from 'ts-mockito';
 import * as TypeMoq from 'typemoq';
 import { Disposable, Memento, OutputChannel } from 'vscode';
 import { STANDARD_OUTPUT_CHANNEL } from '../client/common/constants';
@@ -89,7 +90,9 @@ export class IocContainer {
     }
     public registerProcessTypes() {
         processRegisterTypes(this.serviceManager);
-        this.serviceManager.addSingleton<IEnvironmentActivationService>(IEnvironmentActivationService, EnvironmentActivationService);
+        const mockEnvironmentActivationService = mock(EnvironmentActivationService);
+        when(mockEnvironmentActivationService.getActivatedEnvironmentVariables(anything())).thenResolve();
+        this.serviceManager.addSingletonInstance<IEnvironmentActivationService>(IEnvironmentActivationService, instance(mockEnvironmentActivationService));
     }
     public registerVariableTypes() {
         variableRegisterTypes(this.serviceManager);
@@ -119,6 +122,9 @@ export class IocContainer {
         this.serviceManager.addSingleton<IPythonExecutionFactory>(IPythonExecutionFactory, PythonExecutionFactory);
         this.serviceManager.addSingleton<IPythonToolExecutionService>(IPythonToolExecutionService, PythonToolExecutionService);
         this.serviceManager.addSingleton<IEnvironmentActivationService>(IEnvironmentActivationService, EnvironmentActivationService);
+        const mockEnvironmentActivationService = mock(EnvironmentActivationService);
+        when(mockEnvironmentActivationService.getActivatedEnvironmentVariables(anything())).thenResolve();
+        this.serviceManager.rebindInstance<IEnvironmentActivationService>(IEnvironmentActivationService, instance(mockEnvironmentActivationService));
     }
 
     public registerMockProcess() {

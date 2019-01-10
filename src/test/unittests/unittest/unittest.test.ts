@@ -3,9 +3,11 @@
 import * as assert from 'assert';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import { instance, mock } from 'ts-mockito';
+import { anything, instance, mock, when } from 'ts-mockito';
 import { ConfigurationTarget } from 'vscode';
 import { EXTENSION_ROOT_DIR } from '../../../client/common/constants';
+import { EnvironmentActivationService } from '../../../client/interpreter/activation/service';
+import { IEnvironmentActivationService } from '../../../client/interpreter/activation/types';
 import { ICondaService, IInterpreterService } from '../../../client/interpreter/contracts';
 import { InterpreterService } from '../../../client/interpreter/interpreterService';
 import { CondaService } from '../../../client/interpreter/locators/services/condaService';
@@ -68,6 +70,9 @@ suite('Unit Tests - unittest - discovery against actual python process', () => {
         ioc.registerProcessTypes();
         ioc.serviceManager.addSingletonInstance<ICondaService>(ICondaService, instance(mock(CondaService)));
         ioc.serviceManager.addSingletonInstance<IInterpreterService>(IInterpreterService, instance(mock(InterpreterService)));
+        const mockEnvironmentActivationService = mock(EnvironmentActivationService);
+        when(mockEnvironmentActivationService.getActivatedEnvironmentVariables(anything())).thenResolve();
+        ioc.serviceManager.rebindInstance<IEnvironmentActivationService>(IEnvironmentActivationService, instance(mockEnvironmentActivationService));
     }
 
     test('Discover Tests (single test file)', async () => {

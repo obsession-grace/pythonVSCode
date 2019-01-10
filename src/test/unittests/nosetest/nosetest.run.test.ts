@@ -63,8 +63,8 @@ suite('Unit Tests - nose - run against actual python process', () => {
         ioc.registerVariableTypes();
 
         ioc.registerMockProcessTypes();
-        ioc.serviceManager.addSingletonInstance<ICondaService>(ICondaService, instance(mock(CondaService)));
-        ioc.serviceManager.addSingletonInstance<IInterpreterService>(IInterpreterService, instance(mock(InterpreterService)));
+        ioc.serviceManager.addSingleton<ICondaService>(ICondaService, CondaService);
+        ioc.serviceManager.addSingleton<IInterpreterService>(IInterpreterService, InterpreterService);
     }
 
     async function injectTestDiscoveryOutput(outputFileName: string) {

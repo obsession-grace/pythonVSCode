@@ -11,8 +11,6 @@ import {
 import {
     IProcessServiceFactory, IPythonExecutionFactory
 } from '../../client/common/process/types';
-import { TerminalHelper } from '../../client/common/terminal/helper';
-import { ITerminalHelper } from '../../client/common/terminal/types';
 import { AutoPep8Formatter } from '../../client/formatters/autoPep8Formatter';
 import { BlackFormatter } from '../../client/formatters/blackFormatter';
 import { YapfFormatter } from '../../client/formatters/yapfFormatter';
@@ -102,8 +100,7 @@ suite('Formatting - General', () => {
 
         // Mocks.
         ioc.registerMockProcessTypes();
-        ioc.serviceManager.addSingletonInstance<ITerminalHelper>(ITerminalHelper, instance(mock(TerminalHelper)));
-        ioc.serviceManager.addSingletonInstance<ICondaService>(ICondaService, instance(mock(CondaService)));
+        ioc.serviceManager.addSingleton<ICondaService>(ICondaService, CondaService);
     }
 
     async function injectFormatOutput(outputFileName: string) {
