@@ -8,7 +8,7 @@ import { EOL } from 'os';
 import * as path from 'path';
 import { anything, capture, instance, mock, verify, when } from 'ts-mockito';
 import * as typemoq from 'typemoq';
-import { Uri, workspace as workspaceType } from 'vscode';
+import { Uri, workspace as workspaceType, WorkspaceConfiguration } from 'vscode';
 import { PlatformService } from '../../../client/common/platform/platformService';
 import { IPlatformService } from '../../../client/common/platform/types';
 import { CurrentProcess } from '../../../client/common/process/currentProcess';
@@ -61,10 +61,12 @@ suite('Interprters Activation - Python Environment Variables', () => {
             instance(envVarsService)
         );
 
-        const cfg = { get: () => 'xyz' };
+        const cfg = typemoq.Mock.ofType<WorkspaceConfiguration>();
         workspace.setup(w => w.getConfiguration(typemoq.It.isValue('python'), typemoq.It.isAny()))
-            .returns(() => cfg as any);
+            .returns(() => cfg.object);
         workspace.setup(w => w.workspaceFolders).returns(() => []);
+        cfg.setup(c => c.inspect(typemoq.It.isValue('pythonPath')))
+            .returns(() => { return { globalValue: 'GlobalValuepython' } as any; });
         clearCache();
 
         verify(envVarsService.onDidEnvironmentVariablesChange).once();

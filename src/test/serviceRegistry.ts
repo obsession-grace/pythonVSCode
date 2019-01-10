@@ -22,6 +22,8 @@ import { registerTypes as commonRegisterTypes } from '../client/common/serviceRe
 import { GLOBAL_MEMENTO, ICurrentProcess, IDisposableRegistry, ILogger, IMemento, IOutputChannel, IPathUtils, IsWindows, WORKSPACE_MEMENTO } from '../client/common/types';
 import { registerTypes as variableRegisterTypes } from '../client/common/variables/serviceRegistry';
 import { registerTypes as formattersRegisterTypes } from '../client/formatters/serviceRegistry';
+import { EnvironmentActivationService } from '../client/interpreter/activation/service';
+import { IEnvironmentActivationService } from '../client/interpreter/activation/types';
 import { IInterpreterAutoSelectionService, IInterpreterAutoSeletionProxyService } from '../client/interpreter/autoSelection/types';
 import { registerTypes as interpretersRegisterTypes } from '../client/interpreter/serviceRegistry';
 import { ServiceContainer } from '../client/ioc/container';
@@ -87,6 +89,7 @@ export class IocContainer {
     }
     public registerProcessTypes() {
         processRegisterTypes(this.serviceManager);
+        this.serviceManager.addSingleton<IEnvironmentActivationService>(IEnvironmentActivationService, EnvironmentActivationService);
     }
     public registerVariableTypes() {
         variableRegisterTypes(this.serviceManager);
@@ -115,6 +118,7 @@ export class IocContainer {
         this.serviceManager.addSingletonInstance<IProcessServiceFactory>(IProcessServiceFactory, processServiceFactory.object);
         this.serviceManager.addSingleton<IPythonExecutionFactory>(IPythonExecutionFactory, PythonExecutionFactory);
         this.serviceManager.addSingleton<IPythonToolExecutionService>(IPythonToolExecutionService, PythonToolExecutionService);
+        this.serviceManager.addSingleton<IEnvironmentActivationService>(IEnvironmentActivationService, EnvironmentActivationService);
     }
 
     public registerMockProcess() {

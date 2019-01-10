@@ -15,6 +15,7 @@ import { ProcessService } from '../../client/common/process/proc';
 import { PythonExecutionFactory } from '../../client/common/process/pythonExecutionFactory';
 import { IProcessServiceFactory, IPythonExecutionFactory } from '../../client/common/process/types';
 import { IConfigurationService, IPythonSettings } from '../../client/common/types';
+import { IEnvironmentActivationService } from '../../client/interpreter/activation/types';
 import { IServiceContainer } from '../../client/ioc/types';
 import { RefactorProxy } from '../../client/refactor/proxy';
 import { PYTHON_PATH } from '../common';
@@ -42,6 +43,8 @@ suite('Refactor Rename', () => {
         serviceContainer = typeMoq.Mock.ofType<IServiceContainer>();
         serviceContainer.setup(s => s.get(typeMoq.It.isValue(IConfigurationService), typeMoq.It.isAny())).returns(() => configService.object);
         serviceContainer.setup(s => s.get(typeMoq.It.isValue(IProcessServiceFactory), typeMoq.It.isAny())).returns(() => processServiceFactory.object);
+        serviceContainer.setup(s => s.get(typeMoq.It.isValue(IEnvironmentActivationService), typeMoq.It.isAny()))
+            .returns(() => typeMoq.Mock.ofType<IEnvironmentActivationService>().object);
         serviceContainer
             .setup(s => s.get(typeMoq.It.isValue(IPythonExecutionFactory), typeMoq.It.isAny()))
             .returns(() => new PythonExecutionFactory(serviceContainer.object, undefined as any, undefined as any,

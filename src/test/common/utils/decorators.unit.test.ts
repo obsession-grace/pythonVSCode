@@ -22,13 +22,17 @@ suite('Common Utils - Decorators', () => {
                     return {
                         get: () => {
                             return pythonPath;
+                        },
+                        inspect: () => {
+                            return { globalValue: pythonPath };
                         }
                     };
                 },
                 getWorkspaceFolder: () => {
                     return;
                 }
-            }
+            },
+            Uri: Uri
         } as any;
     }
     test('Result must be cached when using cache decorator', async () => {

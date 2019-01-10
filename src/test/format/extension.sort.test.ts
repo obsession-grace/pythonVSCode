@@ -20,7 +20,7 @@ const fileToFormatWithConfig1 = path.join(sortingPath, 'withconfig', 'before.1.p
 const originalFileToFormatWithConfig1 = path.join(sortingPath, 'withconfig', 'original.1.py');
 
 // tslint:disable-next-line:max-func-body-length
-suite('Sortingx', () => {
+suite('Sorting', () => {
     let ioc: UnitTestIocContainer;
     let sorter: ISortImportsEditingProvider;
     const configTarget = IS_MULTI_ROOT_TEST ? ConfigurationTarget.WorkspaceFolder : ConfigurationTarget.Workspace;

@@ -20,13 +20,17 @@ suite('Common Utils - CacheUtils', () => {
                     return {
                         get: () => {
                             return pythonPath;
+                        },
+                        inspect: () => {
+                            return { globalValue: pythonPath };
                         }
                     };
                 },
                 getWorkspaceFolder: () => {
                     return;
                 }
-            }
+            },
+            Uri: Uri
         } as any;
     }
     ['hello', undefined, { date: new Date(), hello: 1234 }].forEach(dataToStore => {
