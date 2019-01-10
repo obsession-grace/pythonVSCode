@@ -8,7 +8,7 @@ import { sendTelemetryEvent } from '../../telemetry';
 import { PYTHON_INTERPRETER_ACTIVATION_FOR_RUNNING_CODE, PYTHON_INTERPRETER_ACTIVATION_FOR_TERMINAL } from '../../telemetry/constants';
 import { ITerminalManager, IWorkspaceService } from '../application/types';
 import '../extensions';
-import { traceError } from '../logger';
+import { traceDecorators, traceError } from '../logger';
 import { IPlatformService } from '../platform/types';
 import { IConfigurationService, Resource } from '../types';
 import { OSType } from '../utils/platform';
@@ -119,6 +119,7 @@ export class TerminalHelper implements ITerminalHelper {
         this.sendTelemetry(resource, shell, PYTHON_INTERPRETER_ACTIVATION_FOR_RUNNING_CODE, promise).ignoreErrors();
         return promise;
     }
+    @traceDecorators.error('Failed to capture telemetry')
     protected async sendTelemetry(resource: Resource, terminalShellType: TerminalShellType, eventName: string, promise: Promise<string[] | undefined>): Promise<void> {
         let hasCommands = false;
         const interpreter = await this.interpreterService.getActiveInterpreter(resource);
