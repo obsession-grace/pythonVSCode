@@ -4,6 +4,8 @@
 'use strict';
 
 import { inject, injectable } from 'inversify';
+import * as path from 'path';
+import '../../common/extensions';
 import { LogOptions, traceDecorators, traceVerbose } from '../../common/logger';
 import { IPlatformService } from '../../common/platform/types';
 import { IProcessServiceFactory } from '../../common/process/types';
@@ -12,12 +14,10 @@ import { ICurrentProcess, IDisposable, Resource } from '../../common/types';
 import { cacheResourceSpecificIngterpreterData, clearCachedResourceSpecificIngterpreterData, swallowExceptions } from '../../common/utils/decorators';
 import { OSType } from '../../common/utils/platform';
 import { IEnvironmentVariablesProvider } from '../../common/variables/types';
+import { EXTENSION_ROOT_DIR } from '../../constants';
 import { IEnvironmentActivationService } from './types';
 
 const getEnvironmentPrefix = 'e8b39361-0157-4923-80e1-22d70d46dee6';
-
-// Regex for splitting environment strings
-const environmentSplitRegex = /^\s*([^=]+)\s*=\s*(.+)\s*$/;
 const cacheDuration = 10 * 60 * 1000;
 
 // The shell under which we'll execute activation scripts.
@@ -59,18 +59,17 @@ export class EnvironmentActivationService implements IEnvironmentActivationServi
         }
 
         // Run the activate command collect the environment from it.
-        const listEnv = this.platform.isWindows ? 'set' : 'printenv';
         const activationCommand = this.fixActivationCommands(activationCommands).join(' && ');
         const processService = await this.processServiceFactory.create(resource);
-
         const customEnvVars = await this.envVarsService.getEnvironmentVariables(resource);
         const hasCustomEnvVars = Object.keys(customEnvVars).length;
-        const env = hasCustomEnvVars ? this.currentProcess.env : customEnvVars;
+        const env = hasCustomEnvVars ? customEnvVars : this.currentProcess.env;
         traceVerbose(`${hasCustomEnvVars ? 'Has' : 'No'} Custom Env Vars`);
 
         // In order to make sure we know where the environment output is,
         // put in a dummy echo we can look for
-        const command = `${activationCommand} && echo '${getEnvironmentPrefix}' && ${listEnv}`;
+        const printEnvPyFile = path.join(EXTENSION_ROOT_DIR, 'pythonFiles', 'printEnvVariables.py');
+        const command = `${activationCommand} && echo '${getEnvironmentPrefix}' && python ${printEnvPyFile.fileToCommandArgument()}`;
         traceVerbose(`Activating Environment to capture Environment variables, ${command}`);
         const result = await processService.shellExec(command, { env, shell });
         if (result.stderr && result.stderr.length > 0) {
@@ -85,24 +84,11 @@ export class EnvironmentActivationService implements IEnvironmentActivationServi
         // Replace 'source ' with '. ' as that works in shell exec
         return commands.map(cmd => cmd.replace(/^source\s+/, '. '));
     }
+    @traceDecorators.error('Failed to parse Environment variables')
     @traceDecorators.verbose('parseEnvironmentOutput', LogOptions.None)
     protected parseEnvironmentOutput(output: string): NodeJS.ProcessEnv | undefined {
-        const result = {};
-        const lines = output.splitLines({ trim: true, removeEmptyEntries: true });
-        let foundDummyOutput = false;
-        for (let i = 0; i < lines.length; i += 1) {
-            if (foundDummyOutput) {
-                // Split on equal
-                const match = environmentSplitRegex.exec(lines[i]);
-                if (match && match !== null && match.length > 2) {
-                    result[match[1]] = match[2];
-                }
-            } else {
-                // See if we found the dummy output or not yet
-                foundDummyOutput = lines[i].includes(getEnvironmentPrefix);
-            }
-        }
-
-        return Object.keys(result).length === 0 ? undefined : result;
+        output = output.substring(output.indexOf(getEnvironmentPrefix) + getEnvironmentPrefix.length);
+        const js = output.substring(output.indexOf('{')).trim();
+        return JSON.parse(js);
     }
 }

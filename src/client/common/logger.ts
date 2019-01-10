@@ -100,7 +100,7 @@ export namespace traceDecorators {
     export function verbose(message: string, options: LogOptions = LogOptions.Arguments | LogOptions.ReturnValue) {
         return trace(message, options);
     }
-    export function error(message: string, ex?: Error) {
+    export function error(message: string) {
         return trace(message, LogOptions.Arguments | LogOptions.ReturnValue, LogLevel.Error);
     }
     export function info(message: string) {

@@ -38,7 +38,6 @@ export class TerminalHelper implements ITerminalHelper {
     constructor(@inject(IPlatformService) private readonly platform: IPlatformService,
         @inject(ITerminalManager) private readonly terminalManager: ITerminalManager,
         @inject(IWorkspaceService) private readonly workspace: IWorkspaceService,
-        @inject(IPlatformService) private readonly platformService: IPlatformService,
         @inject(ICondaService) private readonly condaService: ICondaService,
         @inject(IConfigurationService) private readonly configurationService: IConfigurationService,
         @inject(ITerminalActivationCommandProvider) @named(TerminalActivationProviders.conda) private readonly conda: ITerminalActivationCommandProvider,
@@ -76,7 +75,7 @@ export class TerminalHelper implements ITerminalHelper {
     public getTerminalShellPath(): string {
         const shellConfig = this.workspace.getConfiguration('terminal.integrated.shell');
         let osSection = '';
-        switch (this.platformService.osType) {
+        switch (this.platform.osType) {
             case OSType.Windows: {
                 osSection = 'windows';
                 break;
