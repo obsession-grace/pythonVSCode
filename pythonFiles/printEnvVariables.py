@@ -4,5 +4,4 @@
 import os
 import json
 
-data = {item:value for item, value in os.environ.items()}
-print(json.dumps(data))
+print(json.dumps(dict(os.environ)))
