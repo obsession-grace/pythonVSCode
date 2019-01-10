@@ -4,15 +4,20 @@
 
 import * as fs from 'fs-extra';
 import * as path from 'path';
+import { instance, mock } from 'ts-mockito';
 import {
     CancellationTokenSource, Position, Uri, window, workspace
 } from 'vscode';
 import {
     IProcessServiceFactory, IPythonExecutionFactory
 } from '../../client/common/process/types';
+import { TerminalHelper } from '../../client/common/terminal/helper';
+import { ITerminalHelper } from '../../client/common/terminal/types';
 import { AutoPep8Formatter } from '../../client/formatters/autoPep8Formatter';
 import { BlackFormatter } from '../../client/formatters/blackFormatter';
 import { YapfFormatter } from '../../client/formatters/yapfFormatter';
+import { ICondaService } from '../../client/interpreter/contracts';
+import { CondaService } from '../../client/interpreter/locators/services/condaService';
 import { isPythonVersionInProcess } from '../common';
 import { closeActiveWindows, initialize, initializeTest } from '../initialize';
 import { MockProcessService } from '../mocks/proc';
@@ -97,6 +102,8 @@ suite('Formatting - General', () => {
 
         // Mocks.
         ioc.registerMockProcessTypes();
+        ioc.serviceManager.addSingletonInstance<ITerminalHelper>(ITerminalHelper, instance(mock(TerminalHelper)));
+        ioc.serviceManager.addSingletonInstance<ICondaService>(ICondaService, instance(mock(CondaService)));
     }
 
     async function injectFormatOutput(outputFileName: string) {

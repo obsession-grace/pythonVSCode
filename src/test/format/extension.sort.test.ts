@@ -3,8 +3,11 @@ import { expect } from 'chai';
 import * as fs from 'fs';
 import { EOL } from 'os';
 import * as path from 'path';
+import { instance, mock } from 'ts-mockito';
 import { commands, ConfigurationTarget, Position, Range, Uri, window, workspace } from 'vscode';
 import { Commands } from '../../client/common/constants';
+import { ICondaService } from '../../client/interpreter/contracts';
+import { CondaService } from '../../client/interpreter/locators/services/condaService';
 import { SortImportsEditingProvider } from '../../client/providers/importSortProvider';
 import { ISortImportsEditingProvider } from '../../client/providers/types';
 import { updateSetting } from '../common';
@@ -51,6 +54,7 @@ suite('Sorting', () => {
         ioc.registerCommonTypes();
         ioc.registerVariableTypes();
         ioc.registerProcessTypes();
+        ioc.serviceManager.addSingletonInstance<ICondaService>(ICondaService, instance(mock(CondaService)));
     }
     test('Without Config', async () => {
         const textDocument = await workspace.openTextDocument(fileToFormatWithoutConfig);

@@ -3,8 +3,11 @@
 import * as assert from 'assert';
 import * as fs from 'fs-extra';
 import * as path from 'path';
+import { instance, mock } from 'ts-mockito';
 import { commands, Position, Range, Selection, TextEditorCursorStyle, TextEditorLineNumbersStyle, TextEditorOptions, Uri, window, workspace } from 'vscode';
 import { getTextEditsFromPatch } from '../../client/common/editor';
+import { ICondaService } from '../../client/interpreter/contracts';
+import { CondaService } from '../../client/interpreter/locators/services/condaService';
 import { extractMethod } from '../../client/providers/simpleRefactorProvider';
 import { RefactorProxy } from '../../client/refactor/proxy';
 import { getExtensionSettings } from '../common';
@@ -50,6 +53,7 @@ suite('Method Extraction', () => {
         ioc.registerCommonTypes();
         ioc.registerProcessTypes();
         ioc.registerVariableTypes();
+        ioc.serviceManager.addSingletonInstance<ICondaService>(ICondaService, instance(mock(CondaService)));
     }
 
     async function testingMethodExtraction(shouldError: boolean, startPos: Position, endPos: Position): Promise<void> {
