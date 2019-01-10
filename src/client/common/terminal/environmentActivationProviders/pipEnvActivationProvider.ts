@@ -18,7 +18,7 @@ export class PipEnvActivationCommandProvider implements ITerminalActivationComma
 
     public async getActivationCommands(resource: Uri | undefined, _: TerminalShellType): Promise<string[] | undefined> {
         const interpreter = await this.interpreterService.getActiveInterpreter(resource);
-        if (!interpreter || interpreter.type !== InterpreterType.PipEnv) {
+        if (!interpreter || interpreter.type !== InterpreterType.Pipenv) {
             return;
         }
 

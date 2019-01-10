@@ -35,7 +35,7 @@ suite('Terminals Activation - Pipenv', () => {
             });
             test('No commands for an interpreter that is not Pipenv', async () => {
                 const nonPipInterpreterTypes = getNamesAndValues<InterpreterType>(InterpreterType)
-                    .filter(t => t.value !== InterpreterType.PipEnv);
+                    .filter(t => t.value !== InterpreterType.Pipenv);
                 for (const interpreterType of nonPipInterpreterTypes) {
                     when(interpreterService.getActiveInterpreter(resource)).thenResolve({ type: interpreterType } as any);
 
@@ -47,7 +47,7 @@ suite('Terminals Activation - Pipenv', () => {
                 }
             });
             test('pipenv shell is returned for pipenv interpeter', async () => {
-                when(interpreterService.getActiveInterpreter(resource)).thenResolve({ type: InterpreterType.PipEnv } as any);
+                when(interpreterService.getActiveInterpreter(resource)).thenResolve({ type: InterpreterType.Pipenv } as any);
 
                 for (const shell of getNamesAndValues<TerminalShellType>(TerminalShellType)) {
                     const cmd = await activationProvider.getActivationCommands(resource, shell.value);
