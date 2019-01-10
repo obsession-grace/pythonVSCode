@@ -4,10 +4,13 @@
 import * as assert from 'assert';
 import * as fs from 'fs';
 import * as path from 'path';
+import { instance, mock } from 'ts-mockito';
 import * as vscode from 'vscode';
 import { EXTENSION_ROOT_DIR } from '../../../client/common/constants';
 import { IFileSystem } from '../../../client/common/platform/types';
 import { IProcessServiceFactory } from '../../../client/common/process/types';
+import { ICondaService } from '../../../client/interpreter/contracts';
+import { CondaService } from '../../../client/interpreter/locators/services/condaService';
 import { CommandSource } from '../../../client/unittests/common/constants';
 import { UnitTestDiagnosticService } from '../../../client/unittests/common/services/unitTestDiagnosticService';
 import { FlattenedTestFunction, ITestManager, ITestManagerFactory, Tests, TestStatus, TestsToRun } from '../../../client/unittests/common/types';
@@ -308,6 +311,7 @@ suite('Unit Tests - pytest - run with mocked process output', () => {
         ioc.registerVariableTypes();
         // Mocks.
         ioc.registerMockProcessTypes();
+        ioc.serviceManager.addSingletonInstance<ICondaService>(ICondaService, instance(mock(CondaService)));
     }
 
     async function injectTestDiscoveryOutput(outputFileName: string) {

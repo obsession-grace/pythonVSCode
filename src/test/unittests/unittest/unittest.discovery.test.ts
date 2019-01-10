@@ -5,9 +5,12 @@ import * as assert from 'assert';
 import * as fs from 'fs-extra';
 import { EOL } from 'os';
 import * as path from 'path';
+import { instance, mock } from 'ts-mockito';
 import { ConfigurationTarget } from 'vscode';
 import { EXTENSION_ROOT_DIR } from '../../../client/common/constants';
 import { IProcessServiceFactory } from '../../../client/common/process/types';
+import { ICondaService } from '../../../client/interpreter/contracts';
+import { CondaService } from '../../../client/interpreter/locators/services/condaService';
 import { CommandSource } from '../../../client/unittests/common/constants';
 import { ITestManagerFactory } from '../../../client/unittests/common/types';
 import { rootWorkspaceUri, updateSetting } from '../../common';
@@ -58,6 +61,7 @@ suite('Unit Tests - unittest - discovery with mocked process output', () => {
 
         // Mocks.
         ioc.registerMockProcessTypes();
+        ioc.serviceManager.addSingletonInstance<ICondaService>(ICondaService, instance(mock(CondaService)));
     }
 
     async function injectTestDiscoveryOutput(output: string) {

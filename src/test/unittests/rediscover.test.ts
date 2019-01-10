@@ -1,7 +1,10 @@
 import { assert } from 'chai';
 import * as fs from 'fs-extra';
 import * as path from 'path';
+import { instance, mock } from 'ts-mockito';
 import { ConfigurationTarget } from 'vscode';
+import { ICondaService } from '../../client/interpreter/contracts';
+import { CondaService } from '../../client/interpreter/locators/services/condaService';
 import { CommandSource } from '../../client/unittests/common/constants';
 import { ITestManagerFactory, TestProvider } from '../../client/unittests/common/types';
 import { deleteDirectory, deleteFile, rootWorkspaceUri, updateSetting } from '../common';
@@ -53,6 +56,7 @@ suite('Unit Tests re-discovery', () => {
         ioc.registerProcessTypes();
         ioc.registerVariableTypes();
         ioc.registerUnitTestTypes();
+        ioc.serviceManager.addSingletonInstance<ICondaService>(ICondaService, instance(mock(CondaService)));
     }
 
     async function discoverUnitTests(testProvider: TestProvider) {
