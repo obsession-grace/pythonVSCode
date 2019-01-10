@@ -49,7 +49,7 @@ suite('Refactor Rename', () => {
         serviceContainer
             .setup(s => s.get(typeMoq.It.isValue(IPythonExecutionFactory), typeMoq.It.isAny()))
             .returns(() => new PythonExecutionFactory(serviceContainer.object,
-                undefined as any, undefined as any,
+                undefined as any, processServiceFactory.object,
                 configService.object, undefined as any));
         await initializeTest();
     });
