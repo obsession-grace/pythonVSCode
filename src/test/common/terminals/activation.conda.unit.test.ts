@@ -291,10 +291,8 @@ suite('Terminal Environment Activation conda', () => {
         condaService.setup(c => c.isCondaEnvironment(TypeMoq.It.isAny())).returns(() => Promise.resolve(false));
         pythonSettings.setup(s => s.pythonPath).returns(() => pythonPath);
 
-        const mockProvider = TypeMoq.Mock.ofType<ITerminalActivationCommandProvider>();
-        serviceContainer.setup(c => c.getAll(TypeMoq.It.isValue(ITerminalActivationCommandProvider), TypeMoq.It.isAny())).returns(() => [mockProvider.object]);
-        mockProvider.setup(p => p.isShellSupported(TypeMoq.It.isAny())).returns(() => true);
-        mockProvider.setup(p => p.getActivationCommands(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(() => Promise.resolve(['mock command']));
+        when(bash.isShellSupported(anything())).thenReturn(true);
+        when(bash.getActivationCommands(anything(), TerminalShellType.bash)).thenResolve(['mock command']);
 
         const expectedActivationCommand = ['mock command'];
         const activationCommands = await terminalHelper.getEnvironmentActivationCommands(TerminalShellType.bash, undefined);
