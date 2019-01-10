@@ -55,7 +55,7 @@ suite('Terminal Service helpers', () => {
         pythonSettings = mock(PythonSettings);
 
         helper = new TerminalHelper(instance(platformService), instance(terminalManager),
-            instance(workspaceService), instance(platformService),
+            instance(workspaceService),
             instance(condaService), instance(configurationService),
             instance(condaActivationProvider),
             instance(bashActivationProvider),

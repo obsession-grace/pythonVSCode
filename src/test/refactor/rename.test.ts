@@ -44,7 +44,8 @@ suite('Refactor Rename', () => {
         serviceContainer.setup(s => s.get(typeMoq.It.isValue(IProcessServiceFactory), typeMoq.It.isAny())).returns(() => processServiceFactory.object);
         serviceContainer
             .setup(s => s.get(typeMoq.It.isValue(IPythonExecutionFactory), typeMoq.It.isAny()))
-            .returns(() => new PythonExecutionFactory(serviceContainer.object, undefined as any, undefined as any));
+            .returns(() => new PythonExecutionFactory(serviceContainer.object, undefined as any, undefined as any,
+                undefined as any, undefined as any));
         await initializeTest();
     });
     teardown(closeActiveWindows);
