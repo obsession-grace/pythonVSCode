@@ -9,7 +9,8 @@ import { instance, mock } from 'ts-mockito';
 import { ConfigurationTarget } from 'vscode';
 import { EXTENSION_ROOT_DIR } from '../../../client/common/constants';
 import { IProcessServiceFactory } from '../../../client/common/process/types';
-import { ICondaService } from '../../../client/interpreter/contracts';
+import { ICondaService, IInterpreterService } from '../../../client/interpreter/contracts';
+import { InterpreterService } from '../../../client/interpreter/interpreterService';
 import { CondaService } from '../../../client/interpreter/locators/services/condaService';
 import { CommandSource } from '../../../client/unittests/common/constants';
 import { ITestManagerFactory } from '../../../client/unittests/common/types';
@@ -62,6 +63,7 @@ suite('Unit Tests - unittest - discovery with mocked process output', () => {
         // Mocks.
         ioc.registerMockProcessTypes();
         ioc.serviceManager.addSingletonInstance<ICondaService>(ICondaService, instance(mock(CondaService)));
+        ioc.serviceManager.addSingletonInstance<IInterpreterService>(IInterpreterService, instance(mock(InterpreterService)));
     }
 
     async function injectTestDiscoveryOutput(output: string) {
