@@ -8,6 +8,7 @@ import { EOL } from 'os';
 import * as path from 'path';
 import { anything, instance, mock, when } from 'ts-mockito';
 import { ConfigurationTarget, Disposable, Uri, workspace } from 'vscode';
+import { WorkspaceService } from '../../../client/common/application/workspace';
 import { ConfigurationService } from '../../../client/common/configuration/service';
 import { IS_WINDOWS, NON_WINDOWS_PATH_VARIABLE_NAME, WINDOWS_PATH_VARIABLE_NAME } from '../../../client/common/platform/constants';
 import { PlatformService } from '../../../client/common/platform/platformService';
@@ -73,7 +74,9 @@ suite('Multiroot Environment Variables Provider', () => {
         const disposables = ioc.serviceContainer.get<Disposable[]>(IDisposableRegistry);
         ioc.serviceManager.addSingletonInstance(IInterpreterAutoSelectionService, new MockAutoSelectionService());
         const cfgService = new ConfigurationService(ioc.serviceContainer);
-        return new EnvironmentVariablesProvider(variablesService, disposables, new PlatformService(), cfgService, mockProcess);
+        const workspaceService = new WorkspaceService();
+        return new EnvironmentVariablesProvider(variablesService, disposables,
+            new PlatformService(), workspaceService, cfgService, mockProcess);
     }
 
     test('Custom variables should not be undefined without an env file', async () => {
