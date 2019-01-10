@@ -3,8 +3,12 @@
 import * as assert from 'assert';
 import * as fs from 'fs-extra';
 import * as path from 'path';
+import { instance, mock } from 'ts-mockito';
 import { ConfigurationTarget } from 'vscode';
 import { EXTENSION_ROOT_DIR } from '../../../client/common/constants';
+import { ICondaService, IInterpreterService } from '../../../client/interpreter/contracts';
+import { InterpreterService } from '../../../client/interpreter/interpreterService';
+import { CondaService } from '../../../client/interpreter/locators/services/condaService';
 import { CommandSource } from '../../../client/unittests/common/constants';
 import {
     ITestManagerFactory, TestFile,
@@ -62,6 +66,8 @@ suite('Unit Tests - unittest - discovery against actual python process', () => {
         ioc.registerVariableTypes();
         ioc.registerUnitTestTypes();
         ioc.registerProcessTypes();
+        ioc.serviceManager.addSingletonInstance<ICondaService>(ICondaService, instance(mock(CondaService)));
+        ioc.serviceManager.addSingletonInstance<IInterpreterService>(IInterpreterService, instance(mock(InterpreterService)));
     }
 
     test('Discover Tests (single test file)', async () => {
