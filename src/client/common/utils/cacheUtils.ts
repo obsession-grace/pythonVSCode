@@ -27,9 +27,13 @@ const resourceSpecificCacheStores = new Map<string, Map<string, CacheData>>();
  * @returns
  */
 function getCacheKey(resource: Resource, vscode: VSCodeType = require('vscode')) {
-    const globalPythonPath = vscode.workspace.getConfiguration('python', null as any).get<string>('pythonPath') || 'python';
+    const section = vscode.workspace.getConfiguration('python', vscode.Uri.file(__filename));
+    if (!section) {
+        return 'python';
+    }
+    const globalPythonPath = section.inspect<string>('pythonPath')!.globalValue || 'python';
     // Get the workspace related to this resource.
-    if (!Array.isArray(vscode.workspace.workspaceFolders) || vscode.workspace.workspaceFolders.length === 0) {
+    if (!resource || !Array.isArray(vscode.workspace.workspaceFolders) || vscode.workspace.workspaceFolders.length === 0) {
         return globalPythonPath;
     }
     const folder = resource ? vscode.workspace.getWorkspaceFolder(resource) : vscode.workspace.workspaceFolders[0];
