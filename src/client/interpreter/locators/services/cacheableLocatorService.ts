@@ -50,7 +50,7 @@ export abstract class CacheableLocatorService implements IInterpreterLocatorServ
             const promise = this.getInterpretersImplementation(resource)
                 .then(async items => {
                     await this.cacheInterpreters(items, resource);
-                    traceVerbose(`Interpreters returned by ${this.name} are of count ${items.length}`);
+                    traceVerbose(`Interpreters returned by ${this.name} are of count ${Array.isArray(items) ? items.length : 0}`);
                     deferred!.resolve(items);
                 })
                 .catch(ex => deferred!.reject(ex));
