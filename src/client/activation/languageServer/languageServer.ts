@@ -6,8 +6,8 @@
 import { inject, injectable } from 'inversify';
 import * as path from 'path';
 import {
-    CancellationToken, CompletionContext, OutputChannel, Position,
-    TextDocument, Uri
+    CancellationToken, CompletionContext, ConfigurationChangeEvent, OutputChannel,
+    Position, TextDocument, Uri
 } from 'vscode';
 import {
     Disposable, LanguageClient, LanguageClientOptions,
@@ -16,8 +16,6 @@ import {
 import {
     IApplicationShell, ICommandManager, IWorkspaceService
 } from '../../common/application/types';
-import { PythonSettings } from '../../common/configSettings';
-// tslint:disable-next-line:ordered-imports
 import { isTestExecution, STANDARD_OUTPUT_CHANNEL } from '../../common/constants';
 import { Logger } from '../../common/logger';
 import { IFileSystem, IPlatformService } from '../../common/platform/types';
@@ -27,8 +25,10 @@ import {
     IOutputChannel, IPathUtils, IPythonExtensionBanner, IPythonSettings
 } from '../../common/types';
 import { createDeferred, Deferred } from '../../common/utils/async';
+import { debounce } from '../../common/utils/decorators';
 import { StopWatch } from '../../common/utils/stopWatch';
 import { IEnvironmentVariablesProvider } from '../../common/variables/types';
+import { IInterpreterService } from '../../interpreter/contracts';
 import { IServiceContainer } from '../../ioc/types';
 import { LanguageServerSymbolProvider } from '../../providers/symbolProvider';
 import { sendTelemetryEvent } from '../../telemetry';
@@ -111,8 +111,12 @@ export class LanguageServerExtensionActivator implements IExtensionActivator {
         deprecationManager.registerDeprecation(buildSymbolsCmdDeprecatedInfo);
 
         this.surveyBanner = services.get<IPythonExtensionBanner>(IPythonExtensionBanner, BANNER_NAME_LS_SURVEY);
+        let disposable = this.workspace.onDidChangeConfiguration(this.onSettingsChangedHandler, this);
+        this.disposables.push(disposable);
 
-        (this.configuration.getSettings() as PythonSettings).addListener('change', this.onSettingsChanged.bind(this));
+        const interpreterService = services.get<IInterpreterService>(IInterpreterService);
+        disposable = interpreterService.onDidChangeInterpreter(() => this.onSettingsChangedHandler(), this);
+        this.disposables.push(disposable);
     }
 
     public async activate(): Promise<boolean> {
@@ -141,7 +145,6 @@ export class LanguageServerExtensionActivator implements IExtensionActivator {
         for (const d of this.disposables) {
             d.dispose();
         }
-        (this.configuration.getSettings() as PythonSettings).removeListener('change', this.onSettingsChanged.bind(this));
     }
 
     private async startLanguageServer(clientOptions: LanguageClientOptions): Promise<boolean> {
@@ -339,7 +342,13 @@ export class LanguageServerExtensionActivator implements IExtensionActivator {
             ? settings.analysis.typeshedPaths
             : [path.join(this.context.extensionPath, this.languageServerFolder, 'Typeshed')];
     }
-
+    @debounce(1000)
+    private async onSettingsChangedHandler(e?: ConfigurationChangeEvent): Promise<void> {
+        if (e && !e.affectsConfiguration('python', this.root)) {
+            return;
+        }
+        this.onSettingsChanged();
+    }
     private async onSettingsChanged(): Promise<void> {
         const ids = new InterpreterDataService(this.context, this.services);
         const idata = await ids.getInterpreterData();
