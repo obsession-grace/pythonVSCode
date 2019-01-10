@@ -15,6 +15,8 @@ import { cacheResourceSpecificInterpreterData, clearCachedResourceSpecificIngter
 import { OSType } from '../../common/utils/platform';
 import { IEnvironmentVariablesProvider } from '../../common/variables/types';
 import { EXTENSION_ROOT_DIR } from '../../constants';
+import { captureTelemetry } from '../../telemetry';
+import { PYTHON_INTERPRETER_ACTIVATION_ENVIRONMENT_VARIABLES } from '../../telemetry/constants';
 import { IEnvironmentActivationService } from './types';
 
 const getEnvironmentPrefix = 'e8b39361-0157-4923-80e1-22d70d46dee6';
@@ -45,6 +47,7 @@ export class EnvironmentActivationService implements IEnvironmentActivationServi
     }
     @traceDecorators.verbose('getActivatedEnvironmentVariables', LogOptions.Arguments)
     @swallowExceptions('getActivatedEnvironmentVariables')
+    @captureTelemetry(PYTHON_INTERPRETER_ACTIVATION_ENVIRONMENT_VARIABLES, { failed: false }, true)
     @cacheResourceSpecificInterpreterData('ActivatedEnvironmentVariables', cacheDuration)
     public async getActivatedEnvironmentVariables(resource: Resource): Promise<NodeJS.ProcessEnv | undefined> {
         const shell = defaultShells[this.platform.osType];

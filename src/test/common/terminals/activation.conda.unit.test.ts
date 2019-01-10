@@ -35,6 +35,7 @@ import {
 } from '../../../client/common/types';
 import { getNamesAndValues } from '../../../client/common/utils/enum';
 import { ICondaService } from '../../../client/interpreter/contracts';
+import { InterpreterService } from '../../../client/interpreter/interpreterService';
 import { IServiceContainer } from '../../../client/ioc/types';
 
 suite('Terminal Environment Activation conda', () => {
@@ -83,7 +84,9 @@ suite('Terminal Environment Activation conda', () => {
 
         terminalHelper = new TerminalHelper(platformService.object,
             instance(mock(TerminalManager)), instance(mock(WorkspaceService)),
-            condaService.object, configService.object,
+            condaService.object,
+            instance(mock(InterpreterService)),
+            configService.object,
             new CondaActivationCommandProvider(serviceContainer.object),
             instance(bash),
             mock(CommandPromptAndPowerShell),

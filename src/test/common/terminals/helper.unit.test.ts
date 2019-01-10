@@ -23,6 +23,7 @@ import { IConfigurationService } from '../../../client/common/types';
 import { getNamesAndValues } from '../../../client/common/utils/enum';
 import { OSType } from '../../../client/common/utils/platform';
 import { ICondaService } from '../../../client/interpreter/contracts';
+import { InterpreterService } from '../../../client/interpreter/interpreterService';
 import { CondaService } from '../../../client/interpreter/locators/services/condaService';
 
 // tslint:disable:max-func-body-length no-any
@@ -56,7 +57,9 @@ suite('Terminal Service helpers', () => {
 
         helper = new TerminalHelper(instance(platformService), instance(terminalManager),
             instance(workspaceService),
-            instance(condaService), instance(configurationService),
+            instance(condaService),
+            instance(mock(InterpreterService)),
+            instance(configurationService),
             instance(condaActivationProvider),
             instance(bashActivationProvider),
             instance(cmdActivationProvider),

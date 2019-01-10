@@ -3,9 +3,12 @@
 
 import { inject, injectable, named } from 'inversify';
 import { Terminal, Uri } from 'vscode';
-import { ICondaService } from '../../interpreter/contracts';
+import { ICondaService, IInterpreterService, InterpreterType } from '../../interpreter/contracts';
+import { sendTelemetryEvent } from '../../telemetry';
+import { PYTHON_INTERPRETER_ACTIVATION_FOR_RUNNING_CODE, PYTHON_INTERPRETER_ACTIVATION_FOR_TERMINAL } from '../../telemetry/constants';
 import { ITerminalManager, IWorkspaceService } from '../application/types';
 import '../extensions';
+import { traceError } from '../logger';
 import { IPlatformService } from '../platform/types';
 import { IConfigurationService, Resource } from '../types';
 import { OSType } from '../utils/platform';
@@ -39,6 +42,7 @@ export class TerminalHelper implements ITerminalHelper {
         @inject(ITerminalManager) private readonly terminalManager: ITerminalManager,
         @inject(IWorkspaceService) private readonly workspace: IWorkspaceService,
         @inject(ICondaService) private readonly condaService: ICondaService,
+        @inject(IInterpreterService) private readonly interpreterService: IInterpreterService,
         @inject(IConfigurationService) private readonly configurationService: IConfigurationService,
         @inject(ITerminalActivationCommandProvider) @named(TerminalActivationProviders.conda) private readonly conda: ITerminalActivationCommandProvider,
         @inject(ITerminalActivationCommandProvider) @named(TerminalActivationProviders.bashCShellFish) private readonly bashCShellFish: ITerminalActivationCommandProvider,
@@ -101,7 +105,9 @@ export class TerminalHelper implements ITerminalHelper {
     }
     public async getEnvironmentActivationCommands(terminalShellType: TerminalShellType, resource?: Uri): Promise<string[] | undefined> {
         const providers = [this.bashCShellFish, this.commandPromptAndPowerShell, this.pyenv, this.pipenv];
-        return this.getActivationCommands(resource || undefined, terminalShellType, providers);
+        const promise = this.getActivationCommands(resource || undefined, terminalShellType, providers);
+        this.sendTelemetry(resource, terminalShellType, PYTHON_INTERPRETER_ACTIVATION_FOR_TERMINAL, promise).ignoreErrors();
+        return promise;
     }
     public async getEnvironmentActivationShellCommands(resource: Resource): Promise<string[] | undefined> {
         const shell = defaultOSShells[this.platform.osType];
@@ -109,7 +115,26 @@ export class TerminalHelper implements ITerminalHelper {
             return;
         }
         const providers = [this.bashCShellFish, this.commandPromptAndPowerShell];
-        return this.getActivationCommands(resource, shell, providers);
+        const promise = this.getActivationCommands(resource, shell, providers);
+        this.sendTelemetry(resource, shell, PYTHON_INTERPRETER_ACTIVATION_FOR_RUNNING_CODE, promise).ignoreErrors();
+        return promise;
+    }
+    protected async sendTelemetry(resource: Resource, terminalShellType: TerminalShellType, eventName: string, promise: Promise<string[] | undefined>): Promise<void> {
+        let hasCommands = false;
+        const interpreter = await this.interpreterService.getActiveInterpreter(resource);
+        let failed = false;
+        try {
+            const cmds = await promise;
+            hasCommands = Array.isArray(cmds) && cmds.length > 0;
+        } catch (ex) {
+            failed = true;
+            traceError('Failed to get activation commands', ex);
+        }
+
+        const pythonVersion = (interpreter && interpreter.version) ? interpreter.version.raw : undefined;
+        const interpreterType = interpreter ? interpreter.type : InterpreterType.Unknown;
+        const data = { failed, hasCommands, interpreterType, terminal: terminalShellType, pythonVersion };
+        sendTelemetryEvent(eventName, undefined, data);
     }
     protected async getActivationCommands(resource: Resource, terminalShellType: TerminalShellType, providers: ITerminalActivationCommandProvider[]): Promise<string[] | undefined> {
         const settings = this.configurationService.getSettings(resource);
