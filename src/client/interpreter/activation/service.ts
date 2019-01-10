@@ -11,7 +11,7 @@ import { IPlatformService } from '../../common/platform/types';
 import { IProcessServiceFactory } from '../../common/process/types';
 import { ITerminalHelper } from '../../common/terminal/types';
 import { ICurrentProcess, IDisposable, Resource } from '../../common/types';
-import { cacheResourceSpecificIngterpreterData, clearCachedResourceSpecificIngterpreterData, swallowExceptions } from '../../common/utils/decorators';
+import { cacheResourceSpecificInterpreterData, clearCachedResourceSpecificIngterpreterData, swallowExceptions } from '../../common/utils/decorators';
 import { OSType } from '../../common/utils/platform';
 import { IEnvironmentVariablesProvider } from '../../common/variables/types';
 import { EXTENSION_ROOT_DIR } from '../../constants';
@@ -45,7 +45,7 @@ export class EnvironmentActivationService implements IEnvironmentActivationServi
     }
     @traceDecorators.verbose('getActivatedEnvironmentVariables', LogOptions.Arguments)
     @swallowExceptions('getActivatedEnvironmentVariables')
-    @cacheResourceSpecificIngterpreterData('ActivatedEnvironmentVariables', cacheDuration)
+    @cacheResourceSpecificInterpreterData('ActivatedEnvironmentVariables', cacheDuration)
     public async getActivatedEnvironmentVariables(resource: Resource): Promise<NodeJS.ProcessEnv | undefined> {
         const shell = defaultShells[this.platform.osType];
         if (!shell) {

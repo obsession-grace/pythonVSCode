@@ -5,7 +5,7 @@ import { inject, injectable } from 'inversify';
 import { Disposable, Event, EventEmitter, FileSystemWatcher, Uri, workspace } from 'vscode';
 import { IPlatformService } from '../platform/types';
 import { IConfigurationService, ICurrentProcess, IDisposableRegistry } from '../types';
-import { cacheResourceSpecificIngterpreterData, clearCachedResourceSpecificIngterpreterData } from '../utils/decorators';
+import { cacheResourceSpecificInterpreterData, clearCachedResourceSpecificIngterpreterData } from '../utils/decorators';
 import { EnvironmentVariables, IEnvironmentVariablesProvider, IEnvironmentVariablesService } from './types';
 
 const cacheDuration = 60 * 60 * 1000;
@@ -33,7 +33,7 @@ export class EnvironmentVariablesProvider implements IEnvironmentVariablesProvid
             watcher.dispose();
         });
     }
-    @cacheResourceSpecificIngterpreterData('getEnvironmentVariables', cacheDuration)
+    @cacheResourceSpecificInterpreterData('getEnvironmentVariables', cacheDuration)
     public async getEnvironmentVariables(resource?: Uri): Promise<EnvironmentVariables> {
         const settings = this.configurationService.getSettings(resource);
         const workspaceFolderUri = this.getWorkspaceFolderUri(resource);

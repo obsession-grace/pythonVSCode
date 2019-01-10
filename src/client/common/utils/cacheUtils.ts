@@ -14,7 +14,6 @@ type CacheData = {
     value: unknown;
     expiry: number;
 };
-// const simpleCache = new Map<string, CacheData>();
 const resourceSpecificCacheStores = new Map<string, Map<string, CacheData>>();
 
 /**

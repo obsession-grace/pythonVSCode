@@ -34,7 +34,7 @@ export function clearCachedResourceSpecificIngterpreterData(key: string, resourc
     const cache = new InMemoryInterpreterSpecificCache(key, 0, [resource], vscode);
     cache.clear();
 }
-export function cacheResourceSpecificIngterpreterData(key: string, expiryDurationMs: number, vscode: VSCodeType = require('vscode')) {
+export function cacheResourceSpecificInterpreterData(key: string, expiryDurationMs: number, vscode: VSCodeType = require('vscode')) {
     return function (_target: Object, _propertyName: string, descriptor: TypedPropertyDescriptor<PromiseFunctionWithFirstArgOfResource>) {
         const originalMethod = descriptor.value!;
         descriptor.value = async function (...args: [Uri | undefined, ...any[]]) {

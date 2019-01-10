@@ -7,7 +7,7 @@ import { expect } from 'chai';
 import { Uri } from 'vscode';
 import { Resource } from '../../../client/common/types';
 import { clearCache } from '../../../client/common/utils/cacheUtils';
-import { cacheResourceSpecificIngterpreterData } from '../../../client/common/utils/decorators';
+import { cacheResourceSpecificInterpreterData } from '../../../client/common/utils/decorators';
 import { sleep } from '../../core';
 
 // tslint:disable:no-any max-func-body-length no-unnecessary-class
@@ -39,7 +39,7 @@ suite('Common Utils - Decorators', () => {
         const vsc = createMockVSC('');
         class TestClass {
             public invoked = false;
-            @cacheResourceSpecificIngterpreterData('Something', 100000, vsc)
+            @cacheResourceSpecificInterpreterData('Something', 100000, vsc)
             public async doSomething(_resource: Resource, a: number, b: number): Promise<number> {
                 this.invoked = true;
                 return a + b;
@@ -70,7 +70,7 @@ suite('Common Utils - Decorators', () => {
         const vsc = createMockVSC('');
         class TestClass {
             public invoked = false;
-            @cacheResourceSpecificIngterpreterData('Something', 100, vsc)
+            @cacheResourceSpecificInterpreterData('Something', 100, vsc)
             public async doSomething(_resource: Resource, a: number, b: number): Promise<number> {
                 this.invoked = true;
                 return a + b;
