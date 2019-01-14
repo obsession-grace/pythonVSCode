@@ -29,7 +29,7 @@ function isTelemetrySupported(): boolean {
 }
 let telemetryReporter: TelemetryReporter;
 function getTelemetryReporter() {
-    if (telemetryReporter) {
+    if (!isTestExecution() && telemetryReporter) {
         return telemetryReporter;
     }
     const extensionId = PVSC_EXTENSION_ID;
@@ -67,8 +67,10 @@ export function sendTelemetryEvent(eventName: string, durationMs?: { [key: strin
             (customProperties as any)[prop] = typeof data[prop] === 'string' ? data[prop] : data[prop].toString();
         });
     }
-    if (ex && eventName !== 'ERROR') {
+    if (ex) {
         customProperties.stackTrace = getStackTrace(ex);
+    }
+    if (ex && eventName !== 'ERROR') {
         reporter.sendTelemetryEvent(eventName, properties ? customProperties : undefined, measures);
     }
     reporter.sendTelemetryEvent(eventName, properties ? customProperties : undefined, measures);
@@ -155,6 +157,14 @@ function sanitizeFilename(filename: string): string {
     return filename;
 }
 
+function sanitizeName(name: string): string {
+    if (name.indexOf('/') === -1 && name.indexOf('\\') === -1) {
+        return name;
+    } else {
+        return '<hidden>';
+    }
+}
+
 function getStackTrace(ex: Error): string {
     // We aren't showing the error message (ex.message) since it might
     // contain PII.
@@ -186,5 +196,5 @@ function getCallsite(frame: stackTrace.StackFrame) {
             parts.push(frame.getFunctionName());
         }
     }
-    return parts.join('.');
+    return parts.map(sanitizeName).join('.');
 }

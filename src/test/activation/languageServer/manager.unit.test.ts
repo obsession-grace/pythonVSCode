@@ -26,7 +26,7 @@ use(chaiAsPromised);
 
 const loadExtensionCommand = 'python._loadLanguageServerExtension';
 
-suite('xLanguage Server - Manager', () => {
+suite('Language Server - Manager', () => {
     class LanguageServerManagerTest extends LanguageServerManager {
         public static initializeExtensionArgs(args: {}) {
             LanguageServerManager.loadExtensionArgs = args;
