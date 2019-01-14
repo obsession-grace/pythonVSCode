@@ -73,7 +73,7 @@ suite('Activation - ActivationService', () => {
 
             async function testActivation(activationService: IExtensionActivationService, activator: TypeMoq.IMock<IExtensionActivator>, lsSupported: boolean = true) {
                 activator
-                    .setup(a => a.activate()).returns(() => Promise.resolve(true))
+                    .setup(a => a.activate()).returns(() => Promise.resolve())
                     .verifiable(TypeMoq.Times.once());
                 let activatorName = ExtensionActivators.Jedi;
                 if (lsSupported && !jediIsEnabled) {
@@ -132,7 +132,7 @@ suite('Activation - ActivationService', () => {
                 await testActivation(activationService, activator);
 
                 activator
-                    .setup(a => a.deactivate()).returns(() => Promise.resolve())
+                    .setup(a => a.dispose()).returns(() => Promise.resolve())
                     .verifiable(TypeMoq.Times.once());
 
                 activationService.dispose();

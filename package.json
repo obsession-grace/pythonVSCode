@@ -1963,6 +1963,7 @@
         "relative": "^3.0.2",
         "remap-istanbul": "^0.10.1",
         "retyped-diff-match-patch-tsd-ambient": "^1.0.0-0",
+        "rewiremock": "^3.13.0",
         "shortid": "^2.2.8",
         "source-map-support": "^0.5.9",
         "style-loader": "^0.23.1",

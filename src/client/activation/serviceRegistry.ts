@@ -12,7 +12,7 @@ import { ProposeLanguageServerBanner } from '../languageServices/proposeLanguage
 import { ExtensionActivationService } from './activationService';
 import { DownloadBetaChannelRule, DownloadDailyChannelRule, DownloadStableChannelRule } from './downloadChannelRules';
 import { JediExtensionActivator } from './jedi';
-import { LanguageServerExtensionActivator } from './languageServer/languageServer';
+import { LanguageServerExtensionActivator } from './languageServer/activator';
 import { LanguageServerCompatibilityService } from './languageServer/languageServerCompatibilityService';
 import { LanguageServerFolderService } from './languageServer/languageServerFolderService';
 import { BetaLanguageServerPackageRepository, DailyLanguageServerPackageRepository, LanguageServerDownloadChannel, StableLanguageServerPackageRepository } from './languageServer/languageServerPackageRepository';

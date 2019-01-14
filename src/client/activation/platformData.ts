@@ -1,13 +1,8 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-import { IFileSystem, IPlatformService } from '../common/platform/types';
-import {
-    language_server_linux_x64_sha512,
-    language_server_osx_x64_sha512,
-    language_server_win_x64_sha512,
-    language_server_win_x86_sha512
-} from './languageServer/languageServerHashes';
+import { inject, injectable } from 'inversify';
+import { IPlatformService } from '../common/platform/types';
 
 export enum PlatformName {
     Windows32Bit = 'win-x86',
@@ -22,9 +17,16 @@ export enum PlatformLSExecutables {
     Linux = 'Microsoft.Python.LanguageServer'
 }
 
-export class PlatformData {
-    constructor(private platform: IPlatformService, fs: IFileSystem) { }
-    public getPlatformName(): PlatformName {
+export const IPlatformData = Symbol('IPlatformData');
+export interface IPlatformData {
+    readonly platformName: PlatformName;
+    readonly engineDllName: string;
+    readonly engineExecutableName: string;
+}
+@injectable()
+export class PlatformData implements IPlatformData {
+    constructor(@inject(IPlatformService) private readonly platform: IPlatformService) { }
+    public get platformName(): PlatformName {
         if (this.platform.isWindows) {
             return this.platform.is64bit ? PlatformName.Windows64Bit : PlatformName.Windows32Bit;
         }
@@ -40,11 +42,11 @@ export class PlatformData {
         throw new Error('Unknown OS platform.');
     }
 
-    public getEngineDllName(): string {
+    public get engineDllName(): string {
         return 'Microsoft.Python.LanguageServer.dll';
     }
 
-    public getEngineExecutableName(): string {
+    public get engineExecutableName(): string {
         if (this.platform.isWindows) {
             return PlatformLSExecutables.Windows;
         } else if (this.platform.isLinux) {
@@ -54,18 +56,5 @@ export class PlatformData {
         } else {
             return 'unknown-platform';
         }
-    }
-
-    public async getExpectedHash(): Promise<string> {
-        if (this.platform.isWindows) {
-            return this.platform.is64bit ? language_server_win_x64_sha512 : language_server_win_x86_sha512;
-        }
-        if (this.platform.isMac) {
-            return language_server_osx_x64_sha512;
-        }
-        if (this.platform.isLinux && this.platform.is64bit) {
-            return language_server_linux_x64_sha512;
-        }
-        throw new Error('Unknown platform.');
     }
 }
