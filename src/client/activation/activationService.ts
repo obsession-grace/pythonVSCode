@@ -58,7 +58,7 @@ export class ExtensionActivationService implements IExtensionActivationService, 
         if (!jedi) {
             const diagnostic = await this.lsNotSupportedDiagnosticService.diagnose();
             this.lsNotSupportedDiagnosticService.handle(diagnostic).ignoreErrors();
-            if (diagnostic.length){
+            if (diagnostic.length) {
                 sendTelemetryEvent(PYTHON_LANGUAGE_SERVER_PLATFORM_NOT_SUPPORTED);
                 jedi = true;
             }
@@ -66,11 +66,25 @@ export class ExtensionActivationService implements IExtensionActivationService, 
 
         await this.logStartup(jedi);
 
-        const activatorName = jedi ? ExtensionActivators.Jedi : ExtensionActivators.DotNet;
-        const activator = this.serviceContainer.get<IExtensionActivator>(IExtensionActivator, activatorName);
+        let activatorName = jedi ? ExtensionActivators.Jedi : ExtensionActivators.DotNet;
+        let activator = this.serviceContainer.get<IExtensionActivator>(IExtensionActivator, activatorName);
         this.currentActivator = { jedi, activator };
 
-        await activator.activate();
+        try {
+            await activator.activate();
+            return;
+        } catch (ex) {
+            if (jedi) {
+                return;
+            }
+            //Language server fails, reverting to jedi
+            jedi = true;
+            await this.logStartup(jedi);
+            activatorName = ExtensionActivators.Jedi;
+            activator = this.serviceContainer.get<IExtensionActivator>(IExtensionActivator, activatorName);
+            this.currentActivator = { jedi, activator };
+            await activator.activate();
+        }
     }
 
     public dispose() {

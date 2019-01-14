@@ -106,3 +106,10 @@ export const IInterpreterDataService = Symbol('InterpreterDataService');
 export interface IInterpreterDataService {
     getInterpreterData(resource: Resource): Promise<InterpreterData | undefined>;
 }
+
+export enum PlatformName {
+    Windows32Bit = 'win-x86',
+    Windows64Bit = 'win-x64',
+    Mac64Bit = 'osx-x64',
+    Linux64Bit = 'linux-x64'
+}

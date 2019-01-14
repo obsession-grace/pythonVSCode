@@ -6,14 +6,17 @@
 import { inject, named } from 'inversify';
 import * as path from 'path';
 import { ProgressLocation, window } from 'vscode';
+import { IApplicationShell } from '../common/application/types';
 import { STANDARD_OUTPUT_CHANNEL } from '../common/constants';
 import { IFileSystem } from '../common/platform/types';
 import { IOutputChannel } from '../common/types';
 import { createDeferred } from '../common/utils/async';
+import { LanguageService } from '../common/utils/localize';
 import { StopWatch } from '../common/utils/stopWatch';
 import { sendTelemetryEvent } from '../telemetry';
 import {
     PYTHON_LANGUAGE_SERVER_DOWNLOADED,
+    PYTHON_LANGUAGE_SERVER_ERROR,
     PYTHON_LANGUAGE_SERVER_EXTRACTED
 } from '../telemetry/constants';
 import { IPlatformData } from './platformData';
@@ -27,6 +30,7 @@ export class LanguageServerDownloader implements ILanguageServerDownloader {
         @inject(IOutputChannel) @named(STANDARD_OUTPUT_CHANNEL) private readonly output: IOutputChannel,
         @inject(IHttpClient) private readonly httpClient: IHttpClient,
         @inject(ILanguageServerFolderService) private readonly lsFolderService: ILanguageServerFolderService,
+        @inject(IApplicationShell) private readonly appShell: IApplicationShell,
         @inject(IFileSystem) private readonly fs: IFileSystem
     ) {
     }
@@ -48,6 +52,8 @@ export class LanguageServerDownloader implements ILanguageServerDownloader {
             this.output.appendLine('download failed.');
             this.output.appendLine(err);
             success = false;
+            this.appShell.showErrorMessage(LanguageService.lsFailedToDownload());
+            sendTelemetryEvent(PYTHON_LANGUAGE_SERVER_ERROR, undefined, { error: 'Failed to download (platform)' }, err);
             throw new Error(err);
         } finally {
             sendTelemetryEvent(
@@ -64,6 +70,8 @@ export class LanguageServerDownloader implements ILanguageServerDownloader {
             this.output.appendLine('extraction failed.');
             this.output.appendLine(err);
             success = false;
+            this.appShell.showErrorMessage(LanguageService.lsFailedToExtract());
+            sendTelemetryEvent(PYTHON_LANGUAGE_SERVER_ERROR, undefined, { error: 'Failed to extract (platform)' }, err);
             throw new Error(err);
         } finally {
             sendTelemetryEvent(
@@ -92,6 +100,13 @@ export class LanguageServerDownloader implements ILanguageServerDownloader {
             location: ProgressLocation.Window
         }, async (progress) => {
             const req = await this.httpClient.downloadFile(uri);
+            req.on('response', (response) => {
+                if (response.statusCode !== 200) {
+                    const error = new Error(`Failed with status ${response.statusCode}, ${response.statusMessage}, Uri ${uri}`);
+                    deferred.reject(error);
+                    throw error;
+                }
+            });
             const requestProgress = await import('request-progress');
             requestProgress(req)
                 .on('progress', (state) => {
