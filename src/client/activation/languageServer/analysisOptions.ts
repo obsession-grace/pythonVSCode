@@ -9,7 +9,7 @@ import { CancellationToken, CompletionContext, ConfigurationChangeEvent, Disposa
 import { LanguageClientOptions, ProvideCompletionItemsSignature } from 'vscode-languageclient';
 import { IWorkspaceService } from '../../common/application/types';
 import { isTestExecution, PYTHON, PYTHON_LANGUAGE, STANDARD_OUTPUT_CHANNEL } from '../../common/constants';
-import { traceError } from '../../common/logger';
+import { traceDecorators, traceError } from '../../common/logger';
 import { IConfigurationService, IExtensionContext, IOutputChannel, IPathUtils, IPythonExtensionBanner, Resource } from '../../common/types';
 import { debounce } from '../../common/utils/decorators';
 import { IEnvironmentVariablesProvider } from '../../common/variables/types';
@@ -54,6 +54,7 @@ export class LanguageServerAnalysisOptions implements ILanguageServerAnalysisOpt
         this.disposables.forEach(d => d.dispose());
         this.didChange.dispose();
     }
+    @traceDecorators.error('Failed to get analysis options')
     public async getAnalysisOptions(): Promise<LanguageClientOptions> {
         const properties = new Map<string, {}>();
         let interpreterData: InterpreterData | undefined;
@@ -172,6 +173,7 @@ export class LanguageServerAnalysisOptions implements ILanguageServerAnalysisOpt
         }
         this.onSettingsChanged().catch(ex => traceError('Failed to detect changes', ex));
     }
+    @traceDecorators.verbose('Changes in python settings detected in analysis options')
     @debounce(1000)
     protected async onSettingsChanged(): Promise<void> {
         const idata = await this.interpreterDataService.getInterpreterData(this.resource);

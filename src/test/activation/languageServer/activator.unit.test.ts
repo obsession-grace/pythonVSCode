@@ -24,7 +24,7 @@ import { sleep } from '../../core';
 
 // tslint:disable:max-func-body-length
 
-suite('xLanguage Server - Activator', () => {
+suite('Language Server - Activator', () => {
     let activator: IExtensionActivator;
     let workspaceService: IWorkspaceService;
     let manager: ILanguageServerManager;

@@ -10,7 +10,7 @@ import { Resource } from '../../common/types';
 import { createDeferred, Deferred, sleep } from '../../common/utils/async';
 import { noop } from '../../common/utils/misc';
 import { captureTelemetry, sendTelemetryEvent } from '../../telemetry';
-import { PYTHON_LANGUAGE_SERVER_ENABLED, PYTHON_LANGUAGE_SERVER_TELEMETRY } from '../../telemetry/constants';
+import { PYTHON_LANGUAGE_SERVER_ENABLED, PYTHON_LANGUAGE_SERVER_READY, PYTHON_LANGUAGE_SERVER_TELEMETRY } from '../../telemetry/constants';
 import { ProgressReporting } from '../progress';
 import { ILanaguageServer, ILanguageClientFactory } from '../types';
 
@@ -40,7 +40,7 @@ export class LanguageServer implements ILanaguageServer {
     }
 
     @traceDecorators.error('Failed to start language server')
-    @captureTelemetry(PYTHON_LANGUAGE_SERVER_ENABLED)
+    @captureTelemetry(PYTHON_LANGUAGE_SERVER_ENABLED, undefined, true)
     public async start(resource: Resource, options: LanguageClientOptions): Promise<void> {
         this.languageClient = await this.factory.createLanguageClient(resource, options);
         this.disposables.push(this.languageClient!.start());
@@ -52,6 +52,7 @@ export class LanguageServer implements ILanaguageServer {
             sendTelemetryEvent(eventName, telemetryEvent.Measurements, telemetryEvent.Properties);
         });
     }
+    @traceDecorators.error('Failed to load Language Server extension')
     public loadExtension(args?: {}) {
         if (!this.languageClient) {
             throw new Error('Activation not completed or not invoked');
@@ -62,7 +63,7 @@ export class LanguageServer implements ILanaguageServer {
         this.languageClient.sendRequest('python/loadExtension', args)
             .then(noop, ex => traceError('Request python/loadExtension failed', ex));
     }
-
+    @captureTelemetry(PYTHON_LANGUAGE_SERVER_READY, undefined, true)
     private async serverReady(): Promise<void> {
         while (this.languageClient && !this.languageClient!.initializeResult) {
             await sleep(100);

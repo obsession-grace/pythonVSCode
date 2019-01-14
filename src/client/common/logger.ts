@@ -1,6 +1,7 @@
 // tslint:disable:no-console
 
 import { injectable } from 'inversify';
+import { sendTelemetryEvent } from '../telemetry';
 import { skipIfTest } from './helpers';
 import { ILogger, LogLevel } from './types';
 
@@ -137,6 +138,8 @@ function trace(message: string, options: LogOptions = LogOptions.None, logLevel?
                 }
                 if (ex) {
                     new Logger().logError(messagesToLog.join(', '), ex);
+                    // tslint:disable-next-line:no-any
+                    sendTelemetryEvent('ERROR', undefined, undefined, ex);
                 } else {
                     new Logger().logInformation(messagesToLog.join(', '));
                 }

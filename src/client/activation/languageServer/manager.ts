@@ -8,6 +8,8 @@ import { traceDecorators } from '../../common/logger';
 import { IDisposable, Resource } from '../../common/types';
 import { debounce } from '../../common/utils/decorators';
 import { IServiceContainer } from '../../ioc/types';
+import { captureTelemetry } from '../../telemetry';
+import { PYTHON_LANGUAGE_SERVER_STARTUP } from '../../telemetry/constants';
 import { ILanaguageServer, ILanguageServerAnalysisOptions, ILanguageServerManager } from '../types';
 
 export class LanguageServerManager implements ILanguageServerManager {
@@ -42,6 +44,7 @@ export class LanguageServerManager implements ILanguageServerManager {
         }
         await this.startLanguageServer();
     }
+    @captureTelemetry(PYTHON_LANGUAGE_SERVER_STARTUP, undefined, true)
     @traceDecorators.verbose('Starting Langauge Server')
     protected async startLanguageServer(): Promise<void> {
         this.lanaguageServer = this.serviceContainer.get<ILanaguageServer>(ILanaguageServer);
