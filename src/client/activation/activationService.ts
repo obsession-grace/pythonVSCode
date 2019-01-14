@@ -89,7 +89,7 @@ export class ExtensionActivationService implements IExtensionActivationService, 
 
     public dispose() {
         if (this.currentActivator) {
-            this.currentActivator.activator.dispose().ignoreErrors();
+            this.currentActivator.activator.dispose();
         }
     }
 
