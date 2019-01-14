@@ -48,8 +48,8 @@ export class DownloadedLanguageClientFactory implements ILanguageClientFactory {
             run: { command: serverModule, rgs: [], options: options },
             debug: { command: serverModule, args: ['--debug'], options }
         };
-        const vscodeLanaguageClient = require('vscode-languageclient') as typeof import('vscode-languageclient');
-        return new vscodeLanaguageClient.LanguageClient(PYTHON_LANGUAGE, languageClientName, serverOptions, clientOptions);
+        const vscodeLanguageClient = require('vscode-languageclient') as typeof import('vscode-languageclient');
+        return new vscodeLanguageClient.LanguageClient(PYTHON_LANGUAGE, languageClientName, serverOptions, clientOptions);
     }
 }
 
@@ -72,7 +72,7 @@ export class SimpleLanguageClientFactory implements ILanguageClientFactory {
             run: { command: dotNetCommand, args: [serverModule], options: commandOptions },
             debug: { command: dotNetCommand, args: [serverModule, '--debug'], options: commandOptions }
         };
-        const vscodeLanaguageClient = require('vscode-languageclient') as typeof import('vscode-languageclient');
-        return new vscodeLanaguageClient.LanguageClient(PYTHON_LANGUAGE, languageClientName, serverOptions, clientOptions);
+        const vscodeLanguageClient = require('vscode-languageclient') as typeof import('vscode-languageclient');
+        return new vscodeLanguageClient.LanguageClient(PYTHON_LANGUAGE, languageClientName, serverOptions, clientOptions);
     }
 }
