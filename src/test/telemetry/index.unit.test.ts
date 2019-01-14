@@ -54,7 +54,6 @@ suite('Telemetry', () => {
 
         const eventName = 'Testing';
 
-        // tslint:disable-next-line:no-any
         sendTelemetryEvent(eventName);
 
         expect(Reporter.eventName).to.equal(eventName);
