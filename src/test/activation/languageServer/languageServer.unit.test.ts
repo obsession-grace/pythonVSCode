@@ -47,7 +47,7 @@ suite('Language Server - LanguageServer', () => {
             .setup(c => c.sendRequest(typemoq.It.isValue('python/loadExtension'), typemoq.It.isValue(loadExtensionArgs)))
             .returns(() => Promise.resolve(undefined) as any);
 
-        expect(() => server.loadExtension(loadExtensionArgs)).throws();
+        expect(() => server.loadExtension(loadExtensionArgs)).throws('Activation not completed or not invoked');
         client.verify(c => c.sendRequest(typemoq.It.isAny(), typemoq.It.isAny()), typemoq.Times.never());
         client
             .setup(c => c.initializeResult).returns(() => false as any)
@@ -57,7 +57,7 @@ suite('Language Server - LanguageServer', () => {
 
         // Even though server has started request should not yet be sent out.
         // Not untill language client has initialized.
-        expect(() => server.loadExtension(loadExtensionArgs)).throws();
+        expect(() => server.loadExtension(loadExtensionArgs)).throws('Activation not completed');
         client.verify(c => c.sendRequest(typemoq.It.isAny(), typemoq.It.isAny()), typemoq.Times.never());
 
         // // Initialize language client and verify that the request was sent out.

@@ -8,7 +8,7 @@ import { SemVer } from 'semver';
 import { Event } from 'vscode';
 import { LanguageClient, LanguageClientOptions } from 'vscode-languageclient';
 import { NugetPackage } from '../common/nuget/types';
-import { IAsyncDisposable, IDisposable, LanguageServerDownloadChannels, Resource } from '../common/types';
+import { IDisposable, LanguageServerDownloadChannels, Resource } from '../common/types';
 
 export const IExtensionActivationService = Symbol('IExtensionActivationService');
 export interface IExtensionActivationService {
@@ -21,7 +21,7 @@ export enum ExtensionActivators {
 }
 
 export const IExtensionActivator = Symbol('IExtensionActivator');
-export interface IExtensionActivator extends IAsyncDisposable {
+export interface IExtensionActivator extends IDisposable {
     activate(): Promise<void>;
 }
 

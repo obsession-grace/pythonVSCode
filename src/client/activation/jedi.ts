@@ -78,7 +78,7 @@ export class JediExtensionActivator implements IExtensionActivator {
             .catch(ex => this.serviceManager.get<ILogger>(ILogger).logError('Failed to activate Unit Tests', ex));
     }
 
-    public async dispose(): Promise<void> {
+    public dispose(): void {
         if (this.jediFactory) {
             this.jediFactory.dispose();
         }

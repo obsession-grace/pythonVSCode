@@ -57,6 +57,11 @@ suite('Language Server - Activator', () => {
         verify(manager.start(undefined)).once();
         verify(workspaceService.hasWorkspaceFolders).once();
     });
+    test('Manager must be disposed', async () => {
+        activator.dispose();
+
+        verify(manager.dispose()).once();
+    });
     test('Do not download LS if not required', async () => {
         when(workspaceService.hasWorkspaceFolders).thenReturn(false);
         when(manager.start(undefined)).thenResolve();
@@ -129,7 +134,7 @@ suite('Language Server - Activator', () => {
     });
 
     test('Manager must be disposed', async () => {
-        await activator.dispose();
+        activator.dispose();
 
         verify(manager.dispose()).once();
     });

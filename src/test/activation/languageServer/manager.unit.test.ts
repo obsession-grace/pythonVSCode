@@ -5,13 +5,17 @@
 
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import { instance, mock, verify, when } from 'ts-mockito';
+import { anything, capture, instance, mock, verify, when } from 'ts-mockito';
+import * as typemoq from 'typemoq';
 import { Uri } from 'vscode';
 import { LanguageClientOptions } from 'vscode-languageclient';
 import { LanguageServerAnalysisOptions } from '../../../client/activation/languageServer/analysisOptions';
 import { LanguageServer } from '../../../client/activation/languageServer/languageServer';
 import { LanguageServerManager } from '../../../client/activation/languageServer/manager';
-import { ILanaguageServer, ILanguageServerAnalysisOptions, ILanguageServerManager } from '../../../client/activation/types';
+import { ILanaguageServer, ILanguageServerAnalysisOptions } from '../../../client/activation/types';
+import { CommandManager } from '../../../client/common/application/commandManager';
+import { ICommandManager } from '../../../client/common/application/types';
+import { IDisposable } from '../../../client/common/types';
 import { ServiceContainer } from '../../../client/ioc/container';
 import { IServiceContainer } from '../../../client/ioc/types';
 import { sleep } from '../../core';
@@ -20,22 +24,42 @@ use(chaiAsPromised);
 
 // tslint:disable:max-func-body-length no-any chai-vague-errors no-unused-expression
 
-suite('Language Server - Manager', () => {
-    let manager: ILanguageServerManager;
+const loadExtensionCommand = 'python._loadLanguageServerExtension';
+
+suite('xLanguage Server - Manager', () => {
+    class LanguageServerManagerTest extends LanguageServerManager {
+        public static initializeExtensionArgs(args: {}) {
+            LanguageServerManager.loadExtensionArgs = args;
+        }
+        public clearLoadExtensionArgs() {
+            LanguageServerManager.loadExtensionArgs = undefined;
+        }
+    }
+    let manager: LanguageServerManagerTest;
     let serviceContainer: IServiceContainer;
     let analysisOptions: ILanguageServerAnalysisOptions;
     let languageServer: ILanaguageServer;
+    let commandManager: ICommandManager;
     let onChangeHandler: Function;
     const languageClientOptions = { x: 1 } as any as LanguageClientOptions;
+    let commandRegistrationDisposable: typemoq.IMock<IDisposable>;
     setup(() => {
         serviceContainer = mock(ServiceContainer);
         analysisOptions = mock(LanguageServerAnalysisOptions);
         languageServer = mock(LanguageServer);
-        manager = new LanguageServerManager(instance(serviceContainer), instance(analysisOptions));
+        commandManager = mock(CommandManager);
+        commandRegistrationDisposable = typemoq.Mock.ofType<IDisposable>();
+        manager = new LanguageServerManagerTest(instance(serviceContainer),
+            instance(commandManager),
+            instance(analysisOptions));
+        manager.clearLoadExtensionArgs();
     });
 
     [undefined, Uri.file(__filename)].forEach(resource => {
         async function startLanguageServer() {
+            when(commandManager.registerCommand(loadExtensionCommand, anything()))
+                .thenReturn(commandRegistrationDisposable.object);
+
             let handlerRegistered = false;
             const changeFn = (handler: Function) => { handlerRegistered = true; onChangeHandler = handler; };
             when(analysisOptions.initialize(resource)).thenResolve();
@@ -52,6 +76,8 @@ suite('Language Server - Manager', () => {
             verify(languageServer.start(resource, languageClientOptions)).once();
             expect(handlerRegistered).to.be.true;
             verify(languageServer.dispose()).never();
+            verify(commandManager.registerCommand(loadExtensionCommand, anything())).once();
+            commandRegistrationDisposable.verify(d => d.dispose(), typemoq.Times.never());
         }
         test('Start must register handlers and initialize analysis options', async () => {
             await startLanguageServer();
@@ -130,6 +156,32 @@ suite('Language Server - Manager', () => {
             verify(analysisOptions.getAnalysisOptions()).thrice();
             verify(serviceContainer.get<ILanaguageServer>(ILanaguageServer)).thrice();
             verify(languageServer.start(resource, languageClientOptions)).thrice();
+        });
+        test('Must register command handler', async () => {
+            await startLanguageServer();
+            manager.dispose();
+
+            commandRegistrationDisposable.verify(d => d.dispose(), typemoq.Times.once());
+        });
+        test('Must load extension when command is sent', async () => {
+            const args = { x: 1 };
+            await startLanguageServer();
+
+            verify(languageServer.loadExtension(args)).never();
+
+            const cb = capture(commandManager.registerCommand).first()[1] as Function;
+            cb.call(manager, args);
+
+            verify(languageServer.loadExtension(args)).once();
+            commandRegistrationDisposable.verify(d => d.dispose(), typemoq.Times.never());
+        });
+        test('Must load extension when command was been sent before starting LS', async () => {
+            const args = { x: 1 };
+            LanguageServerManagerTest.initializeExtensionArgs(args);
+
+            await startLanguageServer();
+
+            verify(languageServer.loadExtension(args)).once();
         });
     });
 });

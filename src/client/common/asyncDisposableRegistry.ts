@@ -4,18 +4,17 @@
 import { injectable } from 'inversify';
 import { IAsyncDisposable, IAsyncDisposableRegistry, IDisposable } from './types';
 
-type Disposable = IDisposable | IAsyncDisposable;
 // List of disposables that need to run a promise.
 @injectable()
 export class AsyncDisposableRegistry implements IAsyncDisposableRegistry {
-    private list: Disposable[] = [];
+    private list: (IDisposable | IAsyncDisposable)[] = [];
 
     public async dispose(): Promise<void> {
         const promises = this.list.map(l => l.dispose());
         await Promise.all(promises);
     }
 
-    public push(disposable: IDisposable | IAsyncDisposable | undefined) {
+    public push(disposable?: IDisposable | IAsyncDisposable) {
         if (disposable) {
             this.list.push(disposable);
         }

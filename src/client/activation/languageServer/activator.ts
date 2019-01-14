@@ -33,7 +33,7 @@ export class LanguageServerExtensionActivator implements IExtensionActivator {
         await this.ensureLanguageServerIsAvailable(mainWorkspaceUri);
         await this.manager.start(mainWorkspaceUri);
     }
-    public async dispose(): Promise<void> {
+    public dispose(): void {
         this.manager.dispose();
     }
     @traceDecorators.error('Failed to ensure language server is available')
