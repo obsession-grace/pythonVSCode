@@ -5,7 +5,7 @@
 
 import { inject, injectable, named } from 'inversify';
 import { Disposable, LanguageClient, LanguageClientOptions } from 'vscode-languageclient';
-import { traceDecorators, traceError } from '../../common/logger';
+import { traceDecorators, traceError, traceVerbose } from '../../common/logger';
 import { Resource } from '../../common/types';
 import { createDeferred, Deferred, sleep } from '../../common/utils/async';
 import { noop } from '../../common/utils/misc';
@@ -25,7 +25,7 @@ export class LanguageServer implements ILanguageServer {
 
         this.startupCompleted = createDeferred<void>();
     }
-
+    @traceDecorators.verbose('Stopping Language Server')
     public dispose() {
         if (this.languageClient) {
             // Do not await on this.
