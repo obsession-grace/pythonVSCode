@@ -5,7 +5,7 @@
 
 import { inject, injectable, named } from 'inversify';
 import { Disposable, LanguageClient, LanguageClientOptions } from 'vscode-languageclient';
-import { traceDecorators, traceError, traceVerbose } from '../../common/logger';
+import { traceDecorators, traceError } from '../../common/logger';
 import { Resource } from '../../common/types';
 import { createDeferred, Deferred, sleep } from '../../common/utils/async';
 import { noop } from '../../common/utils/misc';
