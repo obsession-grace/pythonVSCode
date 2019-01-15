@@ -3,7 +3,7 @@
 
 'use strict';
 
-import { inject } from 'inversify';
+import { inject, injectable } from 'inversify';
 import { ICommandManager } from '../../common/application/types';
 import { traceDecorators } from '../../common/logger';
 import { IDisposable, Resource } from '../../common/types';
@@ -15,9 +15,10 @@ import { ILanaguageServer, ILanguageServerAnalysisOptions, ILanguageServerManage
 
 const loadExtensionCommand = 'python._loadLanguageServerExtension';
 
+@injectable()
 export class LanguageServerManager implements ILanguageServerManager {
     protected static loadExtensionArgs?: {};
-    private lanaguageServer?: ILanaguageServer;
+    private languageServer?: ILanaguageServer;
     private resource!: Resource;
     private disposables: IDisposable[] = [];
     constructor(
@@ -25,14 +26,14 @@ export class LanguageServerManager implements ILanguageServerManager {
         @inject(ICommandManager) private readonly commandManager: ICommandManager,
         @inject(ILanguageServerAnalysisOptions) private readonly analysisOptions: ILanguageServerAnalysisOptions) { }
     public dispose() {
-        if (this.lanaguageServer) {
-            this.lanaguageServer.dispose();
+        if (this.languageServer) {
+            this.languageServer.dispose();
         }
         this.disposables.forEach(d => d.dispose());
     }
     @traceDecorators.error('Failed to start Language Server')
     public async start(resource: Resource): Promise<void> {
-        if (this.lanaguageServer) {
+        if (this.languageServer) {
             throw new Error('Language Server already started');
         }
         this.registerCommandHandler();
@@ -50,25 +51,25 @@ export class LanguageServerManager implements ILanguageServerManager {
         this.disposables.push(disposable);
     }
     protected loadExtensionIfNecessary() {
-        if (this.lanaguageServer && LanguageServerManager.loadExtensionArgs) {
-            this.lanaguageServer.loadExtension(LanguageServerManager.loadExtensionArgs);
+        if (this.languageServer && LanguageServerManager.loadExtensionArgs) {
+            this.languageServer.loadExtension(LanguageServerManager.loadExtensionArgs);
         }
     }
     @traceDecorators.error('Failed to restart Language Server')
-    @traceDecorators.verbose('Restarting Langauge Server')
+    @traceDecorators.verbose('Restarting Language Server')
     @debounce(1000)
     protected async restartLanguageServer(): Promise<void> {
-        if (this.lanaguageServer) {
-            this.lanaguageServer.dispose();
+        if (this.languageServer) {
+            this.languageServer.dispose();
         }
         await this.startLanguageServer();
     }
     @captureTelemetry(PYTHON_LANGUAGE_SERVER_STARTUP, undefined, true)
-    @traceDecorators.verbose('Starting Langauge Server')
+    @traceDecorators.verbose('Starting Language Server')
     protected async startLanguageServer(): Promise<void> {
-        this.lanaguageServer = this.serviceContainer.get<ILanaguageServer>(ILanaguageServer);
+        this.languageServer = this.serviceContainer.get<ILanaguageServer>(ILanaguageServer);
         const options = await this.analysisOptions!.getAnalysisOptions();
-        await this.lanaguageServer.start(this.resource, options);
+        await this.languageServer.start(this.resource, options);
         this.loadExtensionIfNecessary();
     }
 }

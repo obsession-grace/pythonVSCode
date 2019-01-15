@@ -3,7 +3,7 @@
 
 import { createHash } from 'crypto';
 import * as fs from 'fs';
-import { inject } from 'inversify';
+import { inject, injectable } from 'inversify';
 import * as path from 'path';
 import { IApplicationShell } from '../common/application/types';
 import '../common/extensions';
@@ -26,6 +26,7 @@ class InterpreterDataCls {
     ) { }
 }
 
+@injectable()
 export class InterpreterDataService implements IInterpreterDataService {
     constructor(
         @inject(IExtensionContext) private readonly context: IExtensionContext,

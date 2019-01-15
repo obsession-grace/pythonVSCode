@@ -113,3 +113,9 @@ export enum PlatformName {
     Mac64Bit = 'osx-x64',
     Linux64Bit = 'linux-x64'
 }
+export const IPlatformData = Symbol('IPlatformData');
+export interface IPlatformData {
+    readonly platformName: PlatformName;
+    readonly engineDllName: string;
+    readonly engineExecutableName: string;
+}

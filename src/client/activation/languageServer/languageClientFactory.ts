@@ -8,8 +8,7 @@ import * as path from 'path';
 import { LanguageClient, LanguageClientOptions, ServerOptions } from 'vscode-languageclient';
 import { EXTENSION_ROOT_DIR, PYTHON_LANGUAGE } from '../../common/constants';
 import { IConfigurationService, Resource } from '../../common/types';
-import { IPlatformData } from '../platformData';
-import { ILanguageClientFactory, ILanguageServerFolderService, LanguageClientFactory } from '../types';
+import { ILanguageClientFactory, ILanguageServerFolderService, IPlatformData, LanguageClientFactory } from '../types';
 
 // tslint:disable:no-require-imports no-require-imports no-var-requires max-classes-per-file
 

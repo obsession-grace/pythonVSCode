@@ -3,7 +3,7 @@
 
 'use strict';
 
-import { inject, injectable } from 'inversify';
+import { inject, injectable, named } from 'inversify';
 import { Disposable, LanguageClient, LanguageClientOptions } from 'vscode-languageclient';
 import { traceDecorators, traceError } from '../../common/logger';
 import { Resource } from '../../common/types';
@@ -12,7 +12,7 @@ import { noop } from '../../common/utils/misc';
 import { captureTelemetry, sendTelemetryEvent } from '../../telemetry';
 import { PYTHON_LANGUAGE_SERVER_ENABLED, PYTHON_LANGUAGE_SERVER_READY, PYTHON_LANGUAGE_SERVER_TELEMETRY } from '../../telemetry/constants';
 import { ProgressReporting } from '../progress';
-import { ILanaguageServer as ILanguageServer, ILanguageClientFactory } from '../types';
+import { ILanaguageServer as ILanguageServer, ILanguageClientFactory, LanguageClientFactory } from '../types';
 
 @injectable()
 export class LanguageServer implements ILanguageServer {
@@ -21,7 +21,7 @@ export class LanguageServer implements ILanguageServer {
 
     private languageClient?: LanguageClient;
 
-    constructor(@inject(ILanguageClientFactory) private readonly factory: ILanguageClientFactory) {
+    constructor(@inject(ILanguageClientFactory) @named(LanguageClientFactory.base) private readonly factory: ILanguageClientFactory) {
 
         this.startupCompleted = createDeferred<void>();
     }

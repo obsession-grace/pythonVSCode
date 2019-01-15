@@ -3,6 +3,7 @@
 
 import { inject, injectable } from 'inversify';
 import { IPlatformService } from '../common/platform/types';
+import { IPlatformData } from './types';
 
 export enum PlatformName {
     Windows32Bit = 'win-x86',
@@ -17,12 +18,6 @@ export enum PlatformLSExecutables {
     Linux = 'Microsoft.Python.LanguageServer'
 }
 
-export const IPlatformData = Symbol('IPlatformData');
-export interface IPlatformData {
-    readonly platformName: PlatformName;
-    readonly engineDllName: string;
-    readonly engineExecutableName: string;
-}
 @injectable()
 export class PlatformData implements IPlatformData {
     constructor(@inject(IPlatformService) private readonly platform: IPlatformService) { }

@@ -3,7 +3,7 @@
 
 'use strict';
 
-import { inject, named } from 'inversify';
+import { inject, injectable, named } from 'inversify';
 import * as path from 'path';
 import { ProgressLocation, window } from 'vscode';
 import { IApplicationShell } from '../common/application/types';
@@ -19,11 +19,11 @@ import {
     PYTHON_LANGUAGE_SERVER_ERROR,
     PYTHON_LANGUAGE_SERVER_EXTRACTED
 } from '../telemetry/constants';
-import { IPlatformData } from './platformData';
-import { IHttpClient, ILanguageServerDownloader, ILanguageServerFolderService } from './types';
+import { IHttpClient, ILanguageServerDownloader, ILanguageServerFolderService, IPlatformData } from './types';
 
 const downloadFileExtension = '.nupkg';
 
+@injectable()
 export class LanguageServerDownloader implements ILanguageServerDownloader {
     constructor(
         @inject(IPlatformData) private readonly platformData: IPlatformData,
