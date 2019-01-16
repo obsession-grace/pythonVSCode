@@ -34,7 +34,7 @@ import {
     PythonInterpreter
 } from '../../interpreter/contracts';
 import { IServiceContainer } from '../../ioc/types';
-import { captureTelemetry } from '../../telemetry';
+import { captureTelemetry, sendTelemetryEvent } from '../../telemetry';
 import { Telemetry } from '../constants';
 import { IConnection, IJupyterExecution, IJupyterKernelSpec, IJupyterSessionManager, INotebookServer } from '../types';
 import { JupyterConnection, JupyterServerInfo } from './jupyterConnection';
@@ -239,10 +239,12 @@ export class JupyterExecution implements IJupyterExecution, Disposable {
 
                 // Try to connect to our jupyter process
                 const result = this.serviceContainer.get<INotebookServer>(INotebookServer);
-                await result.connect(connection, kernelSpec, cancelToken, workingDir);
+                await result.connect(connection, kernelSpec!, cancelToken, workingDir);
+                sendTelemetryEvent(uri ? Telemetry.ConnectRemoteJupyter : Telemetry.ConnectLocalJupyter);
                 return result;
             } catch (err) {
                 // Something else went wrong
+                sendTelemetryEvent(Telemetry.ConnectFailedJupyter);
                 throw new Error(localize.DataScience.jupyterNotebookConnectFailed().format(connection.baseUrl, err));
             }
         }, cancelToken);
@@ -473,7 +475,9 @@ export class JupyterExecution implements IJupyterExecution, Disposable {
     private findSpecPath = async (specName: string, cancelToken?: CancellationToken): Promise<string | undefined> => {
         // Enumerate all specs and get path for the match
         const specs = await this.enumerateSpecs(cancelToken);
-        const match = specs.find(s => {
+        const match = specs!
+            .filter(s => s !== undefined)
+            .find(s => {
             const js = s as JupyterKernelSpec;
             return js && js.name === specName;
         }) as JupyterKernelSpec;
@@ -661,7 +665,7 @@ export class JupyterExecution implements IJupyterExecution, Disposable {
 
                     // Then let them run concurrently (they are file io)
                     const specs = await Promise.all(promises);
-                    return specs.filter(s => s);
+                    return specs!.filter(s => s);
                 } catch {
                     // This is failing for some folks. In that case return nothing
                     return [];
@@ -761,8 +765,8 @@ export class JupyterExecution implements IJupyterExecution, Disposable {
                     for (let i = 0; i < foundList.length; i += 1) {
                         let currentScore = 0;
                         if (foundList[i]) {
-                            const interpreter = await foundList[i].interpreter();
-                            const version = interpreter.version;
+                            const interpreter = await foundList![i]!.interpreter();
+                            const version = interpreter!.version;
                             if (version) {
                                 if (version.major === current.version.major) {
                                     currentScore += 4;
