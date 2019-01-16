@@ -11,7 +11,6 @@ import * as React from 'react';
 import { SemVer } from 'semver';
 import * as TypeMoq from 'typemoq';
 import { CancellationToken, Disposable, TextDocument, TextEditor } from 'vscode';
-
 import {
     IApplicationShell,
     IDocumentManager,
@@ -21,6 +20,7 @@ import {
     WebPanelMessage,
 } from '../../client/common/application/types';
 import { EXTENSION_ROOT_DIR } from '../../client/common/constants';
+import { IDataScienceSettings } from '../../client/common/types';
 import { createDeferred, Deferred } from '../../client/common/utils/async';
 import { noop } from '../../client/common/utils/misc';
 import { Architecture } from '../../client/common/utils/platform';
@@ -35,7 +35,6 @@ import { sleep } from '../core';
 import { DataScienceIocContainer } from './dataScienceIocContainer';
 import { SupportedCommands } from './mockJupyterManager';
 import { waitForUpdate } from './reactHelpers';
-import { IDataScienceSettings } from '../../client/common/types';
 
 enum cellInputState {
     Hidden,
