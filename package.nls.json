@@ -180,5 +180,6 @@
     "debug.attachRemoteHostValidationError": "Enter a valid host name or IP address",
     "UnitTests.testErrorDiagnosticMessage": "Error",
     "UnitTests.testFailDiagnosticMessage": "Fail",
-    "UnitTests.testSkippedDiagnosticMessage": "Skipped"
+    "UnitTests.testSkippedDiagnosticMessage": "Skipped",
+    "Common.openOutputPanel":"Show output"
 }
