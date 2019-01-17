@@ -20,7 +20,7 @@ suite('Application Diagnostics - ApplicationDiagnostics', () => {
     let serviceContainer: typemoq.IMock<IServiceContainer>;
     let envHealthCheck: typemoq.IMock<IDiagnosticsService>;
     let debuggerTypeCheck: typemoq.IMock<IDiagnosticsService>;
-    let macInterperterCheck: typemoq.IMock<IDiagnosticsService>;
+    let macInterpreterCheck: typemoq.IMock<IDiagnosticsService>;
     let outputChannel: typemoq.IMock<IOutputChannel>;
     let logger: typemoq.IMock<ILogger>;
     let appDiagnostics: IApplicationDiagnostics;
@@ -29,7 +29,7 @@ suite('Application Diagnostics - ApplicationDiagnostics', () => {
         serviceContainer = typemoq.Mock.ofType<IServiceContainer>();
         envHealthCheck = typemoq.Mock.ofType<IDiagnosticsService>();
         debuggerTypeCheck = typemoq.Mock.ofType<IDiagnosticsService>();
-        macInterperterCheck = typemoq.Mock.ofType<IDiagnosticsService>();
+        macInterpreterCheck = typemoq.Mock.ofType<IDiagnosticsService>();
         outputChannel = typemoq.Mock.ofType<IOutputChannel>();
         logger = typemoq.Mock.ofType<ILogger>();
 
@@ -41,7 +41,7 @@ suite('Application Diagnostics - ApplicationDiagnostics', () => {
             .returns(() => logger.object);
         serviceContainer.setup(d => d.get(typemoq.It.isValue(IDiagnosticsService),
             typemoq.It.isValue(InvalidMacPythonInterpreterServiceId)))
-            .returns(() => macInterperterCheck.object);
+            .returns(() => macInterpreterCheck.object);
 
         appDiagnostics = new ApplicationDiagnostics(serviceContainer.object, outputChannel.object);
     });
@@ -65,10 +65,10 @@ suite('Application Diagnostics - ApplicationDiagnostics', () => {
         debuggerTypeCheck.setup(e => e.diagnose(typemoq.It.isAny()))
             .returns(() => Promise.resolve([]))
             .verifiable(typemoq.Times.once());
-        macInterperterCheck.setup(p => p.diagnose(typemoq.It.isAny()))
+        macInterpreterCheck.setup(p => p.diagnose(typemoq.It.isAny()))
             .returns(() => Promise.resolve([]))
             .verifiable(typemoq.Times.once());
-        macInterperterCheck.setup(p => p.handle(typemoq.It.isValue([])))
+        macInterpreterCheck.setup(p => p.handle(typemoq.It.isValue([])))
             .returns(() => Promise.resolve())
             .verifiable(typemoq.Times.once());
 
@@ -76,11 +76,11 @@ suite('Application Diagnostics - ApplicationDiagnostics', () => {
 
         envHealthCheck.verifyAll();
         debuggerTypeCheck.verifyAll();
-        macInterperterCheck.verifyAll();
+        macInterpreterCheck.verifyAll();
     });
 
     test('Diagnostics Returned by Per Startup Health Checks must be logged', async () => {
-        macInterperterCheck.setup(p => p.diagnose(typemoq.It.isAny()))
+        macInterpreterCheck.setup(p => p.diagnose(typemoq.It.isAny()))
             .returns(() => Promise.resolve([]))
             .verifiable(typemoq.Times.once());
 
