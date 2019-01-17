@@ -54,8 +54,8 @@ export class DataScience implements IDataScience {
 
         // Set our initial settings and sign up for changes
         this.onSettingsChanged();
-        const disposable = this.configuration.getSettings().onDidChange(this.onSettingsChanged.bind(this));
-        this.disposableRegistry.push(disposable);
+        this.changeHandler = this.configuration.getSettings().onDidChange(this.onSettingsChanged.bind(this));
+        this.disposableRegistry.push(this);
 
         // Listen for active editor changes so we can detect have code cells or not
         this.disposableRegistry.push(this.documentManager.onDidChangeActiveTextEditor(() => this.onChangedActiveTextEditor()));
