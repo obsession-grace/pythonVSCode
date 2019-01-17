@@ -8,6 +8,7 @@ import * as stackTrace from 'stack-trace';
 import TelemetryReporter from 'vscode-extension-telemetry';
 import { EXTENSION_ROOT_DIR, isTestExecution, PVSC_EXTENSION_ID } from '../common/constants';
 import { StopWatch } from '../common/utils/stopWatch';
+import { EventName } from './constants';
 import { TelemetryProperties } from './types';
 
 /**
@@ -44,15 +45,20 @@ function getTelemetryReporter() {
 
     // tslint:disable-next-line:no-require-imports
     const reporter = require('vscode-extension-telemetry').default as typeof TelemetryReporter;
-    return telemetryReporter = new reporter(extensionId, extensionVersion, aiKey);
+    return (telemetryReporter = new reporter(extensionId, extensionVersion, aiKey));
 }
 
-export function sendTelemetryEvent(eventName: string, durationMs?: { [key: string]: number } | number, properties?: TelemetryProperties, ex?: Error) {
+export function sendTelemetryEvent(
+    eventName: string,
+    durationMs?: { [key: string]: number } | number,
+    properties?: TelemetryProperties,
+    ex?: Error
+) {
     if (isTestExecution() || !isTelemetrySupported()) {
         return;
     }
     const reporter = getTelemetryReporter();
-    const measures = typeof durationMs === 'number' ? { duration: durationMs } : (durationMs ? durationMs : undefined);
+    const measures = typeof durationMs === 'number' ? { duration: durationMs } : durationMs ? durationMs : undefined;
 
     // tslint:disable-next-line:no-any
     const customProperties: { [key: string]: string } = {};
@@ -79,16 +85,16 @@ export function sendTelemetryEvent(eventName: string, durationMs?: { [key: strin
 
 // tslint:disable-next-line:no-any function-name
 export function captureTelemetry(
-    eventName: string,
+    eventName: EventName,
     properties?: TelemetryProperties,
     captureDuration: boolean = true,
-    failureEventName?: string
+    failureEventName?: EventName
 ) {
     // tslint:disable-next-line:no-function-expression no-any
-    return function (target: Object, propertyKey: string, descriptor: TypedPropertyDescriptor<any>) {
+    return function(target: Object, propertyKey: string, descriptor: TypedPropertyDescriptor<any>) {
         const originalMethod = descriptor.value;
         // tslint:disable-next-line:no-function-expression no-any
-        descriptor.value = function (...args: any[]) {
+        descriptor.value = function(...args: any[]) {
             if (!captureDuration) {
                 sendTelemetryEvent(eventName, undefined, properties);
                 // tslint:disable-next-line:no-invalid-this
@@ -113,7 +119,12 @@ export function captureTelemetry(
                         // tslint:disable-next-line:no-any
                         properties = properties || {};
                         (properties as any).failed = true;
-                        sendTelemetryEvent(failureEventName ? failureEventName : eventName, stopWatch.elapsedTime, properties, ex);
+                        sendTelemetryEvent(
+                            failureEventName ? failureEventName : eventName,
+                            stopWatch.elapsedTime,
+                            properties,
+                            ex
+                        );
                     });
             } else {
                 sendTelemetryEvent(eventName, stopWatch.elapsedTime, properties);
@@ -127,22 +138,28 @@ export function captureTelemetry(
 }
 
 // tslint:disable-next-line:no-any function-name
-export function sendTelemetryWhenDone(eventName: string, promise: Promise<any> | Thenable<any>,
-    stopWatch?: StopWatch, properties?: TelemetryProperties) {
+export function sendTelemetryWhenDone(
+    eventName: EventName,
+    promise: Promise<any> | Thenable<any>,
+    stopWatch?: StopWatch,
+    properties?: TelemetryProperties
+) {
     stopWatch = stopWatch ? stopWatch : new StopWatch();
     if (typeof promise.then === 'function') {
         // tslint:disable-next-line:prefer-type-cast no-any
-        (promise as Promise<any>)
-            .then(data => {
+        (promise as Promise<any>).then(
+            data => {
                 // tslint:disable-next-line:no-non-null-assertion
                 sendTelemetryEvent(eventName, stopWatch!.elapsedTime, properties);
                 return data;
                 // tslint:disable-next-line:promise-function-async
-            }, ex => {
+            },
+            ex => {
                 // tslint:disable-next-line:no-non-null-assertion
                 sendTelemetryEvent(eventName, stopWatch!.elapsedTime, properties, ex);
                 return Promise.reject(ex);
-            });
+            }
+        );
     } else {
         throw new Error('Method is neither a Promise nor a Theneable');
     }
@@ -199,3 +216,24 @@ function getCallsite(frame: stackTrace.StackFrame) {
     }
     return parts.map(sanitizeName).join('.');
 }
+
+interface IEventNamePropertyMapping {
+    [EventName.COMPLETION]: { x: number };
+    [EventName.COMPLETION_ADD_BRACKETS]: { y: string };
+}
+
+interface IDSMappings extends IMappings {
+    [EventName.DEBUGGER]: { abc: number };
+    [EventName.DEFINITION]: { hello: string };
+}
+
+function doThat<K extends keyof IMappings>(eventName: K, properties: IMappings[K]) {
+    console.log('');
+}
+
+function doThat2<T extends IMappings, K extends keyof T>(eventName: K, properties: T[K]) {
+    console.log('');
+}
+
+doThat(EventName.COMPLETION_ADD_BRACKETS, { y: '1' });
+doThat2<IDSMappings, EventName.DEBUGGER>(EventName.DEBUGGER, { abc: 1 });
