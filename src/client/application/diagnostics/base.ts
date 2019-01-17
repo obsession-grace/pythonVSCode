@@ -42,7 +42,6 @@ export abstract class BaseDiagnosticsService implements IDiagnosticsService {
         this.filterService = serviceContainer.get<IDiagnosticFilterService>(IDiagnosticFilterService);
     }
     public abstract diagnose(resource: Resource): Promise<IDiagnostic[]>;
-    public abstract onHandle(diagnostics: IDiagnostic[]): Promise<void>;
     public async handle(diagnostics: IDiagnostic[]): Promise<void> {
         if (diagnostics.length === 0) {
             return;
@@ -61,6 +60,7 @@ export abstract class BaseDiagnosticsService implements IDiagnosticsService {
         sendTelemetryEvent(EventName.DIAGNOSTICS_MESSAGE, undefined, { code: diagnostic.code });
         return this.supportedDiagnosticCodes.filter(item => item === diagnostic.code).length > 0;
     }
+    protected abstract onHandle(diagnostics: IDiagnostic[]): Promise<void>;
     /**
      * Returns a key used to keep track of whether a diagnostic was handled or not.
      * So as to prevent handling/displaying messages multiple times for the same diagnostic.

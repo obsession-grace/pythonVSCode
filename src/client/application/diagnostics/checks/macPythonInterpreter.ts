@@ -85,7 +85,7 @@ export class InvalidMacPythonInterpreterService extends BaseDiagnosticsService {
 
         return [new InvalidMacPythonInterpreterDiagnostic(DiagnosticCodes.MacInterpreterSelectedAndHaveOtherInterpretersDiagnostic, resource)];
     }
-    public async handle(diagnostics: IDiagnostic[]): Promise<void> {
+    protected async onHandle(diagnostics: IDiagnostic[]): Promise<void> {
         if (diagnostics.length === 0) {
             return;
         }
