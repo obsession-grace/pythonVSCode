@@ -24,7 +24,7 @@ import { BetaLanguageServerPackageRepository, DailyLanguageServerPackageReposito
 import { LanguageServerPackageService } from './languageServer/languageServerPackageService';
 import { LanguageServerManager } from './languageServer/manager';
 import { PlatformData } from './languageServer/platformData';
-import { ExtensionActivators, IDownloadChannelRule, IExtensionActivationService, IExtensionActivator, IInterpreterDataService, ILanaguageServer, ILanguageClientFactory, ILanguageServerAnalysisOptions, ILanguageServerCompatibilityService as ILanagueServerCompatibilityService, ILanguageServerDownloader, ILanguageServerFolderService, ILanguageServerManager, ILanguageServerPackageService, IPlatformData, LanguageClientFactory } from './types';
+import { ExtensionActivators, IDownloadChannelRule, IExtensionActivationService, IExtensionActivator, IInterpreterDataService, ILanguageClientFactory, ILanguageServer, ILanguageServerAnalysisOptions, ILanguageServerCompatibilityService as ILanagueServerCompatibilityService, ILanguageServerDownloader, ILanguageServerFolderService, ILanguageServerManager, ILanguageServerPackageService, IPlatformData, LanguageClientFactory } from './types';
 
 export function registerTypes(serviceManager: IServiceManager) {
     serviceManager.addSingleton<IExtensionActivationService>(IExtensionActivationService, ExtensionActivationService);
@@ -49,6 +49,6 @@ export function registerTypes(serviceManager: IServiceManager) {
     serviceManager.addSingleton<ILanguageServerDownloader>(ILanguageServerDownloader, LanguageServerDownloader);
     serviceManager.addSingleton<IPlatformData>(IPlatformData, PlatformData);
     serviceManager.add<ILanguageServerAnalysisOptions>(ILanguageServerAnalysisOptions, LanguageServerAnalysisOptions);
-    serviceManager.add<ILanaguageServer>(ILanaguageServer, LanguageServer);
+    serviceManager.add<ILanguageServer>(ILanguageServer, LanguageServer);
     serviceManager.add<ILanguageServerManager>(ILanguageServerManager, LanguageServerManager);
 }
