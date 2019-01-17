@@ -9,15 +9,20 @@ import { exec } from 'child_process';
 import * as path from 'path';
 import { Uri } from 'vscode';
 import '../../../client/common/extensions';
+import { Resource } from '../../../client/common/types';
+import { createDeferredFromPromise, Deferred } from '../../../client/common/utils/async';
+import { StopWatch } from '../../../client/common/utils/stopWatch';
 import {
-    IInterpreterLocatorService, WORKSPACE_VIRTUAL_ENV_SERVICE
+    IInterpreterLocatorService, IInterpreterWatcherBuilder, WORKSPACE_VIRTUAL_ENV_SERVICE
 } from '../../../client/interpreter/contracts';
+import { WorkspaceVirtualEnvWatcherService } from '../../../client/interpreter/locators/services/workspaceVirtualEnvWatcherService';
 import { IServiceContainer } from '../../../client/ioc/types';
 import {
     deleteFiles, isOs, isPythonVersionInProcess, OSType,
     PYTHON_PATH, rootWorkspaceUri, waitForCondition
 } from '../../common';
 import { IS_MULTI_ROOT_TEST } from '../../constants';
+import { sleep } from '../../core';
 import { initialize, IS_VSTS, multirootPath } from '../../initialize';
 
 const timeoutMs = 60_000;
@@ -31,12 +36,32 @@ suite('Interpreters - Workspace VirtualEnv Service', function () {
     const venvPrefix = '.venv';
     let serviceContainer: IServiceContainer;
 
+    async function manuallyTriggerFSWatcherInWorkspace(resource: Resource) {
+        // Monitoring files on virtualized environments can be finicky...
+        // Lets trigger the fs watcher manually for the tests.
+        const builder = serviceContainer.get<IInterpreterWatcherBuilder>(IInterpreterWatcherBuilder);
+        const watcher = await builder.getWorkspaceVirtualEnvInterpreterWatcher(resource) as WorkspaceVirtualEnvWatcherService;
+        watcher.createHandler(resource).ignoreErrors();
+    }
+    async function manuallyTriggerFSWatcher(deferred: Deferred<void>) {
+        // Monitoring files on virtualized environments can be finicky...
+        // Lets trigger the fs watcher manually for the tests.
+        const stopWatch = new StopWatch();
+        while (!deferred.completed && stopWatch.elapsedTime < (timeoutMs - 10_000)) {
+            manuallyTriggerFSWatcherInWorkspace(workspace4).ignoreErrors();
+            manuallyTriggerFSWatcherInWorkspace(workspaceUri).ignoreErrors();
+            await sleep(1000);
+        }
+    }
     async function waitForInterpreterToBeDetected(envNameToLookFor: string) {
         const predicate = async () => {
             const items = await locator.getInterpreters(workspaceUri);
             return items.some(item => item.envName === envNameToLookFor);
         };
-        await waitForCondition(predicate, timeoutMs, `${envNameToLookFor}, Environment not detected in the workspace ${workspaceUri.fsPath}`);
+        const promise = waitForCondition(predicate, timeoutMs, `${envNameToLookFor}, Environment not detected in the workspace ${workspaceUri.fsPath}`);
+        const deferred = createDeferredFromPromise(promise);
+        manuallyTriggerFSWatcher(deferred).ignoreErrors();
+        await deferred.promise;
     }
     async function createVirtualEnvironment(envSuffix: string) {
         // Ensure env is random to avoid conflicts in tests (currupting test data).
