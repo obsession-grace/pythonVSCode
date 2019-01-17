@@ -7,6 +7,7 @@ import { expect } from 'chai';
 import * as path from 'path';
 import * as typemoq from 'typemoq';
 import { DiagnosticSeverity } from 'vscode';
+import { clearCacheForTesting } from '../../../../client/application/diagnostics/base';
 import { EnvironmentPathVariableDiagnosticsService } from '../../../../client/application/diagnostics/checks/envPathVariable';
 import { CommandOption, IDiagnosticsCommandFactory } from '../../../../client/application/diagnostics/commands/types';
 import { DiagnosticCodes } from '../../../../client/application/diagnostics/constants';
@@ -66,6 +67,7 @@ suite('Application Diagnostics - Checks Env Path Variable', () => {
             .returns(() => pathUtils.object);
 
         diagnosticService = new EnvironmentPathVariableDiagnosticsService(serviceContainer.object);
+        clearCacheForTesting();
     });
 
     test('Can handle EnvPathVariable diagnostics', async () => {

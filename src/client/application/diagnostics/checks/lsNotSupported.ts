@@ -37,7 +37,7 @@ export class LSNotSupportedDiagnosticService extends BaseDiagnosticsService {
             return [new LSNotSupportedDiagnostic(Diagnostics.lsNotSupported(), resource)];
         }
     }
-    public async handle(diagnostics: IDiagnostic[]): Promise<void>{
+    public async onHandle(diagnostics: IDiagnostic[]): Promise<void>{
         if (diagnostics.length === 0 || !this.canHandle(diagnostics[0])) {
             return;
         }

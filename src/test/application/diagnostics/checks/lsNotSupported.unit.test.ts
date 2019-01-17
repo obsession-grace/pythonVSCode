@@ -6,6 +6,7 @@
 import { expect } from 'chai';
 import * as TypeMoq from 'typemoq';
 import { ILanguageServerCompatibilityService } from '../../../../client/activation/types';
+import { clearCacheForTesting } from '../../../../client/application/diagnostics/base';
 import { LSNotSupportedDiagnosticService } from '../../../../client/application/diagnostics/checks/lsNotSupported';
 import { CommandOption, IDiagnosticsCommandFactory } from '../../../../client/application/diagnostics/commands/types';
 import { DiagnosticCodes } from '../../../../client/application/diagnostics/constants';
@@ -32,6 +33,7 @@ suite('Application Diagnostics - Checks LS not supported', () => {
         serviceContainer.setup(s => s.get(TypeMoq.It.isValue(IDiagnosticHandlerService), TypeMoq.It.isValue(DiagnosticCommandPromptHandlerServiceId))).returns(() => messageHandler.object);
 
         diagnosticService = new LSNotSupportedDiagnosticService(serviceContainer.object, lsCompatibility.object, messageHandler.object);
+        clearCacheForTesting();
     });
 
     test('Should display two options in message displayed with 2 commands', async () => {

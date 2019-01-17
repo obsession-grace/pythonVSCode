@@ -40,7 +40,7 @@ export class PowerShellActivationHackDiagnosticsService extends BaseDiagnosticsS
     public async diagnose(_resource: Resource): Promise<IDiagnostic[]> {
         return [];
     }
-    public async handle(diagnostics: IDiagnostic[]): Promise<void> {
+    public async onHandle(diagnostics: IDiagnostic[]): Promise<void> {
         // This class can only handle one type of diagnostic, hence just use first item in list.
         if (diagnostics.length === 0 || !this.canHandle(diagnostics[0])) {
             return;
