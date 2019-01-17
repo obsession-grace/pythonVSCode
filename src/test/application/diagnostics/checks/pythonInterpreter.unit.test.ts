@@ -18,7 +18,7 @@ import { noop } from '../../../../client/common/utils/misc';
 import { IInterpreterHelper, IInterpreterService } from '../../../../client/interpreter/contracts';
 import { IServiceContainer } from '../../../../client/ioc/types';
 
-suite('xApplication Diagnostics - Checks Python Interpreter', () => {
+suite('Application Diagnostics - Checks Python Interpreter', () => {
     let diagnosticService: IDiagnosticsService;
     let messageHandler: typemoq.IMock<IDiagnosticHandlerService<MessageCommandPrompt>>;
     let commandFactory: typemoq.IMock<IDiagnosticsCommandFactory>;
