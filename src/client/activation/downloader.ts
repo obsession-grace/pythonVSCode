@@ -84,7 +84,7 @@ export class LanguageServerDownloader implements ILanguageServerDownloader {
     }
 
     protected async showMessageAndOptionallyShowOutput(message: string) {
-        const selection = await this.appShell.showErrorMessage(LanguageService.lsFailedToDownload(), Common.openOutputPanel());
+        const selection = await this.appShell.showErrorMessage(message, Common.openOutputPanel());
         if (selection !== Common.openOutputPanel()) {
             return;
         }
