@@ -151,7 +151,7 @@ export class JupyterExecution implements IJupyterExecution, Disposable {
 
                 // Try to connect to our jupyter process
                 const result = this.serviceContainer.get<INotebookServer>(INotebookServer);
-                await result.connect(connection, kernelSpec!, cancelToken, workingDir);
+                await result.connect(connection, kernelSpec, cancelToken, workingDir);
                 sendTelemetryEvent(uri ? Telemetry.ConnectRemoteJupyter : Telemetry.ConnectLocalJupyter);
                 return result;
             } catch (err) {
