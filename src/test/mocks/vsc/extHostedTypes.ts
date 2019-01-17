@@ -4,8 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 'use strict';
 
-// @ts-ignore
-
 // import * as crypto from 'crypto';
 
 // tslint:disable:all
@@ -37,7 +35,6 @@ export namespace vscMockExtHostedTypes {
                             disposable.dispose();
                         }
                     }
-                    // @ts-ignore
                     disposables = undefined;
                 }
             });
@@ -51,9 +48,7 @@ export namespace vscMockExtHostedTypes {
 
         dispose(): any {
             if (typeof this._callOnDispose === 'function') {
-                // @ts-ignore
                 this._callOnDispose();
-                // @ts-ignore
                 this._callOnDispose = undefined;
             }
         }
@@ -62,27 +57,22 @@ export namespace vscMockExtHostedTypes {
     export class Position {
 
         static Min(...positions: Position[]): Position {
-            // @ts-ignore
             let result = positions.pop();
             for (let p of positions) {
-                // @ts-ignore
                 if (p.isBefore(result)) {
                     result = p;
                 }
             }
-            // @ts-ignore
             return result;
         }
 
         static Max(...positions: Position[]): Position {
             let result = positions.pop();
             for (let p of positions) {
-                // @ts-ignore
                 if (p.isAfter(result)) {
                     result = p;
                 }
             }
-            // @ts-ignore
             return result;
         }
 
@@ -171,9 +161,8 @@ export namespace vscMockExtHostedTypes {
                 }
             }
         }
-        // @ts-ignore
+
         translate(change: { lineDelta?: number; characterDelta?: number; }): Position;
-        // @ts-ignore
         translate(lineDelta?: number, characterDelta?: number): Position;
         translate(lineDeltaOrChange: number | { lineDelta?: number; characterDelta?: number; }, characterDelta: number = 0): Position {
 
@@ -196,9 +185,8 @@ export namespace vscMockExtHostedTypes {
             }
             return new Position(this.line + lineDelta, this.character + characterDelta);
         }
-        // @ts-ignore
+
         with(change: { line?: number; character?: number; }): Position;
-        // @ts-ignore
         with(line?: number, character?: number): Position;
         with(lineOrChange: number | { line?: number; character?: number; }, character: number = this.character): Position {
 
@@ -266,9 +254,8 @@ export namespace vscMockExtHostedTypes {
                 start = startLineOrStart;
                 end = startColumnOrEnd;
             }
-            // @ts-ignore
+
             if (!start || !end) {
-                // @ts-ignore
                 throw new Error('Invalid arguments');
             }
 
@@ -309,7 +296,6 @@ export namespace vscMockExtHostedTypes {
                 // this happens when there is no overlap:
                 // |-----|
                 //          |----|
-                // @ts-ignore
                 return undefined;
             }
             return new Range(start, end);
@@ -333,11 +319,9 @@ export namespace vscMockExtHostedTypes {
         get isSingleLine(): boolean {
             return this._start.line === this._end.line;
         }
-        // @ts-ignore
+
         with(change: { start?: Position, end?: Position }): Range;
-        // @ts-ignore
         with(start?: Position, end?: Position): Range;
-        // @ts-ignore
         with(startOrChange: Position | { start?: Position, end?: Position }, end: Position = this.end): Range {
 
             if (startOrChange === null || end === null) {
@@ -407,9 +391,8 @@ export namespace vscMockExtHostedTypes {
                 anchor = anchorLineOrAnchor;
                 active = anchorColumnOrActive;
             }
-            // @ts-ignore
+
             if (!anchor || !active) {
-                // @ts-ignore
                 throw new Error('Invalid arguments');
             }
 
@@ -464,16 +447,13 @@ export namespace vscMockExtHostedTypes {
         }
 
         static setEndOfLine(eol: EndOfLine): TextEdit {
-            // @ts-ignore
             let ret = new TextEdit(undefined, undefined);
             ret.newEol = eol;
             return ret;
         }
-        // @ts-ignore
+
         protected _range: Range;
-        // @ts-ignore
         protected _newText: string;
-        // @ts-ignore
         protected _newEol: EndOfLine;
 
         get range(): Range {
@@ -586,7 +566,6 @@ export namespace vscMockExtHostedTypes {
                 this._textEdits.set(uri.toString(), data);
             }
             if (!edits) {
-                // @ts-ignore
                 data.edits = undefined;
             } else {
                 data.edits = edits.slice(0);
@@ -595,10 +574,8 @@ export namespace vscMockExtHostedTypes {
 
         get(uri: vscUri.URI): TextEdit[] {
             if (!this._textEdits.has(uri.toString())) {
-                // @ts-ignore
                 return undefined;
             }
-            // @ts-ignore
             const { edits } = this._textEdits.get(uri.toString());
             return edits ? edits.slice() : undefined;
         }
@@ -742,7 +719,6 @@ export namespace vscMockExtHostedTypes {
         }
 
         uri: vscUri.URI;
-        // @ts-ignore
         range: Range;
 
         constructor(uri: vscUri.URI, rangeOrPosition: Range | Position) {
@@ -789,17 +765,12 @@ export namespace vscMockExtHostedTypes {
     }
 
     export class Diagnostic {
-        // @ts-ignore
+
         range: Range;
-        // @ts-ignore
         message: string;
-        // @ts-ignore
         source: string;
-        // @ts-ignore
         code: string | number;
-        // @ts-ignore
         severity: DiagnosticSeverity;
-        // @ts-ignore
         relatedInformation: DiagnosticRelatedInformation[];
         customTags?: DiagnosticTag[];
 
@@ -839,7 +810,6 @@ export namespace vscMockExtHostedTypes {
             } else {
                 this.contents = [contents];
             }
-            // @ts-ignore
             this.range = range;
         }
     }
@@ -900,9 +870,7 @@ export namespace vscMockExtHostedTypes {
     export class SymbolInformation {
 
         name: string;
-        // @ts-ignore
         location: Location;
-        // @ts-ignore
         kind: SymbolKind;
         containerName: string;
 
@@ -911,7 +879,6 @@ export namespace vscMockExtHostedTypes {
         constructor(name: string, kind: SymbolKind, rangeOrContainer: string | Range, locationOrUri?: Location | vscUri.URI, containerName?: string) {
             this.name = name;
             this.kind = kind;
-            // @ts-ignore
             this.containerName = containerName;
 
             if (typeof rangeOrContainer === 'string') {
@@ -921,7 +888,6 @@ export namespace vscMockExtHostedTypes {
             if (locationOrUri instanceof Location) {
                 this.location = locationOrUri;
             } else if (rangeOrContainer instanceof Range) {
-                // @ts-ignore
                 this.location = new Location(locationOrUri, rangeOrContainer);
             }
         }
@@ -1005,7 +971,6 @@ export namespace vscMockExtHostedTypes {
 
         constructor(range: Range, command?: vscode.Command) {
             this.range = range;
-            // @ts-ignore
             this.command = command;
         }
 
@@ -1069,11 +1034,9 @@ export namespace vscMockExtHostedTypes {
     }
 
     export class SignatureHelp {
-        // @ts-ignore
+
         signatures: SignatureInformation[];
-        // @ts-ignore
         activeSignature: number;
-        // @ts-ignore
         activeParameter: number;
 
         constructor() {
@@ -1121,33 +1084,21 @@ export namespace vscMockExtHostedTypes {
     }
 
     export class CompletionItem {
-        // @ts-ignore
+
         label: string;
-        // @ts-ignore
         kind: CompletionItemKind;
-        // @ts-ignore
         detail: string;
-        // @ts-ignore
         documentation: string | MarkdownString;
-        // @ts-ignore
         sortText: string;
-        // @ts-ignore
         filterText: string;
-        // @ts-ignore
         insertText: string | SnippetString;
-        // @ts-ignore
         range: Range;
-        // @ts-ignore
         textEdit: TextEdit;
-        // @ts-ignore
         additionalTextEdits: TextEdit[];
-        // @ts-ignore
         command: vscode.Command;
 
         constructor(label: string, kind?: CompletionItemKind) {
-            // @ts-ignore
             this.label = label;
-            // @ts-ignore
             this.kind = kind;
         }
 
@@ -1389,11 +1340,9 @@ export namespace vscMockExtHostedTypes {
     }
 
     export class ProcessExecution implements vscode.ProcessExecution {
-        // @ts-ignore
+
         private _process: string;
-        // @ts-ignore
         private _args: string[];
-        // @ts-ignore
         private _options: vscode.ProcessExecutionOptions;
 
         constructor(process: string, options?: vscode.ProcessExecutionOptions);
@@ -1406,15 +1355,12 @@ export namespace vscMockExtHostedTypes {
             if (varg1 !== void 0) {
                 if (Array.isArray(varg1)) {
                     this._args = varg1;
-                    // @ts-ignore
                     this._options = varg2;
                 } else {
                     this._options = varg1;
                 }
             }
-            // @ts-ignore
             if (this._args === void 0) {
-                // @ts-ignore
                 this._args = [];
             }
         }
@@ -1467,11 +1413,9 @@ export namespace vscMockExtHostedTypes {
     }
 
     export class ShellExecution implements vscode.ShellExecution {
-        // @ts-ignore
+
         private _commandLine: string;
-        // @ts-ignore
         private _command: string | vscode.ShellQuotedString;
-        // @ts-ignore
         private _args: (string | vscode.ShellQuotedString)[];
         private _options: vscode.ShellExecutionOptions;
 
@@ -1487,14 +1431,12 @@ export namespace vscMockExtHostedTypes {
                 }
                 this._command = arg0;
                 this._args = arg1 as (string | vscode.ShellQuotedString)[];
-                // @ts-ignore
                 this._options = arg2;
             } else {
                 if (typeof arg0 !== 'string') {
                     throw illegalArgument('commandLine');
                 }
                 this._commandLine = arg0;
-                // @ts-ignore
                 this._options = arg1;
             }
         }
@@ -1569,26 +1511,18 @@ export namespace vscMockExtHostedTypes {
 
     export class Task implements vscode.Task {
 
-        private static ProcessType: string = 'process';
-        private static ShellType: string = 'shell';
-        private static EmptyType: string = '$empty';
+        private __id: string;
 
-        private __id: string | undefined;
-        // @ts-ignore
         private _definition: vscode.TaskDefinition;
-        // @ts-ignore
-        private _scope: vscode.TaskScope.Global | vscode.TaskScope.Workspace | vscode.WorkspaceFolder | undefined;
-        // @ts-ignore
+        private _scope: vscode.TaskScope.Global | vscode.TaskScope.Workspace | vscode.WorkspaceFolder;
         private _name: string;
-        private _execution: ProcessExecution | ShellExecution | undefined;
+        private _execution: ProcessExecution | ShellExecution;
         private _problemMatchers: string[];
         private _hasDefinedMatchers: boolean;
         private _isBackground: boolean;
-        // @ts-ignore
         private _source: string;
-        private _group: TaskGroup | undefined;
+        private _group: TaskGroup;
         private _presentationOptions: vscode.TaskPresentationOptions;
-        private _runOptions: vscode.RunOptions;
 
         constructor(definition: vscode.TaskDefinition, name: string, source: string, execution?: ProcessExecution | ShellExecution, problemMatchers?: string | string[]);
         constructor(definition: vscode.TaskDefinition, scope: vscode.TaskScope.Global | vscode.TaskScope.Workspace | vscode.WorkspaceFolder, name: string, source: string, execution?: ProcessExecution | ShellExecution, problemMatchers?: string | string[]);
@@ -1624,42 +1558,32 @@ export namespace vscMockExtHostedTypes {
                 this._hasDefinedMatchers = false;
             }
             this._isBackground = false;
-            this._presentationOptions = Object.create(null);
-            this._runOptions = Object.create(null);
         }
 
-        get _id(): string | undefined {
+        get _id(): string {
             return this.__id;
         }
 
-        set _id(value: string | undefined) {
+        set _id(value: string) {
             this.__id = value;
         }
 
         private clear(): void {
-            if (this.__id === undefined) {
+            if (this.__id === void 0) {
                 return;
             }
             this.__id = undefined;
             this._scope = undefined;
-            this.computeDefinitionBasedOnExecution();
-        }
-
-        private computeDefinitionBasedOnExecution(): void {
+            this._definition = undefined;
             if (this._execution instanceof ProcessExecution) {
                 this._definition = {
-                    type: Task.ProcessType,
+                    type: 'process',
                     id: this._execution.computeId()
                 };
             } else if (this._execution instanceof ShellExecution) {
                 this._definition = {
-                    type: Task.ShellType,
+                    type: 'shell',
                     id: this._execution.computeId()
-                };
-            } else {
-                this._definition = {
-                    type: Task.EmptyType,
-                    id: new Date().getTime().toString()
                 };
             }
         }
@@ -1669,14 +1593,14 @@ export namespace vscMockExtHostedTypes {
         }
 
         set definition(value: vscode.TaskDefinition) {
-            if (value === undefined || value === null) {
+            if (value === void 0 || value === null) {
                 throw illegalArgument('Kind can\'t be undefined or null');
             }
             this.clear();
             this._definition = value;
         }
 
-        get scope(): vscode.TaskScope.Global | vscode.TaskScope.Workspace | vscode.WorkspaceFolder | undefined {
+        get scope(): vscode.TaskScope.Global | vscode.TaskScope.Workspace | vscode.WorkspaceFolder {
             return this._scope;
         }
 
@@ -1697,20 +1621,16 @@ export namespace vscMockExtHostedTypes {
             this._name = value;
         }
 
-        get execution(): ProcessExecution | ShellExecution | undefined {
+        get execution(): ProcessExecution | ShellExecution {
             return this._execution;
         }
 
-        set execution(value: ProcessExecution | ShellExecution | undefined) {
+        set execution(value: ProcessExecution | ShellExecution) {
             if (value === null) {
                 value = undefined;
             }
             this.clear();
             this._execution = value;
-            let type = this._definition.type;
-            if (Task.EmptyType === type || Task.ProcessType === type || Task.ShellType === type) {
-                this.computeDefinitionBasedOnExecution();
-            }
         }
 
         get problemMatchers(): string[] {
@@ -1719,15 +1639,13 @@ export namespace vscMockExtHostedTypes {
 
         set problemMatchers(value: string[]) {
             if (!Array.isArray(value)) {
-                this.clear();
                 this._problemMatchers = [];
                 this._hasDefinedMatchers = false;
                 return;
-            } else {
-                this.clear();
-                this._problemMatchers = value;
-                this._hasDefinedMatchers = true;
             }
+            this.clear();
+            this._problemMatchers = value;
+            this._hasDefinedMatchers = true;
         }
 
         get hasDefinedMatchers(): boolean {
@@ -1758,13 +1676,14 @@ export namespace vscMockExtHostedTypes {
             this._source = value;
         }
 
-        get group(): TaskGroup | undefined {
+        get group(): TaskGroup {
             return this._group;
         }
 
-        set group(value: TaskGroup | undefined) {
-            if (value === null) {
-                value = undefined;
+        set group(value: TaskGroup) {
+            if (value === void 0 || value === null) {
+                this._group = undefined;
+                return;
             }
             this.clear();
             this._group = value;
@@ -1775,23 +1694,11 @@ export namespace vscMockExtHostedTypes {
         }
 
         set presentationOptions(value: vscode.TaskPresentationOptions) {
-            if (value === null || value === undefined) {
-                value = Object.create(null);
+            if (value === null) {
+                value = undefined;
             }
             this.clear();
             this._presentationOptions = value;
-        }
-
-        get runOptions(): vscode.RunOptions {
-            return this._runOptions;
-        }
-
-        set runOptions(value: vscode.RunOptions) {
-            if (value === null || value === undefined) {
-                value = Object.create(null);
-            }
-            this.clear();
-            this._runOptions = value;
         }
     }
 
@@ -1931,7 +1838,6 @@ export namespace vscMockExtHostedTypes {
 
         constructor(command: string, args?: string[]) {
             this.command = command;
-            // @ts-ignore
             this.args = args;
         }
     }
