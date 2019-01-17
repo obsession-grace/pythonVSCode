@@ -9,7 +9,6 @@ import { exec } from 'child_process';
 import * as path from 'path';
 import { Uri } from 'vscode';
 import '../../../client/common/extensions';
-import { Resource } from '../../../client/common/types';
 import { createDeferredFromPromise, Deferred } from '../../../client/common/utils/async';
 import { StopWatch } from '../../../client/common/utils/stopWatch';
 import {
