@@ -6,7 +6,7 @@
 import { inject, injectable, named } from 'inversify';
 import { DiagnosticSeverity } from 'vscode';
 import { STANDARD_OUTPUT_CHANNEL } from '../../common/constants';
-import { ILogger, IOutputChannel } from '../../common/types';
+import { ILogger, IOutputChannel, Resource } from '../../common/types';
 import { IServiceContainer } from '../../ioc/types';
 import { IApplicationDiagnostics } from '../types';
 import { InvalidMacPythonInterpreterServiceId } from './checks/macPythonInterpreter';
@@ -19,10 +19,10 @@ export class ApplicationDiagnostics implements IApplicationDiagnostics {
     public register() {
         this.serviceContainer.get<ISourceMapSupportService>(ISourceMapSupportService).register();
     }
-    public async performPreStartupHealthCheck(): Promise<void> {
+    public async performPreStartupHealthCheck(resource: Resource): Promise<void> {
         const diagnosticsServices = this.serviceContainer.getAll<IDiagnosticsService>(IDiagnosticsService);
         await Promise.all(diagnosticsServices.map(async diagnosticsService => {
-            const diagnostics = await diagnosticsService.diagnose();
+            const diagnostics = await diagnosticsService.diagnose(resource);
             this.log(diagnostics);
             if (diagnostics.length > 0) {
                 await diagnosticsService.handle(diagnostics);
