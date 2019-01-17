@@ -36,19 +36,14 @@ suite('Interpreters - Workspace VirtualEnv Service', function () {
     const venvPrefix = '.venv';
     let serviceContainer: IServiceContainer;
 
-    async function manuallyTriggerFSWatcherInWorkspace(resource: Resource) {
-        // Monitoring files on virtualized environments can be finicky...
-        // Lets trigger the fs watcher manually for the tests.
-        const builder = serviceContainer.get<IInterpreterWatcherBuilder>(IInterpreterWatcherBuilder);
-        const watcher = await builder.getWorkspaceVirtualEnvInterpreterWatcher(resource) as WorkspaceVirtualEnvWatcherService;
-        watcher.createHandler(resource).ignoreErrors();
-    }
     async function manuallyTriggerFSWatcher(deferred: Deferred<void>) {
         // Monitoring files on virtualized environments can be finicky...
         // Lets trigger the fs watcher manually for the tests.
         const stopWatch = new StopWatch();
+        const builder = serviceContainer.get<IInterpreterWatcherBuilder>(IInterpreterWatcherBuilder);
+        const watcher = await builder.getWorkspaceVirtualEnvInterpreterWatcher(workspaceUri) as WorkspaceVirtualEnvWatcherService;
         while (!deferred.completed && stopWatch.elapsedTime < (timeoutMs - 10_000)) {
-            manuallyTriggerFSWatcherInWorkspace(workspaceUri).ignoreErrors();
+            watcher.createHandler(workspaceUri).ignoreErrors();
             await sleep(1000);
         }
     }
