@@ -396,7 +396,7 @@ export class PythonSettings implements IPythonSettings {
     }
     @debounce(1)
     protected debounceChangeNotification() {
-        this.changed.fire()
+        this.changed.fire();
     }
 }
 
