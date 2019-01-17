@@ -8,7 +8,7 @@ import { ConfigurationChangeEvent, DiagnosticSeverity, Uri } from 'vscode';
 import { IWorkspaceService } from '../../../common/application/types';
 import '../../../common/extensions';
 import { IPlatformService } from '../../../common/platform/types';
-import { IConfigurationService, IDisposableRegistry } from '../../../common/types';
+import { IConfigurationService, IDisposableRegistry, Resource } from '../../../common/types';
 import { IInterpreterHelper, IInterpreterService, InterpreterType } from '../../../interpreter/contracts';
 import { IServiceContainer } from '../../../ioc/types';
 import { BaseDiagnostic, BaseDiagnosticsService } from '../base';
@@ -23,8 +23,8 @@ const messages = {
 };
 
 export class InvalidMacPythonInterpreterDiagnostic extends BaseDiagnostic {
-    constructor(code: DiagnosticCodes.MacInterpreterSelectedAndNoOtherInterpretersDiagnostic | DiagnosticCodes.MacInterpreterSelectedAndHaveOtherInterpretersDiagnostic) {
-        super(code, messages[code], DiagnosticSeverity.Error, DiagnosticScope.WorkspaceFolder);
+    constructor(code: DiagnosticCodes.MacInterpreterSelectedAndNoOtherInterpretersDiagnostic | DiagnosticCodes.MacInterpreterSelectedAndHaveOtherInterpretersDiagnostic, resource: Resource) {
+        super(code, messages[code], DiagnosticSeverity.Error, DiagnosticScope.WorkspaceFolder, resource);
     }
 }
 
@@ -45,7 +45,7 @@ export class InvalidMacPythonInterpreterService extends BaseDiagnosticsService {
             ], serviceContainer);
         this.addPythonPathChangedHandler();
     }
-    public async diagnose(): Promise<IDiagnostic[]> {
+    public async diagnose(resource: Resource): Promise<IDiagnostic[]> {
         if (!this.platform.isMac) {
             return [];
         }
@@ -74,10 +74,10 @@ export class InvalidMacPythonInterpreterService extends BaseDiagnosticsService {
 
         const interpreters = await this.interpreterService.getInterpreters();
         if (interpreters.filter(i => !this.helper.isMacDefaultPythonPath(i.path)).length === 0) {
-            return [new InvalidMacPythonInterpreterDiagnostic(DiagnosticCodes.MacInterpreterSelectedAndNoOtherInterpretersDiagnostic)];
+            return [new InvalidMacPythonInterpreterDiagnostic(DiagnosticCodes.MacInterpreterSelectedAndNoOtherInterpretersDiagnostic, resource)];
         }
 
-        return [new InvalidMacPythonInterpreterDiagnostic(DiagnosticCodes.MacInterpreterSelectedAndHaveOtherInterpretersDiagnostic)];
+        return [new InvalidMacPythonInterpreterDiagnostic(DiagnosticCodes.MacInterpreterSelectedAndHaveOtherInterpretersDiagnostic, resource)];
     }
     public async handle(diagnostics: IDiagnostic[]): Promise<void> {
         if (diagnostics.length === 0) {
@@ -100,7 +100,8 @@ export class InvalidMacPythonInterpreterService extends BaseDiagnosticsService {
     protected async onDidChangeConfiguration(event: ConfigurationChangeEvent) {
         const workspaceService = this.serviceContainer.get<IWorkspaceService>(IWorkspaceService);
         const workspacesUris: (Uri | undefined)[] = workspaceService.hasWorkspaceFolders ? workspaceService.workspaceFolders!.map(workspace => workspace.uri) : [undefined];
-        if (workspacesUris.findIndex(uri => event.affectsConfiguration('python.pythonPath', uri)) === -1) {
+        const workspaceUriIndex = workspacesUris.findIndex(uri => event.affectsConfiguration('python.pythonPath', uri));
+        if (workspaceUriIndex === -1) {
             return;
         }
         // Lets wait, for more changes, dirty simple throttling.
@@ -110,7 +111,7 @@ export class InvalidMacPythonInterpreterService extends BaseDiagnosticsService {
         }
         this.timeOut = setTimeout(() => {
             this.timeOut = undefined;
-            this.diagnose().then(dianostics => this.handle(dianostics)).ignoreErrors();
+            this.diagnose(workspacesUris[workspaceUriIndex]).then(dianostics => this.handle(dianostics)).ignoreErrors();
         }, this.changeThrottleTimeout);
     }
     private getCommandPrompts(diagnostic: IDiagnostic): { prompt: string; command?: IDiagnosticCommand }[] {
