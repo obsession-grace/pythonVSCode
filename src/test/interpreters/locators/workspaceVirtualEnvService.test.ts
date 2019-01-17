@@ -48,7 +48,6 @@ suite('Interpreters - Workspace VirtualEnv Service', function () {
         // Lets trigger the fs watcher manually for the tests.
         const stopWatch = new StopWatch();
         while (!deferred.completed && stopWatch.elapsedTime < (timeoutMs - 10_000)) {
-            manuallyTriggerFSWatcherInWorkspace(workspace4).ignoreErrors();
             manuallyTriggerFSWatcherInWorkspace(workspaceUri).ignoreErrors();
             await sleep(1000);
         }
