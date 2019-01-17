@@ -11,15 +11,14 @@ import { STANDARD_OUTPUT_CHANNEL } from '../common/constants';
 import { IFileSystem } from '../common/platform/types';
 import { IOutputChannel } from '../common/types';
 import { createDeferred } from '../common/utils/async';
-import { LanguageService } from '../common/utils/localize';
+import { Common, LanguageService } from '../common/utils/localize';
 import { StopWatch } from '../common/utils/stopWatch';
 import { sendTelemetryEvent } from '../telemetry';
+import { EventName } from '../telemetry/constants';
 import {
-    PYTHON_LANGUAGE_SERVER_DOWNLOADED,
-    PYTHON_LANGUAGE_SERVER_ERROR,
-    PYTHON_LANGUAGE_SERVER_EXTRACTED
-} from '../telemetry/constants';
-import { IHttpClient, ILanguageServerDownloader, ILanguageServerFolderService, IPlatformData } from './types';
+    IHttpClient, ILanguageServerDownloader, ILanguageServerFolderService,
+    IPlatformData
+} from './types';
 
 const downloadFileExtension = '.nupkg';
 
@@ -52,12 +51,12 @@ export class LanguageServerDownloader implements ILanguageServerDownloader {
             this.output.appendLine('download failed.');
             this.output.appendLine(err);
             success = false;
-            this.appShell.showErrorMessage(LanguageService.lsFailedToDownload());
-            sendTelemetryEvent(PYTHON_LANGUAGE_SERVER_ERROR, undefined, { error: 'Failed to download (platform)' }, err);
+            this.showMessageAndOptionallyShowOutput(LanguageService.lsFailedToDownload()).ignoreErrors();
+            sendTelemetryEvent(EventName.PYTHON_LANGUAGE_SERVER_ERROR, undefined, { error: 'Failed to download (platform)' }, err);
             throw new Error(err);
         } finally {
             sendTelemetryEvent(
-                PYTHON_LANGUAGE_SERVER_DOWNLOADED,
+                EventName.PYTHON_LANGUAGE_SERVER_DOWNLOADED,
                 timer.elapsedTime,
                 { success, lsVersion }
             );
@@ -70,12 +69,12 @@ export class LanguageServerDownloader implements ILanguageServerDownloader {
             this.output.appendLine('extraction failed.');
             this.output.appendLine(err);
             success = false;
-            this.appShell.showErrorMessage(LanguageService.lsFailedToExtract());
-            sendTelemetryEvent(PYTHON_LANGUAGE_SERVER_ERROR, undefined, { error: 'Failed to extract (platform)' }, err);
+            this.showMessageAndOptionallyShowOutput(LanguageService.lsFailedToExtract()).ignoreErrors();
+            sendTelemetryEvent(EventName.PYTHON_LANGUAGE_SERVER_ERROR, undefined, { error: 'Failed to extract (platform)' }, err);
             throw new Error(err);
         } finally {
             sendTelemetryEvent(
-                PYTHON_LANGUAGE_SERVER_EXTRACTED,
+                EventName.PYTHON_LANGUAGE_SERVER_EXTRACTED,
                 timer.elapsedTime,
                 { success, lsVersion }
             );
@@ -83,6 +82,13 @@ export class LanguageServerDownloader implements ILanguageServerDownloader {
         }
     }
 
+    protected async showMessageAndOptionallyShowOutput(message: string) {
+        const selection = await this.appShell.showErrorMessage(message, Common.openOutputPanel());
+        if (selection !== Common.openOutputPanel()) {
+            return;
+        }
+        this.output.show(true);
+    }
     protected async downloadFile(uri: string, title: string): Promise<string> {
         this.output.append(`Downloading ${uri}... `);
         const tempFile = await this.fs.createTemporaryFile(downloadFileExtension);

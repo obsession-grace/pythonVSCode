@@ -7,12 +7,13 @@ import { injectable, unmanaged } from 'inversify';
 import { DiagnosticSeverity } from 'vscode';
 import { IServiceContainer } from '../../ioc/types';
 import { sendTelemetryEvent } from '../../telemetry';
-import { DIAGNOSTICS_MESSAGE } from '../../telemetry/constants';
+import { EventName } from '../../telemetry/constants';
+import { DiagnosticCodes } from './constants';
 import { DiagnosticScope, IDiagnostic, IDiagnosticFilterService, IDiagnosticsService } from './types';
 
 @injectable()
 export abstract class BaseDiagnostic implements IDiagnostic {
-    constructor(public readonly code: string, public readonly message: string,
+    constructor(public readonly code: DiagnosticCodes, public readonly message: string,
         public readonly severity: DiagnosticSeverity, public readonly scope: DiagnosticScope) { }
 }
 
@@ -26,7 +27,7 @@ export abstract class BaseDiagnosticsService implements IDiagnosticsService {
     public abstract diagnose(): Promise<IDiagnostic[]>;
     public abstract handle(diagnostics: IDiagnostic[]): Promise<void>;
     public async canHandle(diagnostic: IDiagnostic): Promise<boolean> {
-        sendTelemetryEvent(DIAGNOSTICS_MESSAGE, undefined, { code: diagnostic.code });
+        sendTelemetryEvent(EventName.DIAGNOSTICS_MESSAGE, undefined, { code: diagnostic.code });
         return this.supportedDiagnosticCodes.filter(item => item === diagnostic.code).length > 0;
     }
 }

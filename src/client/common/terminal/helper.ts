@@ -3,9 +3,9 @@
 
 import { inject, injectable, named } from 'inversify';
 import { Terminal, Uri } from 'vscode';
-import { ICondaService, IInterpreterService, InterpreterType } from '../../interpreter/contracts';
+import { ICondaService, IInterpreterService, InterpreterType, PythonInterpreter } from '../../interpreter/contracts';
 import { sendTelemetryEvent } from '../../telemetry';
-import { PYTHON_INTERPRETER_ACTIVATION_FOR_RUNNING_CODE, PYTHON_INTERPRETER_ACTIVATION_FOR_TERMINAL } from '../../telemetry/constants';
+import { EventName } from '../../telemetry/constants';
 import { ITerminalManager, IWorkspaceService } from '../application/types';
 import '../extensions';
 import { traceDecorators, traceError } from '../logger';
@@ -105,22 +105,22 @@ export class TerminalHelper implements ITerminalHelper {
     }
     public async getEnvironmentActivationCommands(terminalShellType: TerminalShellType, resource?: Uri): Promise<string[] | undefined> {
         const providers = [this.pipenv, this.pyenv, this.bashCShellFish, this.commandPromptAndPowerShell];
-        const promise = this.getActivationCommands(resource || undefined, terminalShellType, providers);
-        this.sendTelemetry(resource, terminalShellType, PYTHON_INTERPRETER_ACTIVATION_FOR_TERMINAL, promise).ignoreErrors();
+        const promise = this.getActivationCommands(resource || undefined, undefined, terminalShellType, providers);
+        this.sendTelemetry(resource, terminalShellType, EventName.PYTHON_INTERPRETER_ACTIVATION_FOR_TERMINAL, promise).ignoreErrors();
         return promise;
     }
-    public async getEnvironmentActivationShellCommands(resource: Resource): Promise<string[] | undefined> {
+    public async getEnvironmentActivationShellCommands(resource: Resource, interpreter?: PythonInterpreter): Promise<string[] | undefined> {
         const shell = defaultOSShells[this.platform.osType];
         if (!shell) {
             return;
         }
         const providers = [this.bashCShellFish, this.commandPromptAndPowerShell];
-        const promise = this.getActivationCommands(resource, shell, providers);
-        this.sendTelemetry(resource, shell, PYTHON_INTERPRETER_ACTIVATION_FOR_RUNNING_CODE, promise).ignoreErrors();
+        const promise = this.getActivationCommands(resource, interpreter, shell, providers);
+        this.sendTelemetry(resource, shell, EventName.PYTHON_INTERPRETER_ACTIVATION_FOR_RUNNING_CODE, promise).ignoreErrors();
         return promise;
     }
     @traceDecorators.error('Failed to capture telemetry')
-    protected async sendTelemetry(resource: Resource, terminalShellType: TerminalShellType, eventName: string, promise: Promise<string[] | undefined>): Promise<void> {
+    protected async sendTelemetry(resource: Resource, terminalShellType: TerminalShellType, eventName: EventName, promise: Promise<string[] | undefined>): Promise<void> {
         let hasCommands = false;
         const interpreter = await this.interpreterService.getActiveInterpreter(resource);
         let failed = false;
@@ -137,7 +137,7 @@ export class TerminalHelper implements ITerminalHelper {
         const data = { failed, hasCommands, interpreterType, terminal: terminalShellType, pythonVersion };
         sendTelemetryEvent(eventName, undefined, data);
     }
-    protected async getActivationCommands(resource: Resource, terminalShellType: TerminalShellType, providers: ITerminalActivationCommandProvider[]): Promise<string[] | undefined> {
+    protected async getActivationCommands(resource: Resource, interpreter: PythonInterpreter | undefined, terminalShellType: TerminalShellType, providers: ITerminalActivationCommandProvider[]): Promise<string[] | undefined> {
         const settings = this.configurationService.getSettings(resource);
         const activateEnvironment = settings.terminal.activateEnvironment;
         if (!activateEnvironment) {
@@ -147,7 +147,11 @@ export class TerminalHelper implements ITerminalHelper {
         // If we have a conda environment, then use that.
         const isCondaEnvironment = await this.condaService.isCondaEnvironment(settings.pythonPath);
         if (isCondaEnvironment) {
-            const activationCommands = await this.conda.getActivationCommands(resource, terminalShellType);
+
+            const activationCommands = interpreter ?
+                await this.conda.getActivationCommandsForInterpreter(interpreter.path, terminalShellType) :
+                await this.conda.getActivationCommands(resource, terminalShellType);
+
             if (Array.isArray(activationCommands)) {
                 return activationCommands;
             }
@@ -157,7 +161,11 @@ export class TerminalHelper implements ITerminalHelper {
         const supportedProviders = providers.filter(provider => provider.isShellSupported(terminalShellType));
 
         for (const provider of supportedProviders) {
-            const activationCommands = await provider.getActivationCommands(resource, terminalShellType);
+
+            const activationCommands = interpreter ?
+                await provider.getActivationCommandsForInterpreter(interpreter.path, terminalShellType) :
+                await provider.getActivationCommands(resource, terminalShellType);
+
             if (Array.isArray(activationCommands) && activationCommands.length > 0) {
                 return activationCommands;
             }

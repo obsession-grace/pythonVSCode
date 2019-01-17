@@ -90,7 +90,7 @@ import { TerminalProvider } from './providers/terminalProvider';
 import { ISortImportsEditingProvider } from './providers/types';
 import { activateUpdateSparkLibraryProvider } from './providers/updateSparkLibraryProvider';
 import { sendTelemetryEvent } from './telemetry';
-import { EDITOR_LOAD } from './telemetry/constants';
+import { EventName } from './telemetry/constants';
 import { registerTypes as commonRegisterTerminalTypes } from './terminals/serviceRegistry';
 import { ICodeExecutionManager, ITerminalAutoActivation } from './terminals/types';
 import { TEST_OUTPUT_CHANNEL } from './unittests/common/constants';
@@ -306,7 +306,7 @@ async function sendStartupTelemetry(activatedPromise: Promise<any>, serviceConta
     try {
         await activatedPromise;
         const props = await getActivationTelemetryProps(serviceContainer);
-        sendTelemetryEvent(EDITOR_LOAD, durations, props);
+        sendTelemetryEvent(EventName.EDITOR_LOAD, durations, props);
     } catch (ex) {
         traceError('sendStartupTelemetry() failed.', ex);
     }
@@ -376,7 +376,7 @@ async function getActivationTelemetryProps(serviceContainer: IServiceContainer):
 // error handling
 
 function handleError(ex: Error) {
-    notifyUser('extension activation failed (see console log).');
+    notifyUser('Extension activation failed, run the \'Developer: Toggle Developer Tools\' command for more information.');
     traceError('extension activation failed', ex);
     sendErrorTelemetry(ex)
         .ignoreErrors();
@@ -410,7 +410,7 @@ async function sendErrorTelemetry(ex: Error) {
                 // ignore
             }
         }
-        sendTelemetryEvent(EDITOR_LOAD, durations, props, ex);
+        sendTelemetryEvent(EventName.EDITOR_LOAD, durations, props, ex);
     } catch (exc2) {
         traceError('sendErrorTelemetry() failed.', exc2);
     }

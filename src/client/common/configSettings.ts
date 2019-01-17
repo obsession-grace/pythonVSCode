@@ -6,7 +6,7 @@ import { ConfigurationChangeEvent, ConfigurationTarget, DiagnosticSeverity, Disp
 import '../common/extensions';
 import { IInterpreterAutoSeletionProxyService } from '../interpreter/autoSelection/types';
 import { sendTelemetryEvent } from '../telemetry';
-import { COMPLETION_ADD_BRACKETS, FORMAT_ON_TYPE } from '../telemetry/constants';
+import { EventName } from '../telemetry/constants';
 import { IWorkspaceService } from './application/types';
 import { WorkspaceService } from './application/workspace';
 import { isTestExecution } from './constants';
@@ -23,11 +23,11 @@ import {
     IUnitTestSettings,
     IWorkspaceSymbolSettings
 } from './types';
+import { debounce } from './utils/decorators';
 import { SystemVariables } from './variables/systemVariables';
 
 // tslint:disable:no-require-imports no-var-requires
 const untildify = require('untildify');
-const _debounce = require('lodash/debounce') as typeof import('lodash/debounce');
 
 // tslint:disable-next-line:completed-docs
 export class PythonSettings implements IPythonSettings {
@@ -85,8 +85,8 @@ export class PythonSettings implements IPythonSettings {
             // tslint:disable-next-line:no-any
             const config = workspace.getConfiguration('editor', resource ? resource : null as any);
             const formatOnType = config ? config.get('formatOnType', false) : false;
-            sendTelemetryEvent(COMPLETION_ADD_BRACKETS, undefined, { enabled: settings.autoComplete ? settings.autoComplete.addBrackets : false });
-            sendTelemetryEvent(FORMAT_ON_TYPE, undefined, { enabled: formatOnType });
+            sendTelemetryEvent(EventName.COMPLETION_ADD_BRACKETS, undefined, { enabled: settings.autoComplete ? settings.autoComplete.addBrackets : false });
+            sendTelemetryEvent(EventName.FORMAT_ON_TYPE, undefined, { enabled: formatOnType });
         }
         // tslint:disable-next-line:no-non-null-assertion
         return PythonSettings.pythonSettings.get(workspaceFolderKey)!;
@@ -380,7 +380,7 @@ export class PythonSettings implements IPythonSettings {
 
             // If workspace config changes, then we could have a cascading effect of on change events.
             // Let's defer the change notification.
-            _debounce(() => this.changed.fire(), 1);
+            this.debounceChangeNotification();
         };
         this.disposables.push(this.InterpreterAutoSelectionService.onDidChangeAutoSelectedInterpreter(onDidChange.bind(this)));
         this.disposables.push(this.workspace.onDidChangeConfiguration((event: ConfigurationChangeEvent) => {
@@ -393,6 +393,10 @@ export class PythonSettings implements IPythonSettings {
         if (initialConfig) {
             this.update(initialConfig);
         }
+    }
+    @debounce(1)
+    protected debounceChangeNotification() {
+        this.changed.fire()
     }
 }
 
