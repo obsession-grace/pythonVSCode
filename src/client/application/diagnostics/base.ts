@@ -43,7 +43,7 @@ export abstract class BaseDiagnosticsService implements IDiagnosticsService {
             BaseDiagnosticsService.handledDiagnosticCodeKeys.push(key);
             return true;
         });
-        await this.handle(diagnosticsToHandle);
+        await this.onHandle(diagnosticsToHandle);
     }
     public async canHandle(diagnostic: IDiagnostic): Promise<boolean> {
         sendTelemetryEvent(EventName.DIAGNOSTICS_MESSAGE, undefined, { code: diagnostic.code });
