@@ -115,6 +115,7 @@ export namespace vscMockArrays {
         const result: T[][] = [];
         let currentGroup: T[];
         for (const element of mergeSort(data.slice(0), compare)) {
+            // @ts-ignore
             if (!currentGroup || compare(currentGroup[0], element) !== 0) {
                 currentGroup = [element];
                 result.push(currentGroup);
@@ -311,7 +312,7 @@ export namespace vscMockArrays {
 
         return -1;
     }
-
+    // @ts-ignore
     export function first<T>(array: T[], fn: (item: T) => boolean, notFoundValue: T = null): T {
         const index = firstIndex(array, fn);
         return index < 0 ? notFoundValue : array[index];
@@ -328,6 +329,7 @@ export namespace vscMockArrays {
     }
 
     export function flatten<T>(arr: T[][]): T[] {
+        // @ts-ignore
         return [].concat(...arr);
     }
 

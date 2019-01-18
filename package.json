@@ -1921,6 +1921,7 @@
         "@types/md5": "^2.1.32",
         "@types/mocha": "^2.2.48",
         "@types/node": "9.4.7",
+        "@types/pidusage": "^2.0.1",
         "@types/promisify-node": "^0.4.0",
         "@types/react": "^16.4.14",
         "@types/react-codemirror": "^1.0.2",
