@@ -10,7 +10,7 @@ import { IServiceContainer } from '../ioc/types';
 import { BaseLinter } from './baseLinter';
 import { ILintMessage, LintMessageSeverity } from './types';
 
-const severityMapping: {[key: string]: LintMessageSeverity | undefined} = {
+const severityMapping: Record<string, LintMessageSeverity | undefined> = {
     LOW: LintMessageSeverity.Information,
     MEDIUM: LintMessageSeverity.Warning,
     HIGH: LintMessageSeverity.Error

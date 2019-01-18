@@ -273,7 +273,7 @@ export namespace vscMockArrays {
             });
         }
 
-        const seen: { [key: string]: boolean; } = Object.create(null);
+        const seen: Record<string, boolean> = Object.create(null);
         return array.filter((elem) => {
             const key = keyFn(elem);
             if (seen[key]) {
@@ -287,7 +287,7 @@ export namespace vscMockArrays {
     }
 
     export function uniqueFilter<T>(keyFn: (t: T) => string): (t: T) => boolean {
-        const seen: { [key: string]: boolean; } = Object.create(null);
+        const seen: Record<string, boolean> = Object.create(null);
 
         return element => {
             const key = keyFn(element);
@@ -368,9 +368,9 @@ export namespace vscMockArrays {
         return arr;
     }
 
-    export function index<T>(array: T[], indexer: (t: T) => string): { [key: string]: T; };
-    export function index<T, R>(array: T[], indexer: (t: T) => string, merger?: (t: T, r: R) => R): { [key: string]: R; };
-    export function index<T, R>(array: T[], indexer: (t: T) => string, merger: (t: T, r: R) => R = t => t as any): { [key: string]: R; } {
+    export function index<T>(array: T[], indexer: (t: T) => string): Record<string, T>;
+    export function index<T, R>(array: T[], indexer: (t: T) => string, merger?: (t: T, r: R) => R): Record<string, R>;
+    export function index<T, R>(array: T[], indexer: (t: T) => string, merger: (t: T, r: R) => R = t => t as any): Record<string, R> {
         return array.reduce((r, t) => {
             const key = indexer(t);
             r[key] = merger(t, r[key]);
