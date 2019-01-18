@@ -6,19 +6,20 @@
 import { inject, injectable, named } from 'inversify';
 import * as path from 'path';
 import { ProgressLocation, window } from 'vscode';
-import { IApplicationShell } from '../common/application/types';
-import { STANDARD_OUTPUT_CHANNEL } from '../common/constants';
-import { IFileSystem } from '../common/platform/types';
-import { IOutputChannel } from '../common/types';
-import { createDeferred } from '../common/utils/async';
-import { Common, LanguageService } from '../common/utils/localize';
-import { StopWatch } from '../common/utils/stopWatch';
-import { sendTelemetryEvent } from '../telemetry';
-import { EventName } from '../telemetry/constants';
+import { IApplicationShell } from '../../common/application/types';
+import { STANDARD_OUTPUT_CHANNEL } from '../../common/constants';
+import '../../common/extensions';
+import { IFileSystem } from '../../common/platform/types';
+import { IOutputChannel } from '../../common/types';
+import { createDeferred } from '../../common/utils/async';
+import { Common, LanguageService } from '../../common/utils/localize';
+import { StopWatch } from '../../common/utils/stopWatch';
+import { sendTelemetryEvent } from '../../telemetry';
+import { EventName } from '../../telemetry/constants';
 import {
     IHttpClient, ILanguageServerDownloader, ILanguageServerFolderService,
     IPlatformData
-} from './types';
+} from '../types';
 
 // tslint:disable:no-require-imports no-any
 
@@ -50,7 +51,7 @@ export class LanguageServerDownloader implements ILanguageServerDownloader {
         try {
             localTempFilePath = await this.downloadFile(downloadUri, 'Downloading Microsoft Python Language Server... ');
         } catch (err) {
-            this.output.appendLine('download failed.');
+            this.output.appendLine(LanguageService.downloadFailedOutputMessage());
             this.output.appendLine(err);
             success = false;
             this.showMessageAndOptionallyShowOutput(LanguageService.lsFailedToDownload()).ignoreErrors();
@@ -68,7 +69,7 @@ export class LanguageServerDownloader implements ILanguageServerDownloader {
         try {
             await this.unpackArchive(destinationFolder, localTempFilePath);
         } catch (err) {
-            this.output.appendLine('extraction failed.');
+            this.output.appendLine(LanguageService.extractionFailedOutputMessage());
             this.output.appendLine(err);
             success = false;
             this.showMessageAndOptionallyShowOutput(LanguageService.lsFailedToExtract()).ignoreErrors();
@@ -130,7 +131,7 @@ export class LanguageServerDownloader implements ILanguageServerDownloader {
                     deferred.reject(err);
                 })
                 .on('end', () => {
-                    this.output.appendLine('complete.');
+                    this.output.appendLine(LanguageService.extractionCompletedOutputMessage());
                     deferred.resolve();
                 })
                 .pipe(fileStream);
@@ -184,6 +185,6 @@ export class LanguageServerDownloader implements ILanguageServerDownloader {
         const executablePath = path.join(destinationFolder, this.platformData.engineExecutableName);
         await this.fs.chmod(executablePath, '0764'); // -rwxrw-r--
 
-        this.output.appendLine('done.');
+        this.output.appendLine(LanguageService.extractionDoneOutputMessage());
     }
 }
