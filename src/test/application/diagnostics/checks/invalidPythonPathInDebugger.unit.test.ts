@@ -9,7 +9,7 @@ import { expect } from 'chai';
 import * as path from 'path';
 import * as typemoq from 'typemoq';
 import { Uri } from 'vscode';
-import { clearCacheForTesting } from '../../../../client/application/diagnostics/base';
+import { BaseDiagnosticsService } from '../../../../client/application/diagnostics/base';
 import { InvalidPythonPathInDebuggerService } from '../../../../client/application/diagnostics/checks/invalidPythonPathInDebugger';
 import { CommandOption, IDiagnosticsCommandFactory } from '../../../../client/application/diagnostics/commands/types';
 import { DiagnosticCodes } from '../../../../client/application/diagnostics/constants';
@@ -61,7 +61,13 @@ suite('Application Diagnostics - Checks Python Path in debugger', () => {
             .setup(s => s.get(typemoq.It.isValue(IWorkspaceService)))
             .returns(() => workspaceService.object);
 
-        diagnosticService = new InvalidPythonPathInDebuggerService(
+        diagnosticService = new class extends InvalidPythonPathInDebuggerService {
+            public _clear() {
+                while (BaseDiagnosticsService.handledDiagnosticCodeKeys.length > 0) {
+                    BaseDiagnosticsService.handledDiagnosticCodeKeys.shift();
+                }
+            }
+        }(
             serviceContainer.object,
             workspaceService.object,
             commandFactory.object,
@@ -69,7 +75,7 @@ suite('Application Diagnostics - Checks Python Path in debugger', () => {
             configService.object,
             messageHandler.object
         );
-        clearCacheForTesting();
+        (diagnosticService as any)._clear();
     });
 
     test('Can handle InvalidPythonPathInDebugger diagnostics', async () => {

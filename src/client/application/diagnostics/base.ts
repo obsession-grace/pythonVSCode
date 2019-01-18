@@ -6,7 +6,6 @@
 import { injectable, unmanaged } from 'inversify';
 import { DiagnosticSeverity } from 'vscode';
 import { IWorkspaceService } from '../../common/application/types';
-import { isUnitTestExecution } from '../../common/constants';
 import { Resource } from '../../common/types';
 import { IServiceContainer } from '../../ioc/types';
 import { sendTelemetryEvent } from '../../telemetry';
@@ -21,19 +20,9 @@ export abstract class BaseDiagnostic implements IDiagnostic {
         public readonly resource: Resource) { }
 }
 
-export function clearCacheForTesting() {
-    if (!isUnitTestExecution()) {
-        throw new Error('Feature Not available when not testing');
-    }
-    while (handledKeys.length > 0) {
-        handledKeys.shift();
-    }
-}
-
-const handledKeys: string[] = [];
-
 @injectable()
 export abstract class BaseDiagnosticsService implements IDiagnosticsService {
+    protected static handledDiagnosticCodeKeys: string[] = [];
     protected readonly filterService: IDiagnosticFilterService;
     constructor(
         @unmanaged() private readonly supportedDiagnosticCodes: string[],
@@ -48,10 +37,10 @@ export abstract class BaseDiagnosticsService implements IDiagnosticsService {
         }
         const diagnosticsToHandle = diagnostics.filter(item => {
             const key = this.getDiagnosticsKey(item);
-            if (handledKeys.indexOf(key) !== -1) {
+            if (BaseDiagnosticsService.handledDiagnosticCodeKeys.indexOf(key) !== -1) {
                 return false;
             }
-            handledKeys.push(key);
+            BaseDiagnosticsService.handledDiagnosticCodeKeys.push(key);
             return true;
         });
         await this.handle(diagnosticsToHandle);
@@ -75,7 +64,7 @@ export abstract class BaseDiagnosticsService implements IDiagnosticsService {
             return diagnostic.code;
         }
         const workspace = this.serviceContainer.get<IWorkspaceService>(IWorkspaceService);
-        const workspaceFolder = workspace.getWorkspaceFolder(diagnostic.resource);
-        return `${diagnostic.code}${workspaceFolder ? workspaceFolder.uri.fsPath : ''}`;
+        const workspaceFolder = diagnostic.resource ? workspace.getWorkspaceFolder(diagnostic.resource) : undefined;
+        return `${diagnostic.code}dbe75733-0407-4124-a1b2-ca769dc30523${workspaceFolder ? workspaceFolder.uri.fsPath : ''}`;
     }
 }

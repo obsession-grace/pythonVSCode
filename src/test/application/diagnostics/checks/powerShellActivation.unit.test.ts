@@ -5,7 +5,7 @@
 
 import { expect } from 'chai';
 import * as typemoq from 'typemoq';
-import { clearCacheForTesting } from '../../../../client/application/diagnostics/base';
+import { BaseDiagnosticsService } from '../../../../client/application/diagnostics/base';
 import { PowerShellActivationHackDiagnosticsService } from '../../../../client/application/diagnostics/checks/powerShellActivation';
 import { CommandOption, IDiagnosticsCommandFactory } from '../../../../client/application/diagnostics/commands/types';
 import { DiagnosticCodes } from '../../../../client/application/diagnostics/constants';
@@ -78,8 +78,14 @@ suite('Application Diagnostics - PowerShell Activation', () => {
         pathUtils.setup(p => p.delimiter).returns(() => pathDelimiter);
         serviceContainer.setup(s => s.get(typemoq.It.isValue(IPathUtils))).returns(() => pathUtils.object);
 
-        diagnosticService = new PowerShellActivationHackDiagnosticsService(serviceContainer.object);
-        clearCacheForTesting();
+        diagnosticService = new class extends PowerShellActivationHackDiagnosticsService {
+            public _clear() {
+                while (BaseDiagnosticsService.handledDiagnosticCodeKeys.length > 0) {
+                    BaseDiagnosticsService.handledDiagnosticCodeKeys.shift();
+                }
+            }
+        }(serviceContainer.object);
+        (diagnosticService as any)._clear();
     });
 
     test('Can handle PowerShell diagnostics', async () => {

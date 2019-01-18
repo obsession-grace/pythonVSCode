@@ -7,7 +7,7 @@
 
 import { expect } from 'chai';
 import * as typemoq from 'typemoq';
-import { clearCacheForTesting } from '../../../../client/application/diagnostics/base';
+import { BaseDiagnosticsService } from '../../../../client/application/diagnostics/base';
 import { InvalidPythonInterpreterDiagnostic, InvalidPythonInterpreterService } from '../../../../client/application/diagnostics/checks/pythonInterpreter';
 import { CommandOption, IDiagnosticsCommandFactory } from '../../../../client/application/diagnostics/commands/types';
 import { DiagnosticCodes } from '../../../../client/application/diagnostics/constants';
@@ -59,9 +59,14 @@ suite('Application Diagnostics - Checks Python Interpreter', () => {
     suite('Diagnostics', () => {
         setup(() => {
             diagnosticService = new class extends InvalidPythonInterpreterService {
+                public _clear() {
+                    while (BaseDiagnosticsService.handledDiagnosticCodeKeys.length > 0) {
+                        BaseDiagnosticsService.handledDiagnosticCodeKeys.shift();
+                    }
+                }
                 protected addPythonPathChangedHandler() { noop(); }
             }(createContainer());
-            clearCacheForTesting();
+            (diagnosticService as any)._clear();
         });
 
         test('Can handle InvalidPythonPathInterpreter diagnostics', async () => {
