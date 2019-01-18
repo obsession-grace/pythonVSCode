@@ -13,7 +13,7 @@ import { CommandOption, IDiagnosticsCommandFactory } from '../../../../client/ap
 import { DiagnosticCodes } from '../../../../client/application/diagnostics/constants';
 import { DiagnosticCommandPromptHandlerServiceId, MessageCommandPrompt } from '../../../../client/application/diagnostics/promptHandler';
 import { DiagnosticScope, IDiagnostic, IDiagnosticCommand, IDiagnosticFilterService, IDiagnosticHandlerService, IDiagnosticsService } from '../../../../client/application/diagnostics/types';
-import { IApplicationEnvironment } from '../../../../client/common/application/types';
+import { IApplicationEnvironment, IWorkspaceService } from '../../../../client/common/application/types';
 import { IPlatformService } from '../../../../client/common/platform/types';
 import { ICurrentProcess, IPathUtils } from '../../../../client/common/types';
 import { EnvironmentVariables } from '../../../../client/common/variables/types';
@@ -65,6 +65,11 @@ suite('Application Diagnostics - Checks Env Path Variable', () => {
         pathUtils.setup(p => p.delimiter).returns(() => pathDelimiter);
         serviceContainer.setup(s => s.get(typemoq.It.isValue(IPathUtils)))
             .returns(() => pathUtils.object);
+        const workspaceService = typemoq.Mock.ofType<IWorkspaceService>();
+        serviceContainer.setup(s => s.get(typemoq.It.isValue(IWorkspaceService)))
+            .returns(() => workspaceService.object);
+        workspaceService.setup(w => w.getWorkspaceFolder(typemoq.It.isAny()))
+            .returns(() => undefined);
 
         diagnosticService = new class extends EnvironmentPathVariableDiagnosticsService {
             public _clear() {

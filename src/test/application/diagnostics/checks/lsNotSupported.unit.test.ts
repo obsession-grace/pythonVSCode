@@ -12,6 +12,7 @@ import { CommandOption, IDiagnosticsCommandFactory } from '../../../../client/ap
 import { DiagnosticCodes } from '../../../../client/application/diagnostics/constants';
 import { DiagnosticCommandPromptHandlerServiceId, MessageCommandPrompt } from '../../../../client/application/diagnostics/promptHandler';
 import { DiagnosticScope, IDiagnostic, IDiagnosticCommand, IDiagnosticFilterService, IDiagnosticHandlerService, IDiagnosticsService } from '../../../../client/application/diagnostics/types';
+import { IWorkspaceService } from '../../../../client/common/application/types';
 import { IServiceContainer } from '../../../../client/ioc/types';
 
 // tslint:disable:max-func-body-length no-any
@@ -31,6 +32,11 @@ suite('Application Diagnostics - Checks LS not supported', () => {
         serviceContainer.setup(s => s.get(TypeMoq.It.isValue(IDiagnosticFilterService))).returns(() => filterService.object);
         serviceContainer.setup(s => s.get(TypeMoq.It.isValue(IDiagnosticsCommandFactory))).returns(() => commandFactory.object);
         serviceContainer.setup(s => s.get(TypeMoq.It.isValue(IDiagnosticHandlerService), TypeMoq.It.isValue(DiagnosticCommandPromptHandlerServiceId))).returns(() => messageHandler.object);
+        const workspaceService = TypeMoq.Mock.ofType<IWorkspaceService>();
+        serviceContainer.setup(s => s.get(TypeMoq.It.isValue(IWorkspaceService)))
+            .returns(() => workspaceService.object);
+        workspaceService.setup(w => w.getWorkspaceFolder(TypeMoq.It.isAny()))
+            .returns(() => undefined);
 
         diagnosticService = new class extends LSNotSupportedDiagnosticService {
             public _clear() {
