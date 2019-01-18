@@ -6,11 +6,8 @@
 // tslint:disable:no-any no-unused-expression chai-vague-errors no-unnecessary-override max-func-body-length max-classes-per-file
 
 import { expect } from 'chai';
-import * as fs from 'fs';
 import * as path from 'path';
 import { ConfigurationTarget, Disposable } from 'vscode';
-import { FileSystem } from '../client/common/platform/fileSystem';
-import { PlatformService } from '../client/common/platform/platformService';
 import { Diagnostics } from '../client/common/utils/localize';
 import { EXTENSION_ROOT_DIR } from '../client/constants';
 import { initialize, SourceMapSupport } from '../client/sourceMapSupport';
@@ -114,34 +111,4 @@ suite('Source Map Support', () => {
     }
     test('Rename extension and debugger source maps when enabling source maps', () => testRenamingFilesWhenEnablingDisablingSourceMaps(true));
     test('Rename extension and debugger source maps when disabling source maps', () => testRenamingFilesWhenEnablingDisablingSourceMaps(false));
-    test('When disabling source maps, the map file is renamed and vice versa', async () => {
-        const fileSystem = new FileSystem(new PlatformService());
-        const jsFile = await fileSystem.createTemporaryFile('.js');
-        disposables.push(jsFile);
-        const mapFile = `${jsFile.filePath}.map`;
-        disposables.push({
-            dispose: () => fs.unlinkSync(mapFile)
-        });
-        await fileSystem.writeFile(mapFile, 'ABC');
-        expect(await fileSystem.fileExists(mapFile)).to.be.true;
-
-        const stub = createVSCStub(true, true);
-        const instance = new class extends SourceMapSupport {
-            public async enableSourceMap(enable: boolean, sourceFile: string) {
-                return super.enableSourceMap(enable, sourceFile);
-            }
-        }(stub.vscode as any);
-
-        await instance.enableSourceMap(false, jsFile.filePath);
-
-        expect(await fileSystem.fileExists(jsFile.filePath)).to.be.equal(true, 'Source file does not exist');
-        expect(await fileSystem.fileExists(mapFile)).to.be.equal(false, 'Source map file not renamed');
-        expect(await fileSystem.fileExists(`${mapFile}.disabled`)).to.be.equal(true, 'Expected renamed file not found');
-
-        await instance.enableSourceMap(true, jsFile.filePath);
-
-        expect(await fileSystem.fileExists(jsFile.filePath)).to.be.equal(true, 'Source file does not exist');
-        expect(await fileSystem.fileExists(mapFile)).to.be.equal(true, 'Source map file not found');
-        expect(await fileSystem.fileExists(`${mapFile}.disabled`)).to.be.equal(false, 'Source map file not renamed');
-    });
 });
