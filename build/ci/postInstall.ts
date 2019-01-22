@@ -15,14 +15,8 @@ import { ExtensionRootDir } from '../constants';
  * The solution is to modify the type definition file after `npm install`.
  */
 function fixJupyterLabDTSFiles() {
-    const filePath = path.join(
-        ExtensionRootDir,
-        'node_modules',
-        '@jupyterlab',
-        'coreutils',
-        'lib',
-        'settingregistry.d.ts'
-    );
+    const relativeFilePath = path.join('node_modules', '@jupyterlab', 'coreutils', 'lib', 'settingregistry.d.ts');
+    const filePath = path.join(ExtensionRootDir, relativeFilePath);
     if (!fs.existsSync(filePath)) {
         throw new Error(`Type Definition file from JupyterLab not found '${filePath}' (pvsc post install script)`);
     }
@@ -33,6 +27,8 @@ function fixJupyterLabDTSFiles() {
         throw new Error('Fix for JupyterLabl file \'settingregistry.d.ts\' failed (pvsc post install script)');
     }
     fs.writeFileSync(filePath, replacedText);
+    // tslint:disable-next-line:no-console
+    console.info(`Updated '${relativeFilePath} to ensure it compiles in strict mode`);
 }
 
 fixJupyterLabDTSFiles();
