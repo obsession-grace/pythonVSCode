@@ -28,7 +28,7 @@ import { IConfigurationService, IPythonSettings } from '../../../../client/commo
 import { IInterpreterHelper } from '../../../../client/interpreter/contracts';
 import { IServiceContainer } from '../../../../client/ioc/types';
 
-suite('xApplication Diagnostics - Checks Python Path in debugger', () => {
+suite('Application Diagnostics - Checks Python Path in debugger', () => {
     let diagnosticService: IInvalidPythonPathInDebuggerService;
     let messageHandler: typemoq.IMock<IDiagnosticHandlerService<MessageCommandPrompt>>;
     let commandFactory: typemoq.IMock<IDiagnosticsCommandFactory>;
@@ -96,7 +96,8 @@ suite('xApplication Diagnostics - Checks Python Path in debugger', () => {
     });
     test('Can not handle non-InvalidPythonPathInDebugger diagnostics', async () => {
         const diagnostic = typemoq.Mock.ofType<IDiagnostic>();
-        diagnostic.setup(d => d.code)
+        diagnostic
+            .setup(d => d.code)
             .returns(() => 'Something Else' as any)
             .verifiable(typemoq.Times.atLeastOnce());
 
@@ -152,7 +153,9 @@ suite('xApplication Diagnostics - Checks Python Path in debugger', () => {
             )
             .returns(() => interpreterSelectionCommand.object)
             .verifiable(typemoq.Times.exactly(1));
-        messageHandler.setup(m => m.handle(typemoq.It.isAny(), typemoq.It.isAny())).verifiable(typemoq.Times.exactly(1));
+        messageHandler
+            .setup(m => m.handle(typemoq.It.isAny(), typemoq.It.isAny()))
+            .verifiable(typemoq.Times.exactly(1));
 
         await diagnosticService.handle([diagnostic.object]);
         await diagnosticService.handle([diagnostic.object]);
@@ -181,7 +184,9 @@ suite('xApplication Diagnostics - Checks Python Path in debugger', () => {
             )
             .returns(() => interpreterSelectionCommand.object)
             .verifiable(typemoq.Times.exactly(2));
-        messageHandler.setup(m => m.handle(typemoq.It.isAny(), typemoq.It.isAny())).verifiable(typemoq.Times.exactly(2));
+        messageHandler
+            .setup(m => m.handle(typemoq.It.isAny(), typemoq.It.isAny()))
+            .verifiable(typemoq.Times.exactly(2));
 
         await diagnosticService.handle([diagnostic.object]);
         await diagnosticService.handle([diagnostic.object]);
