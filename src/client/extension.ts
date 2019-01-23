@@ -97,6 +97,7 @@ import { ISortImportsEditingProvider } from './providers/types';
 import { activateUpdateSparkLibraryProvider } from './providers/updateSparkLibraryProvider';
 import { sendTelemetryEvent } from './telemetry';
 import { EventName } from './telemetry/constants';
+import { EditorLoadTelemetry } from './telemetry/types';
 import { registerTypes as commonRegisterTerminalTypes } from './terminals/serviceRegistry';
 import { ICodeExecutionManager, ITerminalAutoActivation } from './terminals/types';
 import { TEST_OUTPUT_CHANNEL } from './unittests/common/constants';
@@ -328,9 +329,9 @@ function isUsingGlobalInterpreterInWorkspace(currentPythonPath: string, serviceC
 function hasUserDefinedPythonPath(resource: Resource, serviceContainer: IServiceContainer) {
     const workspaceService = serviceContainer.get<IWorkspaceService>(IWorkspaceService);
     const settings = workspaceService.getConfiguration('python', resource)!.inspect<string>('pythonPath')!;
-    return (settings.workspaceFolderValue && settings.workspaceFolderValue !== 'python') ||
+    return ((settings.workspaceFolderValue && settings.workspaceFolderValue !== 'python') ||
         (settings.workspaceValue && settings.workspaceValue !== 'python') ||
-        (settings.globalValue && settings.globalValue !== 'python');
+        (settings.globalValue && settings.globalValue !== 'python')) ? true : false;
 }
 
 function getPreferredWorkspaceInterpreter(resource: Resource, serviceContainer: IServiceContainer) {
@@ -343,7 +344,7 @@ function getPreferredWorkspaceInterpreter(resource: Resource, serviceContainer: 
 // telemetry
 
 // tslint:disable-next-line:no-any
-async function getActivationTelemetryProps(serviceContainer: IServiceContainer): Promise<any> {
+async function getActivationTelemetryProps(serviceContainer: IServiceContainer): Promise<EditorLoadTelemetry> {
     // tslint:disable-next-line:no-suspicious-comment
     // TODO: Not all of this data is showing up in the database...
     // tslint:disable-next-line:no-suspicious-comment
@@ -366,10 +367,10 @@ async function getActivationTelemetryProps(serviceContainer: IServiceContainer):
     const workspaceFolderCount = workspaceService.hasWorkspaceFolders ? workspaceService.workspaceFolders!.length : 0;
     const pythonVersion = interpreter && interpreter.version ? interpreter.version.raw : undefined;
     const interpreterType = interpreter ? interpreter.type : undefined;
-    const hasUserDefinedInterpreter = hasUserDefinedPythonPath(mainWorkspaceUri, serviceContainer);
+    const usingUserDefinedInterpreter = hasUserDefinedPythonPath(mainWorkspaceUri, serviceContainer);
     const preferredWorkspaceInterpreter = getPreferredWorkspaceInterpreter(mainWorkspaceUri, serviceContainer);
-    const isUsingGlobalInterpreter = isUsingGlobalInterpreterInWorkspace(settings.pythonPath, serviceContainer);
-    const isAutoSelectedWorkspaceInterpreterUsed = preferredWorkspaceInterpreter ? settings.pythonPath === getPreferredWorkspaceInterpreter(mainWorkspaceUri, serviceContainer) : undefined;
+    const usingGlobalInterpreter = isUsingGlobalInterpreterInWorkspace(settings.pythonPath, serviceContainer);
+    const usingAutoSelectedWorkspaceInterpreter = preferredWorkspaceInterpreter ? settings.pythonPath === getPreferredWorkspaceInterpreter(mainWorkspaceUri, serviceContainer) : false;
     const hasPython3 = interpreters
         .filter(item => item && item.version ? item.version.major === 3 : false)
         .length > 0;
@@ -381,9 +382,9 @@ async function getActivationTelemetryProps(serviceContainer: IServiceContainer):
         interpreterType,
         workspaceFolderCount,
         hasPython3,
-        hasUserDefinedInterpreter,
-        isAutoSelectedWorkspaceInterpreterUsed,
-        isUsingGlobalInterpreter
+        usingUserDefinedInterpreter,
+        usingAutoSelectedWorkspaceInterpreter,
+        usingGlobalInterpreter
     };
 }
 
