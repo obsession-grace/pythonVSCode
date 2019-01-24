@@ -4,6 +4,7 @@ import { IApplicationShell, IWorkspaceService } from '../../common/application/t
 import '../../common/extensions';
 import { IDisposableRegistry, IPathUtils, Resource } from '../../common/types';
 import { IServiceContainer } from '../../ioc/types';
+import { IInterpreterAutoSelectionService } from '../autoSelection/types';
 import { IInterpreterDisplay, IInterpreterHelper, IInterpreterService, PythonInterpreter } from '../contracts';
 
 // tslint:disable-next-line:completed-docs
@@ -16,12 +17,14 @@ export class InterpreterDisplay implements IInterpreterDisplay {
     private readonly interpreterService: IInterpreterService;
     private currentlySelectedInterpreterPath?: string;
     private currentlySelectedWorkspaceFolder: Resource;
+    private readonly autoSelection: IInterpreterAutoSelectionService;
 
     constructor(@inject(IServiceContainer) serviceContainer: IServiceContainer) {
         this.helper = serviceContainer.get<IInterpreterHelper>(IInterpreterHelper);
         this.workspaceService = serviceContainer.get<IWorkspaceService>(IWorkspaceService);
         this.pathUtils = serviceContainer.get<IPathUtils>(IPathUtils);
         this.interpreterService = serviceContainer.get<IInterpreterService>(IInterpreterService);
+        this.autoSelection = serviceContainer.get<IInterpreterAutoSelectionService>(IInterpreterAutoSelectionService);
 
         const application = serviceContainer.get<IApplicationShell>(IApplicationShell);
         const disposableRegistry = serviceContainer.get<Disposable[]>(IDisposableRegistry);
@@ -31,6 +34,7 @@ export class InterpreterDisplay implements IInterpreterDisplay {
         disposableRegistry.push(this.statusBar);
 
         this.interpreterService.onDidChangeInterpreterInformation(this.onDidChangeInterpreterInformation, this, disposableRegistry);
+        this.autoSelection.onDidChangeAutoSelectedInterpreter(() => this.updateDisplay(this.currentlySelectedWorkspaceFolder), this, disposableRegistry);
     }
     public async refresh(resource?: Uri) {
         // Use the workspace Uri if available
@@ -44,11 +48,12 @@ export class InterpreterDisplay implements IInterpreterDisplay {
         await this.updateDisplay(resource);
     }
     private onDidChangeInterpreterInformation(info: PythonInterpreter) {
-        if (this.currentlySelectedInterpreterPath === info.path) {
+        if (!this.currentlySelectedInterpreterPath || this.currentlySelectedInterpreterPath === info.path) {
             this.updateDisplay(this.currentlySelectedWorkspaceFolder).ignoreErrors();
         }
     }
     private async updateDisplay(workspaceFolder?: Uri) {
+        await this.autoSelection.autoSelectInterpreter(workspaceFolder);
         const interpreter = await this.interpreterService.getActiveInterpreter(workspaceFolder);
         this.currentlySelectedWorkspaceFolder = workspaceFolder;
         if (interpreter) {

@@ -7,7 +7,7 @@ import { IDocumentManager, IWorkspaceService } from '../common/application/types
 import { getArchitectureDisplayName } from '../common/platform/registry';
 import { IFileSystem } from '../common/platform/types';
 import { IPythonExecutionFactory } from '../common/process/types';
-import { IConfigurationService, IDisposableRegistry, IPersistentState, IPersistentStateFactory } from '../common/types';
+import { IConfigurationService, IDisposableRegistry, IPersistentState, IPersistentStateFactory, Resource } from '../common/types';
 import { sleep } from '../common/utils/async';
 import { IServiceContainer } from '../ioc/types';
 import { captureTelemetry } from '../telemetry';
@@ -66,10 +66,11 @@ export class InterpreterService implements Disposable, IInterpreterService {
         await Promise.all(interpreters
             .filter(item => !item.displayName)
             .map(async item => {
-                item.displayName = await this.getDisplayName(item, resource);
                 // Always keep information up to date with latest details.
-                if (!item.cachedEntry) {
-                    this.updateCachedInterpreterInformation(item).ignoreErrors();
+                if (item.cachedEntry) {
+                    item.displayName = await this.getDisplayName(item, resource);
+                } else {
+                    this.updateCachedInterpreterInformation(item, resource).ignoreErrors();
                 }
             }));
         return interpreters;
@@ -147,13 +148,13 @@ export class InterpreterService implements Disposable, IInterpreterService {
 
         // tslint:disable-next-line:no-any
         if (interpreterInfo && (interpreterInfo as any).__store) {
-            await this.updateCachedInterpreterInformation(interpreterInfo);
+            await this.updateCachedInterpreterInformation(interpreterInfo, resource);
         } else {
             // If we got information from option1, then when option2 finishes cache it for later use (ignoring erors);
             option2.then(async info => {
                 // tslint:disable-next-line:no-any
                 if (info && (info as any).__store) {
-                    await this.updateCachedInterpreterInformation(info);
+                    await this.updateCachedInterpreterInformation(info, resource);
                 }
             }).ignoreErrors();
         }
@@ -169,7 +170,8 @@ export class InterpreterService implements Disposable, IInterpreterService {
      */
     public async getDisplayName(info: Partial<PythonInterpreter>, resource?: Uri): Promise<string> {
         const fileHash = (info.path ? await this.fs.getFileHash(info.path).catch(() => '') : '') || '';
-        const interpreterHash = `${fileHash}-${md5(JSON.stringify(info))}`;
+        // Do not include dipslay name into hash as that changes.
+        const interpreterHash = `${fileHash}-${md5(JSON.stringify({ ...info, displayName: '' }))}`;
         const store = this.persistentStateFactory.createGlobalPersistentState<{ hash: string; displayName: string }>(`${info.path}${interpreterHash}.interpreter.displayName.v5`, undefined, EXPITY_DURATION);
         if (store.value && store.value.hash === interpreterHash && store.value.displayName) {
             return store.value.displayName;
@@ -212,7 +214,7 @@ export class InterpreterService implements Disposable, IInterpreterService {
 
         return displayName;
     }
-    protected async getInterpreterCache(pythonPath: string): Promise<IPersistentState<{ fileHash: string; info?: PythonInterpreter }>> {
+    public async getInterpreterCache(pythonPath: string): Promise<IPersistentState<{ fileHash: string; info?: PythonInterpreter }>> {
         const fileHash = (pythonPath ? await this.fs.getFileHash(pythonPath).catch(() => '') : '') || '';
         const store = this.persistentStateFactory.createGlobalPersistentState<{ fileHash: string; info?: PythonInterpreter }>(`${pythonPath}.interpreter.Details.v6`, undefined, EXPITY_DURATION);
         if (!store.value || store.value.fileHash !== fileHash) {
@@ -220,10 +222,11 @@ export class InterpreterService implements Disposable, IInterpreterService {
         }
         return store;
     }
-    protected async updateCachedInterpreterInformation(info: PythonInterpreter): Promise<void>{
-        this.didChangeInterpreterInformation.fire(info);
+    public async updateCachedInterpreterInformation(info: PythonInterpreter, resource: Resource): Promise<void>{
+        info.displayName = await this.getDisplayName(info, resource);
         const state = await this.getInterpreterCache(info.path);
         await state.updateValue({ fileHash: state.value.fileHash, info });
+        this.didChangeInterpreterInformation.fire(info);
     }
     private onConfigChanged = () => {
         // Check if we actually changed our python path

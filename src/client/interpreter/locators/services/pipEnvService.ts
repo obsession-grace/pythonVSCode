@@ -25,7 +25,7 @@ export class PipEnvService extends CacheableLocatorService implements IPipEnvSer
     private readonly configService: IConfigurationService;
 
     constructor(@inject(IServiceContainer) serviceContainer: IServiceContainer) {
-        super('PipEnvService', serviceContainer);
+        super('PipEnvService', serviceContainer, true);
         this.helper = this.serviceContainer.get<IInterpreterHelper>(IInterpreterHelper);
         this.processServiceFactory = this.serviceContainer.get<IProcessServiceFactory>(IProcessServiceFactory);
         this.workspace = this.serviceContainer.get<IWorkspaceService>(IWorkspaceService);
