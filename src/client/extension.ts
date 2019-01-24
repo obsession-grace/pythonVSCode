@@ -312,6 +312,7 @@ function initializeServices(context: ExtensionContext, serviceManager: ServiceMa
 async function sendStartupTelemetry(activatedPromise: Promise<any>, serviceContainer: IServiceContainer) {
     try {
         await activatedPromise;
+        durations.totalActivateTime = stopWatch.elapsedTime;
         const props = await getActivationTelemetryProps(serviceContainer);
         sendTelemetryEvent(EventName.EDITOR_LOAD, durations, props);
     } catch (ex) {
