@@ -7,7 +7,7 @@ import { inject, injectable, multiInject } from 'inversify';
 import { TextDocument, workspace } from 'vscode';
 import { IApplicationDiagnostics } from '../application/types';
 import { IDocumentManager, IWorkspaceService } from '../common/application/types';
-import { isTestExecution, PYTHON_LANGUAGE } from '../common/constants';
+import { PYTHON_LANGUAGE } from '../common/constants';
 import { traceDecorators } from '../common/logger';
 import { IDisposable, Resource } from '../common/types';
 import { IInterpreterAutoSelectionService } from '../interpreter/autoSelection/types';
@@ -26,14 +26,14 @@ export class ExtensionActivationManager implements IExtensionActivationManager {
         @inject(IInterpreterAutoSelectionService) private readonly autoSelection: IInterpreterAutoSelectionService,
         @inject(IApplicationDiagnostics) private readonly appDiagnostics: IApplicationDiagnostics,
         @inject(IWorkspaceService) private readonly workspaceService: IWorkspaceService
-    ) { }
+    ) {}
 
     public dispose() {
         while (this.disposables.length > 0) {
             const disposable = this.disposables.shift()!;
             disposable.dispose();
         }
-        if (this. docOpenedHandler){
+        if (this.docOpenedHandler) {
             this.docOpenedHandler.dispose();
             this.docOpenedHandler = undefined;
         }
@@ -52,14 +52,10 @@ export class ExtensionActivationManager implements IExtensionActivationManager {
         this.activatedWorkspaces.add(key);
         // Get latest interpreter list in the background.
         this.interpreterService.getInterpreters(resource).ignoreErrors();
+
         await this.autoSelection.autoSelectInterpreter(resource);
-
         await Promise.all(this.activationServices.map(item => item.activate(resource)));
-
-        // When testing, do not perform health checks, as modal dialogs can be displayed.
-        if (!isTestExecution()) {
-            await this.appDiagnostics.performPreStartupHealthCheck(resource);
-        }
+        await this.appDiagnostics.performPreStartupHealthCheck(resource);
     }
     protected async initialize() {
         this.addHandlers();
