@@ -33,14 +33,12 @@ import {
     WorkspacePythonPath
 } from '../../../../client/interpreter/contracts';
 import { InterpreterHelper } from '../../../../client/interpreter/helpers';
-import { InterpreterService } from '../../../../client/interpreter/interpreterService';
 import { KnownPathsService } from '../../../../client/interpreter/locators/services/KnownPathsService';
 
 suite('Interpreters - Auto Selection - Workspace Virtual Envs Rule', () => {
     let rule: WorkspaceVirtualEnvInterpretersAutoSelectionRuleTest;
     let stateFactory: IPersistentStateFactory;
     let fs: IFileSystem;
-    let interpreterService: InterpreterService;
     let state: PersistentState<PythonInterpreter | undefined>;
     let helper: IInterpreterHelper;
     let platform: IPlatformService;
@@ -69,7 +67,6 @@ suite('Interpreters - Auto Selection - Workspace Virtual Envs Rule', () => {
         stateFactory = mock(PersistentStateFactory);
         state = mock(PersistentState);
         fs = mock(FileSystem);
-        interpreterService = mock(InterpreterService);
         helper = mock(InterpreterHelper);
         platform = mock(PlatformService);
         pipEnvLocator = mock(KnownPathsService);
@@ -83,7 +80,6 @@ suite('Interpreters - Auto Selection - Workspace Virtual Envs Rule', () => {
         rule = new WorkspaceVirtualEnvInterpretersAutoSelectionRuleTest(
             instance(fs),
             instance(helper),
-            instance(interpreterService),
             instance(stateFactory),
             instance(platform),
             instance(workspaceService),
