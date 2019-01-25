@@ -43,7 +43,7 @@ export class ExtensionActivationManager implements IExtensionActivationManager {
         await this.activateWorkspace(this.getActiveResource());
         await this.autoSelection.autoSelectInterpreter(undefined);
     }
-    @traceDecorators.error('Failed to activate a worksapce')
+    @traceDecorators.error('Failed to activate a workspace')
     public async activateWorkspace(resource: Resource) {
         const key = this.getWorkspaceKey(resource);
         if (this.activatedWorkspaces.has(key)) {

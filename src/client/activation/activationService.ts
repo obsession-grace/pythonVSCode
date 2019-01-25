@@ -116,7 +116,7 @@ export class LanguageServerExtensionActivationService implements IExtensionActiv
         }
     }
     private useJedi(): boolean {
-        const configuraionService = this.serviceContainer.get<IConfigurationService>(IConfigurationService);
-        return configuraionService.getSettings(this.resource).jediEnabled;
+        const configurationService = this.serviceContainer.get<IConfigurationService>(IConfigurationService);
+        return configurationService.getSettings(this.resource).jediEnabled;
     }
 }
