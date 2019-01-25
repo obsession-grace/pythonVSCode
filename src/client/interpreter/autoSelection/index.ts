@@ -21,11 +21,11 @@ const workspacePathNameForGlobalWorkspaces = '';
 
 @injectable()
 export class InterpreterAutoSelectionService implements IInterpreterAutoSelectionService {
+    protected readonly autoSelectedWorkspacePromises = new Map<string, Deferred<void>>();
     private readonly didAutoSelectedInterpreterEmitter = new EventEmitter<void>();
     private readonly autoSelectedInterpreterByWorkspace = new Map<string, PythonInterpreter | undefined>();
     private globallyPreferredInterpreter!: IPersistentState<PythonInterpreter | undefined>;
     private readonly rules: IInterpreterAutoSelectionRule[] = [];
-    private readonly autoSelectedWorkspacePromises = new Map<string, Deferred<void>>();
     constructor(@inject(IWorkspaceService) private readonly workspaceService: IWorkspaceService,
         @inject(IPersistentStateFactory) private readonly stateFactory: IPersistentStateFactory,
         @inject(IFileSystem) private readonly fs: IFileSystem,
@@ -106,6 +106,7 @@ export class InterpreterAutoSelectionService implements IInterpreterAutoSelectio
             !this.autoSelectedWorkspacePromises.get(this.getWorkspacePathKey(resource))!.completed) {
             return;
         }
+
         await this.storeAutoSelectedInterpreter(resource, interpreter);
     }
     public async setGlobalInterpreter(interpreter: PythonInterpreter) {
@@ -142,6 +143,8 @@ export class InterpreterAutoSelectionService implements IInterpreterAutoSelectio
     }
     protected async initializeStore(resource: Resource) {
         const workspaceFolderPath = this.getWorkspacePathKey(resource);
+        // Since we're initializing for this resource,
+        // Ensure any cached information for this workspace have been removed.
         this.autoSelectedInterpreterByWorkspace.delete(workspaceFolderPath);
         if (this.globallyPreferredInterpreter) {
             return;

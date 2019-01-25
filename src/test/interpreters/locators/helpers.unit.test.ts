@@ -8,12 +8,14 @@
 import { expect } from 'chai';
 import * as path from 'path';
 import { SemVer } from 'semver';
+import { anything, instance, mock, when } from 'ts-mockito';
 import * as TypeMoq from 'typemoq';
 import { IFileSystem, IPlatformService } from '../../../client/common/platform/types';
 import { getNamesAndValues } from '../../../client/common/utils/enum';
 import { Architecture } from '../../../client/common/utils/platform';
 import { IInterpreterHelper, IInterpreterLocatorHelper, InterpreterType, PythonInterpreter } from '../../../client/interpreter/contracts';
 import { InterpreterLocatorHelper } from '../../../client/interpreter/locators/helpers';
+import { PipEnvServiceHelper } from '../../../client/interpreter/locators/services/pipEnvServiceHelper';
 import { IPipEnvServiceHelper } from '../../../client/interpreter/locators/types';
 import { IServiceContainer } from '../../../client/ioc/types';
 
@@ -28,19 +30,19 @@ suite('Interpreters - Locators Helper', () => {
     let platform: TypeMoq.IMock<IPlatformService>;
     let helper: IInterpreterLocatorHelper;
     let fs: TypeMoq.IMock<IFileSystem>;
-    let pipEnvHelper: TypeMoq.IMock<IPipEnvServiceHelper>;
+    let pipEnvHelper: IPipEnvServiceHelper;
     let interpreterServiceHelper: TypeMoq.IMock<IInterpreterHelper>;
     setup(() => {
         serviceContainer = TypeMoq.Mock.ofType<IServiceContainer>();
         platform = TypeMoq.Mock.ofType<IPlatformService>();
         fs = TypeMoq.Mock.ofType<IFileSystem>();
-        pipEnvHelper = TypeMoq.Mock.ofType<IPipEnvServiceHelper>();
+        pipEnvHelper = mock(PipEnvServiceHelper);
         interpreterServiceHelper = TypeMoq.Mock.ofType<IInterpreterHelper>();
         serviceContainer.setup(c => c.get(TypeMoq.It.isValue(IPlatformService))).returns(() => platform.object);
         serviceContainer.setup(c => c.get(TypeMoq.It.isValue(IFileSystem))).returns(() => fs.object);
         serviceContainer.setup(c => c.get(TypeMoq.It.isValue(IInterpreterHelper))).returns(() => interpreterServiceHelper.object);
 
-        helper = new InterpreterLocatorHelper(fs.object, pipEnvHelper.object);
+        helper = new InterpreterLocatorHelper(fs.object, instance(pipEnvHelper));
     });
     test('Ensure default Mac interpreter is not excluded from the list of interpreters', async () => {
         platform.setup(p => p.isWindows).returns(() => false);
@@ -74,8 +76,9 @@ suite('Interpreters - Locators Helper', () => {
         });
 
         const expectedInterpreters = interpreters.slice(0);
+        when(pipEnvHelper.getPipEnvInfo(anything())).thenResolve();
 
-        const items = helper.mergeInterpreters(interpreters);
+        const items = await helper.mergeInterpreters(interpreters);
 
         interpreterServiceHelper.verifyAll();
         platform.verifyAll();
@@ -141,7 +144,8 @@ suite('Interpreters - Locators Helper', () => {
                 }
             });
 
-            const items = helper.mergeInterpreters(interpreters);
+            when(pipEnvHelper.getPipEnvInfo(anything())).thenResolve();
+            const items = await helper.mergeInterpreters(interpreters);
 
             interpreterServiceHelper.verifyAll();
             platform.verifyAll();
@@ -185,7 +189,8 @@ suite('Interpreters - Locators Helper', () => {
                 }
             });
 
-            const items = helper.mergeInterpreters(interpreters);
+            when(pipEnvHelper.getPipEnvInfo(anything())).thenResolve();
+            const items = await helper.mergeInterpreters(interpreters);
 
             interpreterServiceHelper.verifyAll();
             platform.verifyAll();

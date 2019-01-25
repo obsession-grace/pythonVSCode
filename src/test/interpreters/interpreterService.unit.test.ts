@@ -229,7 +229,7 @@ suite('Interpreters service', () => {
             const pythonPath = '1234';
             const interpreterInfo: Partial<PythonInterpreter> = { path: pythonPath };
             const fileHash = 'File_Hash';
-            const hash = `${fileHash}-${md5(JSON.stringify(interpreterInfo))}`;
+            const hash = `${fileHash}-${md5(JSON.stringify({ ...interpreterInfo, displayName: '' }))}`;
             fileSystem
                 .setup(fs => fs.getFileHash(TypeMoq.It.isValue(pythonPath)))
                 .returns(() => Promise.resolve(fileHash))
