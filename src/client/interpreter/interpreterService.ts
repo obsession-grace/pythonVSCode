@@ -28,6 +28,8 @@ export class InterpreterService implements Disposable, IInterpreterService {
     private readonly configService: IConfigurationService;
     private readonly didChangeInterpreterEmitter = new EventEmitter<void>();
     private readonly didChangeInterpreterInformation = new EventEmitter<PythonInterpreter>();
+    private readonly inMemoryCacheOfDisplayNames = new Map<string, string>();
+    private readonly updatedInterpreters = new Set<string>();
     private pythonPathSetting: string = '';
 
     constructor(@inject(IServiceContainer) private serviceContainer: IServiceContainer) {
@@ -66,10 +68,9 @@ export class InterpreterService implements Disposable, IInterpreterService {
         await Promise.all(interpreters
             .filter(item => !item.displayName)
             .map(async item => {
-                // Always keep information up to date with latest details.
-                if (item.cachedEntry) {
-                    item.displayName = await this.getDisplayName(item, resource);
-                } else {
+                item.displayName = await this.getDisplayName(item, resource);
+                // Keep information up to date with latest details.
+                if (!item.cachedEntry) {
                     this.updateCachedInterpreterInformation(item, resource).ignoreErrors();
                 }
             }));
@@ -169,13 +170,55 @@ export class InterpreterService implements Disposable, IInterpreterService {
      * @memberof InterpreterService
      */
     public async getDisplayName(info: Partial<PythonInterpreter>, resource?: Uri): Promise<string> {
+        // faster than calculating file has agian and again, only when deailing with cached items.
+        if (!info.cachedEntry && info.path && this.inMemoryCacheOfDisplayNames.has(info.path)) {
+            return this.inMemoryCacheOfDisplayNames.get(info.path)!;
+        }
         const fileHash = (info.path ? await this.fs.getFileHash(info.path).catch(() => '') : '') || '';
         // Do not include dipslay name into hash as that changes.
         const interpreterHash = `${fileHash}-${md5(JSON.stringify({ ...info, displayName: '' }))}`;
-        const store = this.persistentStateFactory.createGlobalPersistentState<{ hash: string; displayName: string }>(`${info.path}${interpreterHash}.interpreter.displayName.v5`, undefined, EXPITY_DURATION);
+        const store = this.persistentStateFactory.createGlobalPersistentState<{ hash: string; displayName: string }>(`${info.path}.interpreter.displayName.v7`, undefined, EXPITY_DURATION);
         if (store.value && store.value.hash === interpreterHash && store.value.displayName) {
+            this.inMemoryCacheOfDisplayNames.set(info.path!, store.value.displayName);
             return store.value.displayName;
         }
+
+        const displayName = await this.buildInterpreterDisplayName(info, resource);
+
+        // If dealing with cached entry, then do not store the display name in cache.
+        if (!info.cachedEntry) {
+            await store.updateValue({ displayName, hash: interpreterHash });
+            this.inMemoryCacheOfDisplayNames.set(info.path!, displayName);
+        }
+
+        return displayName;
+    }
+    public async getInterpreterCache(pythonPath: string): Promise<IPersistentState<{ fileHash: string; info?: PythonInterpreter }>> {
+        const fileHash = (pythonPath ? await this.fs.getFileHash(pythonPath).catch(() => '') : '') || '';
+        const store = this.persistentStateFactory.createGlobalPersistentState<{ fileHash: string; info?: PythonInterpreter }>(`${pythonPath}.interpreter.Details.v7`, undefined, EXPITY_DURATION);
+        if (!store.value || store.value.fileHash !== fileHash) {
+            await store.updateValue({ fileHash });
+        }
+        return store;
+    }
+    protected async updateCachedInterpreterInformation(info: PythonInterpreter, resource: Resource): Promise<void>{
+        const key = JSON.stringify(info);
+        if (this.updatedInterpreters.has(key)) {
+            return;
+        }
+        this.updatedInterpreters.add(key);
+        const state = await this.getInterpreterCache(info.path);
+        info.displayName = await this.getDisplayName(info, resource);
+        // Check if info has indeed changed.
+        if (state.value && state.value.info &&
+            JSON.stringify(info) === JSON.stringify(state.value.info)) {
+            return;
+        }
+        this.inMemoryCacheOfDisplayNames.delete(info.path);
+        await state.updateValue({ fileHash: state.value.fileHash, info });
+        this.didChangeInterpreterInformation.fire(info);
+    }
+    protected async buildInterpreterDisplayName(info: Partial<PythonInterpreter>, resource?: Uri): Promise<string>{
         const displayNameParts: string[] = ['Python'];
         const envSuffixParts: string[] = [];
 
@@ -205,28 +248,7 @@ export class InterpreterService implements Disposable, IInterpreterService {
 
         const envSuffix = envSuffixParts.length === 0 ? '' :
             `(${envSuffixParts.join(': ')})`;
-        const displayName = `${displayNameParts.join(' ')} ${envSuffix}`.trim();
-
-        // If dealing with cached entry, then do not store the display name in cache.
-        if (!info.cachedEntry) {
-            await store.updateValue({ displayName, hash: interpreterHash });
-        }
-
-        return displayName;
-    }
-    public async getInterpreterCache(pythonPath: string): Promise<IPersistentState<{ fileHash: string; info?: PythonInterpreter }>> {
-        const fileHash = (pythonPath ? await this.fs.getFileHash(pythonPath).catch(() => '') : '') || '';
-        const store = this.persistentStateFactory.createGlobalPersistentState<{ fileHash: string; info?: PythonInterpreter }>(`${pythonPath}.interpreter.Details.v6`, undefined, EXPITY_DURATION);
-        if (!store.value || store.value.fileHash !== fileHash) {
-            await store.updateValue({ fileHash });
-        }
-        return store;
-    }
-    public async updateCachedInterpreterInformation(info: PythonInterpreter, resource: Resource): Promise<void>{
-        info.displayName = await this.getDisplayName(info, resource);
-        const state = await this.getInterpreterCache(info.path);
-        await state.updateValue({ fileHash: state.value.fileHash, info });
-        this.didChangeInterpreterInformation.fire(info);
+        return `${displayNameParts.join(' ')} ${envSuffix}`.trim();
     }
     private onConfigChanged = () => {
         // Check if we actually changed our python path

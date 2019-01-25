@@ -14,6 +14,7 @@ import { getNamesAndValues } from '../../../client/common/utils/enum';
 import { Architecture } from '../../../client/common/utils/platform';
 import { IInterpreterHelper, IInterpreterLocatorHelper, InterpreterType, PythonInterpreter } from '../../../client/interpreter/contracts';
 import { InterpreterLocatorHelper } from '../../../client/interpreter/locators/helpers';
+import { IPipEnvServiceHelper } from '../../../client/interpreter/locators/types';
 import { IServiceContainer } from '../../../client/ioc/types';
 
 enum OS {
@@ -27,17 +28,19 @@ suite('Interpreters - Locators Helper', () => {
     let platform: TypeMoq.IMock<IPlatformService>;
     let helper: IInterpreterLocatorHelper;
     let fs: TypeMoq.IMock<IFileSystem>;
+    let pipEnvHelper: TypeMoq.IMock<IPipEnvServiceHelper>;
     let interpreterServiceHelper: TypeMoq.IMock<IInterpreterHelper>;
     setup(() => {
         serviceContainer = TypeMoq.Mock.ofType<IServiceContainer>();
         platform = TypeMoq.Mock.ofType<IPlatformService>();
         fs = TypeMoq.Mock.ofType<IFileSystem>();
+        pipEnvHelper = TypeMoq.Mock.ofType<IPipEnvServiceHelper>();
         interpreterServiceHelper = TypeMoq.Mock.ofType<IInterpreterHelper>();
         serviceContainer.setup(c => c.get(TypeMoq.It.isValue(IPlatformService))).returns(() => platform.object);
         serviceContainer.setup(c => c.get(TypeMoq.It.isValue(IFileSystem))).returns(() => fs.object);
         serviceContainer.setup(c => c.get(TypeMoq.It.isValue(IInterpreterHelper))).returns(() => interpreterServiceHelper.object);
 
-        helper = new InterpreterLocatorHelper(serviceContainer.object);
+        helper = new InterpreterLocatorHelper(fs.object, pipEnvHelper.object);
     });
     test('Ensure default Mac interpreter is not excluded from the list of interpreters', async () => {
         platform.setup(p => p.isWindows).returns(() => false);

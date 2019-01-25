@@ -34,7 +34,6 @@ export class InterpreterDisplay implements IInterpreterDisplay {
         disposableRegistry.push(this.statusBar);
 
         this.interpreterService.onDidChangeInterpreterInformation(this.onDidChangeInterpreterInformation, this, disposableRegistry);
-        this.autoSelection.onDidChangeAutoSelectedInterpreter(() => this.updateDisplay(this.currentlySelectedWorkspaceFolder), this, disposableRegistry);
     }
     public async refresh(resource?: Uri) {
         // Use the workspace Uri if available

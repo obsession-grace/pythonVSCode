@@ -102,14 +102,7 @@ export class ExtensionActivationManager implements IExtensionActivationManager {
         this.activateWorkspace(folder ? folder.uri : undefined).ignoreErrors();
     }
     protected getWorkspaceKey(resource: Resource) {
-        if (!resource) {
-            return '';
-        }
-        const workspaceFolder = this.workspaceService.getWorkspaceFolder(resource);
-        if (!workspaceFolder) {
-            return '';
-        }
-        return workspaceFolder.uri.fsPath;
+        return this.workspaceService.getWorkspaceFolderIdentifier(resource, '');
     }
     private getActiveResource(): Resource {
         if (this.documentManager.activeTextEditor && !this.documentManager.activeTextEditor.document.isUntitled) {
