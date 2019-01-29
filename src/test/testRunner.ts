@@ -13,6 +13,7 @@ import * as path from 'path';
 import { MochaSetupOptions } from 'vscode/lib/testrunner';
 const remapIstanbul = require('remap-istanbul');
 import { setUpDomEnvironment } from './datascience/reactHelpers';
+import { initialize } from './initialize';
 
 interface ITestRunnerOptions {
     enabled?: boolean;
@@ -87,6 +88,11 @@ export function run(testsRoot: string, callback: TestCallback): void {
         coverageRunner.setupCoverage();
     }
 
+    function initializationScript() {
+        const ex = new Error('Failed to initialize extension for tests');
+        const failed = new Promise((_, reject) => setTimeout(() => reject(ex), 60_000));
+        return Promise.race([initialize(), failed]);
+    }
     // Run the tests.
     glob(`**/**.${testFilesGlob}.js`, { ignore: ['**/**.unit.test.js', '**/**.functional.test.js'], cwd: testsRoot }, (error, files) => {
         if (error) {
@@ -94,7 +100,9 @@ export function run(testsRoot: string, callback: TestCallback): void {
         }
         try {
             files.forEach(file => mocha.addFile(path.join(testsRoot, file)));
-            mocha.run((failures) => callback(undefined, failures));
+            initializationScript()
+                .then(() => mocha.run((failures) => callback(undefined, failures)))
+                .catch(callback);
         } catch (error) {
             return callback(error);
         }
