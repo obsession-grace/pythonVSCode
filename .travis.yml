@@ -75,10 +75,46 @@ script:
         npm run cover:enable;
         npm run test:unittests:cover;
     fi
-  - if [[ $BUNDLE == "true" && $AZURE_STORAGE_ACCOUNT ]]; then
+  - if [ $DEBUGGER_TEST_RELEASE == "true" ]; then
+        npm run cover:enable;
+        npm run testDebugger --silent;
+    fi
+  - npm run debugger-coverage
+  - if [ $FUNCTIONAL_TEST == "true" ]; then
+        python -m pip install --upgrade -r ./build/functional-test-requirements.txt;
+        npm run test:functional:cover;
+    fi
+  - if [ $SINGLE_WORKSPACE_TEST == "true" ]; then
+        npm run cover:enable;
+        npm run testSingleWorkspace --silent;
+    fi
+  - if [ $MULTIROOT_WORKSPACE_TEST == "true" ]; then
+        npm run cover:enable;
+        npm run testMultiWorkspace --silent;
+    fi
+  - if [[ "$TRAVIS_BRANCH" == "master" && "$TRAVIS_PULL_REQUEST" == "false" && "$PERFORMANCE_TEST" == "true" ]]; then
+        npm run testPerformance --silent;
+    fi
+  - if [ "$TRAVIS_PYTHON_VERSION" == "3.7" ]; then
+        python3 -m pip install --upgrade -r news/requirements.txt;
+        python3 news/announce.py --dry_run;
+        python3 -m pip install --upgrade -r tpn/requirements.txt;
+        python3 tpn --npm package-lock.json --config tpn/distribution.toml /dev/null;
+    fi
+  - if [[ $BUNDLE == "true" ]]; then
         npm run clean;
         npm run updateBuildNumber -- --buildNumber $TRAVIS_BUILD_NUMBER
         npm run package;
         npx gulp clean:cleanExceptTests;
         npm run testSmoke;
     fi
+  - if [[ $BUNDLE == "true" && $AZURE_STORAGE_ACCOUNT && "$TRAVIS_BRANCH" == release* && "$TRAVIS_PULL_REQUEST" == "false" ]]; then
+        npm run clean;
+        npm run updateBuildNumber -- --buildNumber $TRAVIS_BUILD_NUMBER --updateChangelog
+        npm run package;
+        npx gulp clean:cleanExceptTests;
+        npm run testSmoke;
+        npm install -g azure-cli;
+        azure storage blob upload python*.vsix $AZURE_STORAGE_CONTAINER ms-python-$TRAVIS_BRANCH.vsix --account-name $AZURE_STORAGE_ACCOUNT --account-key $AZURE_STORAGE_ACCESS_KEY --quiet;
+    fi
+  - bash <(curl -s https://codecov.io/bash)
