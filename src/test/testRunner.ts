@@ -73,7 +73,8 @@ export function configure(setupOptions: SetupOptions, coverageOpts?: { coverageC
 
 export function run(testsRoot: string, callback: TestCallback): void {
     // Enable source map support.
-    require('source-map-support').install();
+    require('source-map-support')
+        .install();
 
     // nteract/transforms-full expects to run in the browser so we have to fake
     // parts of the browser here.
@@ -88,6 +89,15 @@ export function run(testsRoot: string, callback: TestCallback): void {
         coverageRunner.setupCoverage();
     }
 
+    /**
+     * Waits until the Python Extension completes loading or a timeout.
+     * When running tests within VSC, we need to wait for the Python Extension to complete loading,
+     * this is where `initialize` comes in, we load the PVSC extension using VSC API, wait for it
+     * to complete.
+     * That's when we know out PVSC extension specific code is ready for testing.
+     * So, this code needs to run always for every test running in VS Code (what we call these `system test`) .
+     * @returns
+     */
     function initializationScript() {
         const ex = new Error('Failed to initialize extension for tests');
         const failed = new Promise((_, reject) => setTimeout(() => reject(ex), 60_000));
@@ -118,7 +128,7 @@ function getCoverageOptions(testsRoot: string): ITestRunnerOptions | undefined {
 }
 
 class CoverageRunner {
-    private coverageVar: string = `$$cov_${new Date().getTime()}$$`;
+    private readonly coverageVar: string = `$$cov_${new Date().getTime()}$$`;
     private sourceFiles: string[] = [];
     private instrumenter!: Instrumenter;
 
@@ -137,7 +147,7 @@ class CoverageRunner {
         global[this.coverageVar] = value;
     }
 
-    constructor(private options: ITestRunnerOptions, private testsRoot: string, endRunCallback: TestCallback) {
+    constructor(private readonly options: ITestRunnerOptions, private readonly testsRoot: string, endRunCallback: TestCallback) {
         if (!options.relativeSourcePath) {
             endRunCallback(new Error('Error - relativeSourcePath must be defined for code coverage to work'));
         }
@@ -218,7 +228,8 @@ class CoverageRunner {
                 // When instrumenting the code, istanbul will give each FunctionDeclaration a value of 1 in coverState.s,
                 // presumably to compensate for function hoisting. We need to reset this, as the function was not hoisted,
                 // as it was never loaded.
-                Object.keys(this.instrumenter.coverState.s).forEach(key => this.instrumenter.coverState.s[key] = 0);
+                Object.keys(this.instrumenter.coverState.s)
+                    .forEach(key => this.instrumenter.coverState.s[key] = 0);
 
                 coverage[file] = this.instrumenter.coverState;
             });
