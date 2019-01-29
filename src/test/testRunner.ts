@@ -73,8 +73,7 @@ export function configure(setupOptions: SetupOptions, coverageOpts?: { coverageC
 
 export function run(testsRoot: string, callback: TestCallback): void {
     // Enable source map support.
-    require('source-map-support')
-        .install();
+    require('source-map-support').install();
 
     // nteract/transforms-full expects to run in the browser so we have to fake
     // parts of the browser here.
@@ -228,8 +227,7 @@ class CoverageRunner {
                 // When instrumenting the code, istanbul will give each FunctionDeclaration a value of 1 in coverState.s,
                 // presumably to compensate for function hoisting. We need to reset this, as the function was not hoisted,
                 // as it was never loaded.
-                Object.keys(this.instrumenter.coverState.s)
-                    .forEach(key => this.instrumenter.coverState.s[key] = 0);
+                Object.keys(this.instrumenter.coverState.s).forEach(key => this.instrumenter.coverState.s[key] = 0);
 
                 coverage[file] = this.instrumenter.coverState;
             });
