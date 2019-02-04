@@ -68,7 +68,8 @@ export class InterpreterSelector implements IInterpreterSelector {
         const quickPickOptions: QuickPickOptions = {
             matchOnDetail: true,
             matchOnDescription: true,
-            placeHolder: `current: ${currentPythonPath}`
+            placeHolder: `current: ${currentPythonPath}`,
+            ignoreFocusOut: true
         };
 
         const selection = await this.applicationShell.showQuickPick(suggestions, quickPickOptions);
