@@ -3,8 +3,8 @@
 // tslint:disable:no-duplicate-imports no-unnecessary-callback-wrapper
 
 import { inject, injectable } from 'inversify';
-import { ConfigurationChangeEvent, Disposable, OutputChannel, TextDocument, Uri } from 'vscode';
 import * as vscode from 'vscode';
+import { ConfigurationChangeEvent, Disposable, OutputChannel, TextDocument, Uri } from 'vscode';
 import { ICommandManager, IDocumentManager, IWorkspaceService } from '../common/application/types';
 import * as constants from '../common/constants';
 import { IConfigurationService, IDisposableRegistry, ILogger, IOutputChannel } from '../common/types';
@@ -15,6 +15,7 @@ import { activateCodeLenses } from './codeLenses/main';
 import { CANCELLATION_REASON, CommandSource, TEST_OUTPUT_CHANNEL } from './common/constants';
 import { selectTestWorkspace } from './common/testUtils';
 import { ITestCollectionStorageService, ITestManager, IWorkspaceTestManagerService, TestFile, TestFunction, TestStatus, TestsToRun } from './common/types';
+import { ITestNavigatorHelper } from './navigation/types';
 import { ITestDisplay, ITestResultDisplay, IUnitTestConfigurationService, IUnitTestManagementService } from './types';
 
 @injectable()
@@ -42,17 +43,14 @@ export class UnitTestManagementService implements IUnitTestManagementService, Di
             this.workspaceTestManagerService.dispose();
         }
     }
-    public async activate(): Promise<void> {
+    public async activate(symboldProvider: vscode.DocumentSymbolProvider): Promise<void> {
         this.workspaceTestManagerService = this.serviceContainer.get<IWorkspaceTestManagerService>(IWorkspaceTestManagerService);
 
         this.registerHandlers();
         this.registerCommands();
         this.autoDiscoverTests()
             .catch(ex => this.serviceContainer.get<ILogger>(ILogger).logError('Failed to auto discover tests upon activation', ex));
-    }
-    public async activateCodeLenses(symboldProvider: vscode.DocumentSymbolProvider): Promise<void> {
-        const testCollectionStorage = this.serviceContainer.get<ITestCollectionStorageService>(ITestCollectionStorageService);
-        this.disposableRegistry.push(activateCodeLenses(this.onDidChange, symboldProvider, testCollectionStorage));
+        await this.registerSymbolProvider(symboldProvider);
     }
     public async getTestManager(displayTestNotConfiguredMessage: boolean, resource?: Uri): Promise<ITestManager | undefined | void> {
         let wkspace: Uri | undefined;
@@ -279,6 +277,12 @@ export class UnitTestManagementService implements IUnitTestManagementService, Di
 
         this.testResultDisplay.displayProgressStatus(promise, debug);
         await promise;
+    }
+    private async registerSymbolProvider(symboldProvider: vscode.DocumentSymbolProvider): Promise<void> {
+        const testCollectionStorage = this.serviceContainer.get<ITestCollectionStorageService>(ITestCollectionStorageService);
+        this.disposableRegistry.push(activateCodeLenses(this.onDidChange, symboldProvider, testCollectionStorage));
+        const helper = this.serviceContainer.get<ITestNavigatorHelper>(ITestNavigatorHelper);
+        helper.registerSymbolProvider(symboldProvider);
     }
     private registerCommands(): void {
         const disposablesRegistry = this.serviceContainer.get<Disposable[]>(IDisposableRegistry);

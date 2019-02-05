@@ -6,7 +6,18 @@
 import { DiagnosticSeverity, Disposable, DocumentSymbolProvider, Event, Location, TextDocument, Uri } from 'vscode';
 import { Product } from '../common/types';
 import { CommandSource } from './common/constants';
-import { FlattenedTestFunction, ITestManager, ITestResultsService, TestFile, TestFunction, TestRunOptions, Tests, TestStatus, TestsToRun, UnitTestProduct } from './common/types';
+import {
+    FlattenedTestFunction,
+    ITestManager,
+    ITestResultsService,
+    TestFile,
+    TestFunction,
+    TestRunOptions,
+    Tests,
+    TestStatus,
+    TestsToRun,
+    UnitTestProduct
+} from './common/types';
 
 export const IUnitTestConfigurationService = Symbol('IUnitTestConfigurationService');
 export interface IUnitTestConfigurationService {
@@ -30,22 +41,40 @@ export interface ITestDisplay {
     displayTestUI(cmdSource: CommandSource, wkspace: Uri): void;
     selectTestFunction(rootDirectory: string, tests: Tests): Promise<FlattenedTestFunction>;
     selectTestFile(rootDirectory: string, tests: Tests): Promise<TestFile>;
-    displayFunctionTestPickerUI(cmdSource: CommandSource, wkspace: Uri, rootDirectory: string, file: Uri, testFunctions: TestFunction[], debug?: boolean): void;
+    displayFunctionTestPickerUI(
+        cmdSource: CommandSource,
+        wkspace: Uri,
+        rootDirectory: string,
+        file: Uri,
+        testFunctions: TestFunction[],
+        debug?: boolean
+    ): void;
 }
 
 export const IUnitTestManagementService = Symbol('IUnitTestManagementService');
 export interface IUnitTestManagementService {
-    activate(): Promise<void>;
-    activateCodeLenses(symboldProvider: DocumentSymbolProvider): Promise<void>;
+    activate(symboldProvider: DocumentSymbolProvider): Promise<void>;
     getTestManager(displayTestNotConfiguredMessage: boolean, resource?: Uri): Promise<ITestManager | undefined | void>;
     discoverTestsForDocument(doc: TextDocument): Promise<void>;
     autoDiscoverTests(): Promise<void>;
-    discoverTests(cmdSource: CommandSource, resource?: Uri, ignoreCache?: boolean, userInitiated?: boolean, quietMode?: boolean): Promise<void>;
+    discoverTests(
+        cmdSource: CommandSource,
+        resource?: Uri,
+        ignoreCache?: boolean,
+        userInitiated?: boolean,
+        quietMode?: boolean
+    ): Promise<void>;
     stopTests(resource: Uri): Promise<void>;
     displayStopUI(message: string): Promise<void>;
     displayUI(cmdSource: CommandSource): Promise<void>;
     displayPickerUI(cmdSource: CommandSource, file: Uri, testFunctions: TestFunction[], debug?: boolean): Promise<void>;
-    runTestsImpl(cmdSource: CommandSource, resource?: Uri, testsToRun?: TestsToRun, runFailedTests?: boolean, debug?: boolean): Promise<void>;
+    runTestsImpl(
+        cmdSource: CommandSource,
+        resource?: Uri,
+        testsToRun?: TestsToRun,
+        runFailedTests?: boolean,
+        debug?: boolean
+    ): Promise<void>;
     runCurrentTestFile(cmdSource: CommandSource): Promise<void>;
 
     selectAndRunTestFile(cmdSource: CommandSource): Promise<void>;
@@ -88,12 +117,20 @@ export const IArgumentsHelper = Symbol('IArgumentsHelper');
 export interface IArgumentsHelper {
     getOptionValues(args: string[], option: string): string | string[] | undefined;
     filterArguments(args: string[], optionsWithArguments?: string[], optionsWithoutArguments?: string[]): string[];
-    getPositionalArguments(args: string[], optionsWithArguments?: string[], optionsWithoutArguments?: string[]): string[];
+    getPositionalArguments(
+        args: string[],
+        optionsWithArguments?: string[],
+        optionsWithoutArguments?: string[]
+    ): string[];
 }
 
 export const ITestManagerRunner = Symbol('ITestManagerRunner');
 export interface ITestManagerRunner {
-    runTest(testResultsService: ITestResultsService, options: TestRunOptions, testManager: ITestManager): Promise<Tests>;
+    runTest(
+        testResultsService: ITestResultsService,
+        options: TestRunOptions,
+        testManager: ITestManager
+    ): Promise<Tests>;
 }
 
 export const IUnitTestHelper = Symbol('IUnitTestHelper');
