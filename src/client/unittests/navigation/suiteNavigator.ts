@@ -4,7 +4,7 @@
 'use strict';
 
 import { inject, injectable } from 'inversify';
-import { CancellationTokenSource, Range, SymbolKind, TextEditorRevealType } from 'vscode';
+import { CancellationTokenSource, Range, SymbolKind, TextEditorRevealType, Uri } from 'vscode';
 import { traceError } from '../../common/logger';
 import { TestSuite } from '../common/types';
 import { ITestCodeNavigator, ITestNavigatorHelper } from './types';
@@ -18,7 +18,7 @@ export class TestSuiteCodeNavigator implements ITestCodeNavigator {
             this.cancellationToken.cancel();
         }
         this.cancellationToken = new CancellationTokenSource();
-        const [doc, editor] = await this.helper.openFile(item.file);
+        const [doc, editor] = await this.helper.openFile(item.file ? Uri.file(item.file) : undefined);
         let range: Range | undefined;
         if (item.line) {
             range = new Range(item.line, 0, item.line + 1, 0);

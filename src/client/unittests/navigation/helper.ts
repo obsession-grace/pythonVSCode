@@ -4,7 +4,7 @@
 'use strict';
 
 import { inject, injectable } from 'inversify';
-import { CancellationToken, DocumentSymbolProvider, SymbolInformation, TextDocument, TextEditor } from 'vscode';
+import { CancellationToken, DocumentSymbolProvider, SymbolInformation, TextDocument, TextEditor, Uri } from 'vscode';
 import { IDocumentManager } from '../../common/application/types';
 import { traceError } from '../../common/logger';
 import { ITestNavigatorHelper, SymbolSearch } from './types';
@@ -16,7 +16,7 @@ export class TestNavigatorHelper implements ITestNavigatorHelper {
     public registerSymbolProvider(symbolProvider: DocumentSymbolProvider) {
         this.symbolProvider = symbolProvider;
     }
-    public async openFile(file?: string): Promise<[TextDocument, TextEditor]> {
+    public async openFile(file?: Uri): Promise<[TextDocument, TextEditor]> {
         if (!file) {
             throw new Error('Unable to navigate to an undefined test file');
         }

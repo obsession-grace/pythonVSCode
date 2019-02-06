@@ -6,7 +6,7 @@
 import { inject, injectable, named } from 'inversify';
 import { ICommandManager } from '../../common/application/types';
 import { Commands } from '../../common/constants';
-import { IDisposable } from '../../common/types';
+import { IDisposable, IDisposableRegistry } from '../../common/types';
 import { ITestCodeNavigator, ITestCodeNavigatorCommandHandler, NavigableItemType } from './types';
 
 @injectable()
@@ -22,8 +22,14 @@ export class TestCodeNavigatorCommandHandler implements ITestCodeNavigatorComman
         private readonly testFunctionNavigator: ITestCodeNavigator,
         @inject(ITestCodeNavigator)
         @named(NavigableItemType.testSuite)
-        private readonly testSuiteNavigator: ITestCodeNavigator
-    ) {}
+        private readonly testSuiteNavigator: ITestCodeNavigator,
+        @inject(IDisposableRegistry) disposableRegistry: IDisposableRegistry
+    ) {
+        disposableRegistry.push(this);
+    }
+    public dispose() {
+        this.disposables.forEach(item => item.dispose());
+    }
     public register(): void {
         if (this.disposables.length > 0) {
             return;

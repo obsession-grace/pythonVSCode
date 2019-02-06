@@ -9,12 +9,14 @@ import {
     SymbolInformation,
     SymbolKind,
     TextDocument,
-    TextEditor
+    TextEditor,
+    Uri
 } from 'vscode';
+import { IDisposable } from '../../common/types';
 import { TestFile, TestFunction, TestSuite } from '../common/types';
 
 export const ITestCodeNavigatorCommandHandler = Symbol('ITestCodeNavigatorCommandHandler');
-export interface ITestCodeNavigatorCommandHandler {
+export interface ITestCodeNavigatorCommandHandler extends IDisposable {
     register(): void;
 }
 export type NavigableItem = TestFile | TestFunction | TestSuite;
@@ -32,7 +34,7 @@ export interface ITestCodeNavigator {
 export const ITestNavigatorHelper = Symbol('ITestNavigatorHelper');
 export interface ITestNavigatorHelper {
     registerSymbolProvider(symbolProvider: DocumentSymbolProvider);
-    openFile(file?: string): Promise<[TextDocument, TextEditor]>;
+    openFile(file?: Uri): Promise<[TextDocument, TextEditor]>;
     findSymbol(
         doc: TextDocument,
         search: SymbolSearch,
