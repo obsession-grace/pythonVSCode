@@ -14,15 +14,9 @@ export class TestCodeNavigatorCommandHandler implements ITestCodeNavigatorComman
     private disposables: IDisposable[] = [];
     constructor(
         @inject(ICommandManager) private readonly commandManager: ICommandManager,
-        @inject(ITestCodeNavigator)
-        @named(NavigableItemType.testFile)
-        private readonly testFileNavigator: ITestCodeNavigator,
-        @inject(ITestCodeNavigator)
-        @named(NavigableItemType.testFunction)
-        private readonly testFunctionNavigator: ITestCodeNavigator,
-        @inject(ITestCodeNavigator)
-        @named(NavigableItemType.testSuite)
-        private readonly testSuiteNavigator: ITestCodeNavigator,
+        @inject(ITestCodeNavigator) @named(NavigableItemType.testFile) private readonly testFileNavigator: ITestCodeNavigator,
+        @inject(ITestCodeNavigator) @named(NavigableItemType.testFunction) private readonly testFunctionNavigator: ITestCodeNavigator,
+        @inject(ITestCodeNavigator) @named(NavigableItemType.testSuite) private readonly testSuiteNavigator: ITestCodeNavigator,
         @inject(IDisposableRegistry) disposableRegistry: IDisposableRegistry
     ) {
         disposableRegistry.push(this);
