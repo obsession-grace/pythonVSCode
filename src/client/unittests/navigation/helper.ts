@@ -24,11 +24,7 @@ export class TestNavigatorHelper implements ITestNavigatorHelper {
         const editor = await this.documentManager.showTextDocument(doc);
         return [doc, editor];
     }
-    public async findSymbol(
-        doc: TextDocument,
-        search: SymbolSearch,
-        token: CancellationToken
-    ): Promise<SymbolInformation | undefined> {
+    public async findSymbol(doc: TextDocument, search: SymbolSearch, token: CancellationToken): Promise<SymbolInformation | undefined> {
         if (!this.symbolProvider) {
             traceError('Symbol information requested too early', new Error('Test file symbols requested too early'));
             return;

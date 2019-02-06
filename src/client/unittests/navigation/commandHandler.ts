@@ -34,23 +34,11 @@ export class TestCodeNavigatorCommandHandler implements ITestCodeNavigatorComman
         if (this.disposables.length > 0) {
             return;
         }
-        let disposable = this.commandManager.registerCommand(
-            Commands.navigateToTestFile,
-            this.testFileNavigator.navigateTo,
-            this.testFileNavigator
-        );
+        let disposable = this.commandManager.registerCommand(Commands.navigateToTestFile, this.testFileNavigator.navigateTo, this.testFileNavigator);
         this.disposables.push(disposable);
-        disposable = this.commandManager.registerCommand(
-            Commands.navigateToTestFunction,
-            this.testFunctionNavigator.navigateTo,
-            this.testFunctionNavigator
-        );
+        disposable = this.commandManager.registerCommand(Commands.navigateToTestFunction, this.testFunctionNavigator.navigateTo, this.testFunctionNavigator);
         this.disposables.push(disposable);
-        disposable = this.commandManager.registerCommand(
-            Commands.navigateToTestSuite,
-            this.testSuiteNavigator.navigateTo,
-            this.testSuiteNavigator
-        );
+        disposable = this.commandManager.registerCommand(Commands.navigateToTestSuite, this.testSuiteNavigator.navigateTo, this.testSuiteNavigator);
         this.disposables.push(disposable);
     }
 }

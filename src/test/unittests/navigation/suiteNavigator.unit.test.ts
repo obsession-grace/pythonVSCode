@@ -7,16 +7,7 @@ import { expect, use } from 'chai';
 import * as chaisAsPromised from 'chai-as-promised';
 import { anything, capture, instance, mock, verify, when } from 'ts-mockito';
 import * as typemoq from 'typemoq';
-import {
-    Location,
-    Range,
-    SymbolInformation,
-    SymbolKind,
-    TextDocument,
-    TextEditor,
-    TextEditorRevealType,
-    Uri
-} from 'vscode';
+import { Location, Range, SymbolInformation, SymbolKind, TextDocument, TextEditor, TextEditorRevealType, Uri } from 'vscode';
 import { TestNavigatorHelper } from '../../../client/unittests/navigation/helper';
 import { TestSuiteCodeNavigator } from '../../../client/unittests/navigation/suiteNavigator';
 import { ITestNavigatorHelper } from '../../../client/unittests/navigation/types';

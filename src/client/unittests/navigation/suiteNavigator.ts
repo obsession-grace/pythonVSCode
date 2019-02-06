@@ -26,11 +26,7 @@ export class TestSuiteCodeNavigator implements ITestCodeNavigator {
         if (item.line) {
             range = new Range(item.line, 0, item.line + 1, 0);
         } else {
-            const symbol = await this.helper.findSymbol(
-                doc,
-                { kind: SymbolKind.Class, name: item.name },
-                this.cancellationToken.token
-            );
+            const symbol = await this.helper.findSymbol(doc, { kind: SymbolKind.Class, name: item.name }, this.cancellationToken.token);
             range = symbol ? symbol.location.range : undefined;
         }
         if (!range) {
