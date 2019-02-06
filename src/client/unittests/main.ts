@@ -3,10 +3,11 @@
 // tslint:disable:no-duplicate-imports no-unnecessary-callback-wrapper
 
 import { inject, injectable } from 'inversify';
-import * as vscode from 'vscode';
 import { ConfigurationChangeEvent, Disposable, OutputChannel, TextDocument, Uri } from 'vscode';
+import * as vscode from 'vscode';
 import { ICommandManager, IDocumentManager, IWorkspaceService } from '../common/application/types';
 import * as constants from '../common/constants';
+import '../common/extensions';
 import { IConfigurationService, IDisposableRegistry, ILogger, IOutputChannel } from '../common/types';
 import { IServiceContainer } from '../ioc/types';
 import { EventName } from '../telemetry/constants';
@@ -15,7 +16,6 @@ import { activateCodeLenses } from './codeLenses/main';
 import { CANCELLATION_REASON, CommandSource, TEST_OUTPUT_CHANNEL } from './common/constants';
 import { selectTestWorkspace } from './common/testUtils';
 import { ITestCollectionStorageService, ITestManager, IWorkspaceTestManagerService, TestFile, TestFunction, TestStatus, TestsToRun } from './common/types';
-import { ITestNavigatorHelper } from './navigation/types';
 import { ITestDisplay, ITestResultDisplay, IUnitTestConfigurationService, IUnitTestManagementService } from './types';
 
 @injectable()
@@ -281,8 +281,6 @@ export class UnitTestManagementService implements IUnitTestManagementService, Di
     private async registerSymbolProvider(symboldProvider: vscode.DocumentSymbolProvider): Promise<void> {
         const testCollectionStorage = this.serviceContainer.get<ITestCollectionStorageService>(ITestCollectionStorageService);
         this.disposableRegistry.push(activateCodeLenses(this.onDidChange, symboldProvider, testCollectionStorage));
-        const helper = this.serviceContainer.get<ITestNavigatorHelper>(ITestNavigatorHelper);
-        helper.registerSymbolProvider(symboldProvider);
     }
     private registerCommands(): void {
         const disposablesRegistry = this.serviceContainer.get<Disposable[]>(IDisposableRegistry);
