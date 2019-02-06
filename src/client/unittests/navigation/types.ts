@@ -3,15 +3,7 @@
 
 'use strict';
 
-import {
-    CancellationToken,
-    DocumentSymbolProvider,
-    SymbolInformation,
-    SymbolKind,
-    TextDocument,
-    TextEditor,
-    Uri
-} from 'vscode';
+import { CancellationToken, SymbolInformation, TextDocument, TextEditor, Uri } from 'vscode';
 import { IDisposable } from '../../common/types';
 import { TestFile, TestFunction, TestSuite } from '../common/types';
 
@@ -28,20 +20,12 @@ export enum NavigableItemType {
 
 export const ITestCodeNavigator = Symbol('ITestCodeNavigator');
 export interface ITestCodeNavigator {
-    navigateTo(item: NavigableItem): Promise<void>;
+    navigateTo(resource: Uri, item: NavigableItem): Promise<void>;
 }
 
 export const ITestNavigatorHelper = Symbol('ITestNavigatorHelper');
 export interface ITestNavigatorHelper {
-    registerSymbolProvider(symbolProvider: DocumentSymbolProvider);
     openFile(file?: Uri): Promise<[TextDocument, TextEditor]>;
-    findSymbol(
-        doc: TextDocument,
-        search: SymbolSearch,
-        token: CancellationToken
-    ): Promise<SymbolInformation | undefined>;
+    findSymbol(doc: TextDocument, predicate: SymbolSearch, token: CancellationToken): Promise<SymbolInformation | undefined>;
 }
-export type SymbolSearch = {
-    name: string;
-    kind: SymbolKind;
-};
+export type SymbolSearch = (item: SymbolInformation) => boolean;

@@ -5,6 +5,7 @@
 
 import { inject, injectable } from 'inversify';
 import { Uri } from 'vscode';
+import { swallowExceptions } from '../../common/utils/decorators';
 import { captureTelemetry } from '../../telemetry';
 import { EventName } from '../../telemetry/constants';
 import { TestFile } from '../common/types';
@@ -13,8 +14,9 @@ import { ITestCodeNavigator, ITestNavigatorHelper } from './types';
 @injectable()
 export class TestFileCodeNavigator implements ITestCodeNavigator {
     constructor(@inject(ITestNavigatorHelper) private readonly helper: ITestNavigatorHelper) {}
+    @swallowExceptions('Navigate to test file')
     @captureTelemetry(EventName.UNITTEST_NAVIGATE_TEST_FILE, undefined, true)
-    public async navigateTo(item: TestFile): Promise<void> {
-        await this.helper.openFile(item.file ? Uri.file(item.file) : undefined);
+    public async navigateTo(_: Uri, item: TestFile): Promise<void> {
+        await this.helper.openFile(Uri.file(item.fullPath));
     }
 }

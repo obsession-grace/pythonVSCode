@@ -29,7 +29,7 @@ suite('Unit Tests - Navigation Helper', () => {
         editor.setup((e: any) => e.then).returns(() => undefined);
         docManager = mock(DocumentManager);
         symbolProvider = mock(LanguageServerSymbolProvider);
-        helper = new TestNavigatorHelper(instance(docManager));
+        helper = new TestNavigatorHelper(instance(docManager), instance(symbolProvider));
     });
     test('Ensure file is opened', async () => {
         const filePath = Uri.file('some file Path');
@@ -45,15 +45,16 @@ suite('Unit Tests - Navigation Helper', () => {
     });
     test('No symbols if symbol provider is not registered', async () => {
         const token = new CancellationTokenSource().token;
-        const symbol = await helper.findSymbol(doc.object, { kind: SymbolKind.Function, name: '' }, token);
+        const predicate = (s: SymbolInformation) => s.kind === SymbolKind.Function && s.name === '';
+        const symbol = await helper.findSymbol(doc.object, predicate, token);
         expect(symbol).to.equal(undefined, 'Must be undefined');
     });
     test('No symbols if no symbols', async () => {
         const token = new CancellationTokenSource().token;
         when(symbolProvider.provideDocumentSymbols(doc.object, token)).thenResolve([] as any);
 
-        helper.registerSymbolProvider(instance(symbolProvider));
-        const symbol = await helper.findSymbol(doc.object, { kind: SymbolKind.Function, name: '' }, token);
+        const predicate = (s: SymbolInformation) => s.kind === SymbolKind.Function && s.name === '';
+        const symbol = await helper.findSymbol(doc.object, predicate, token);
 
         expect(symbol).to.equal(undefined, 'Must be undefined');
         verify(symbolProvider.provideDocumentSymbols(doc.object, token)).once();
@@ -67,8 +68,8 @@ suite('Unit Tests - Navigation Helper', () => {
         const token = new CancellationTokenSource().token;
         when(symbolProvider.provideDocumentSymbols(doc.object, token)).thenResolve(symbols as any);
 
-        helper.registerSymbolProvider(instance(symbolProvider));
-        const symbol = await helper.findSymbol(doc.object, { kind: SymbolKind.Class, name: '2' }, token);
+        const predicate = (s: SymbolInformation) => s.kind === SymbolKind.Class && s.name === '2';
+        const symbol = await helper.findSymbol(doc.object, predicate, token);
 
         expect(symbol).to.deep.equal(symbols[1]);
         verify(symbolProvider.provideDocumentSymbols(doc.object, token)).once();

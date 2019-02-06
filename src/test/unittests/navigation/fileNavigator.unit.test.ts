@@ -25,19 +25,18 @@ suite('Unit Tests - Navigation File', () => {
         const filePath = Uri.file('some file Path');
         when(helper.openFile(anything())).thenResolve();
 
-        await navigator.navigateTo({ file: filePath.fsPath } as any);
+        await navigator.navigateTo(filePath, { fullPath: filePath.fsPath } as any);
 
         verify(helper.openFile(anything())).once();
         expect(capture(helper.openFile).first()[0]!.fsPath).to.equal(filePath.fsPath);
     });
-    test('Ensure errors are propogated', async () => {
+    test('Ensure errors are swallowed', async () => {
         const filePath = Uri.file('some file Path');
         when(helper.openFile(anything())).thenReject(new Error('kaboom'));
 
-        const promise = navigator.navigateTo({ file: filePath.fsPath } as any);
+        await navigator.navigateTo(filePath, { fullPath: filePath.fsPath } as any);
 
         verify(helper.openFile(anything())).once();
-        await expect(promise).to.eventually.be.rejected;
         expect(capture(helper.openFile).first()[0]!.fsPath).to.equal(filePath.fsPath);
     });
 });
