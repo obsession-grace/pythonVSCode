@@ -6,6 +6,8 @@
 import { inject, injectable } from 'inversify';
 import { CancellationTokenSource, Range, SymbolKind, TextEditorRevealType, Uri } from 'vscode';
 import { traceError } from '../../common/logger';
+import { captureTelemetry } from '../../telemetry';
+import { EventName } from '../../telemetry/constants';
 import { TestSuite } from '../common/types';
 import { ITestCodeNavigator, ITestNavigatorHelper } from './types';
 
@@ -13,6 +15,7 @@ import { ITestCodeNavigator, ITestNavigatorHelper } from './types';
 export class TestSuiteCodeNavigator implements ITestCodeNavigator {
     private cancellationToken?: CancellationTokenSource;
     constructor(@inject(ITestNavigatorHelper) private readonly helper: ITestNavigatorHelper) {}
+    @captureTelemetry(EventName.UNITTEST_NAVIGATE_TEST_SUITE, undefined, true)
     public async navigateTo(item: TestSuite): Promise<void> {
         if (this.cancellationToken) {
             this.cancellationToken.cancel();
