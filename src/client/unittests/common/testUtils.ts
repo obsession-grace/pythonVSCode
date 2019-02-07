@@ -7,7 +7,7 @@ import { IUnitTestSettings, Product } from '../../common/types';
 import { IServiceContainer } from '../../ioc/types';
 import { CommandSource } from './constants';
 import { TestFlatteningVisitor } from './testVisitors/flatteningVisitor';
-import { ITestsHelper, ITestVisitor, TestFile, TestFolder, TestProvider, Tests, TestSettingsPropertyNames, TestsToRun, UnitTestProduct } from './types';
+import { ITestsHelper, ITestVisitor, TestFile, TestFolder, TestProvider, Tests, TestSettingsPropertyNames, TestsToRun, UnitTestProduct, TestSuite, TestFunction } from './types';
 
 export async function selectTestWorkspace(): Promise<Uri | undefined> {
     if (!Array.isArray(workspace.workspaceFolders) || workspace.workspaceFolders.length === 0) {
@@ -205,5 +205,23 @@ export class TestsHelper implements ITestsHelper {
         }
 
         return true;
+    }
+    public getTestFile(test: TestFile | TestFolder | TestSuite | TestFunction): TestFile | undefined {
+        // Only TestFile has a `fullPath` property.
+        return Array.isArray((test as TestFile).fullPath) ? test as TestFile : undefined;
+    }
+    public getTestSuite(test: TestFile | TestFolder | TestSuite | TestFunction): TestSuite | undefined {
+        // Only TestSuite has a `suites` property.
+        return Array.isArray((test as TestSuite).suites) ? test as TestSuite : undefined;
+    }
+    public getTestFolder(test: TestFile | TestFolder | TestSuite | TestFunction): TestFolder | undefined {
+        // Only TestFolder has a `folders` property.
+        return Array.isArray((test as TestFolder).folders) ? test as TestFolder : undefined;
+    }
+    public getTestFunction(test: TestFile | TestFolder | TestSuite | TestFunction): TestFunction | undefined {
+        if (this.getTestFile(test) || this.getTestSuite(test) || this.getTestSuite(test)) {
+            return;
+        }
+        return test as TestFunction;
     }
 }
