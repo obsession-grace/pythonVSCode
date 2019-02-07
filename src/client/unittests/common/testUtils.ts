@@ -7,7 +7,7 @@ import { IUnitTestSettings, Product } from '../../common/types';
 import { IServiceContainer } from '../../ioc/types';
 import { CommandSource } from './constants';
 import { TestFlatteningVisitor } from './testVisitors/flatteningVisitor';
-import { ITestsHelper, ITestVisitor, TestFile, TestFolder, TestProvider, Tests, TestSettingsPropertyNames, TestsToRun, UnitTestProduct, TestSuite, TestFunction } from './types';
+import { ITestsHelper, ITestVisitor, TestFile, TestFolder, TestFunction, TestProvider, Tests, TestSettingsPropertyNames, TestsToRun, TestSuite, UnitTestProduct } from './types';
 
 export async function selectTestWorkspace(): Promise<Uri | undefined> {
     if (!Array.isArray(workspace.workspaceFolders) || workspace.workspaceFolders.length === 0) {

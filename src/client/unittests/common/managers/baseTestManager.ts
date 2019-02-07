@@ -1,4 +1,4 @@
-import { CancellationToken, CancellationTokenSource, Diagnostic, DiagnosticCollection, DiagnosticRelatedInformation, Disposable, languages, OutputChannel, Uri, EventEmitter, Event } from 'vscode';
+import { CancellationToken, CancellationTokenSource, Diagnostic, DiagnosticCollection, DiagnosticRelatedInformation, Disposable, Event, EventEmitter, languages, OutputChannel, Uri } from 'vscode';
 import { IWorkspaceService } from '../../../common/application/types';
 import { isNotInstalledError } from '../../../common/helpers';
 import { IFileSystem } from '../../../common/platform/types';

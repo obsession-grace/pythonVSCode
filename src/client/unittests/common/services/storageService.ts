@@ -1,8 +1,5 @@
 import { inject, injectable } from 'inversify';
-import {
-    Disposable, Event, EventEmitter,
-    Uri, workspace
-} from 'vscode';
+import { Disposable, Uri, workspace } from 'vscode';
 import { IDisposableRegistry } from '../../../common/types';
 import { FlattenedTestFunction, FlattenedTestSuite, ITestCollectionStorageService, TestFunction, Tests, TestSuite } from './../types';
 
