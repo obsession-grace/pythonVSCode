@@ -3,33 +3,27 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as fs from 'fs';
 import * as cp from 'child_process';
-import * as path from 'path';
+import * as fs from 'fs-extra';
 import * as minimist from 'minimist';
-import * as tmp from 'tmp';
-import * as rimraf from 'rimraf';
 import * as mkdirp from 'mkdirp';
 import { ncp } from 'ncp';
-import { Application, Quality, ApplicationOptions } from './application';
+import * as path from 'path';
+import * as rimraf from 'rimraf';
+import * as tmp from 'tmp';
+import { Application, ApplicationOptions, Quality } from './application';
+import { updateSetting } from './helpers/settings';
+import { ConsoleLogger, FileLogger, Logger, MultiLogger } from './logger';
+import { getConfiguration } from './setup/config';
+import { setupEnvironment } from './setup/environment';
+import { waitForExtensionToActivate } from './tests/activation/helper';
+import { setupActivationTestsNoReload, setupActivationTestsWithReload } from './tests/activation/index';
+import { setupIntellisenseTestsNoReload } from './tests/intellisense/index';
+import { deletePipEnv, deleteVenvs, getPythonInterpreterPath, reloadToRefreshCondaDisplayNames as reloadToRefreshDisplayNames } from './tests/interpreters/helper';
+import { setupInterpreterTestsNoReload, setupInterpreterTestsReload } from './tests/interpreters/index';
+import { setupTerminalTestsNoReload } from './tests/terminal/index';
 
-// import { setup as setupDataMigrationTests } from './areas/workbench/data-migration.test';
-import { setup as setupDataLossTests } from './areas/workbench/data-loss.test';
-import { setup as setupDataExplorerTests } from './areas/explorer/explorer.test';
-import { setup as setupDataPreferencesTests } from './areas/preferences/preferences.test';
-import { setup as setupDataSearchTests } from './areas/search/search.test';
-import { setup as setupDataCSSTests } from './areas/css/css.test';
-import { setup as setupDataEditorTests } from './areas/editor/editor.test';
-import { setup as setupDataDebugTests } from './areas/debug/debug.test';
-import { setup as setupDataPythonDebugTests } from './areas/debug/debugPython.test';
-import { setup as setupDataGitTests } from './areas/git/git.test';
-import { setup as setupDataStatusbarTests } from './areas/statusbar/statusbar.test';
-import { setup as setupDataExtensionTests } from './areas/extensions/extensions.test';
-import { setup as setupTerminalTests } from './areas/terminal/terminal.test';
-import { setup as setupDataMultirootTests } from './areas/multiroot/multiroot.test';
-import { setup as setupDataLocalizationTests } from './areas/workbench/localization.test';
-import { setup as setupLaunchTests } from './areas/workbench/launch.test';
-import { MultiLogger, Logger, ConsoleLogger, FileLogger } from './logger';
+// tslint:disable: no-invalid-this mocha-no-side-effect-code no-any
 
 const tmpDir = tmp.dirSync({ prefix: 't' }) as { name: string; removeCallback: Function };
 const testDataPath = tmpDir.name;
@@ -37,17 +31,21 @@ process.once('exit', () => rimraf.sync(testDataPath));
 
 const [, , ...args] = process.argv;
 const opts = minimist(args, {
-    string: ['build', 'stable-build', 'wait-time', 'test-repo', 'screenshots', 'log'],
+    string: ['build', 'stable-build', 'wait-time', 'test-repo', 'screenshots', 'log', 'config'],
     boolean: ['verbose'],
+    number: ['environment'],
     default: {
-        verbose: false
+        verbose: false,
+        config: 'testConfig.json'
     }
 });
 
-const testRepoUrl = 'https://github.com/Microsoft/vscode-smoketest-express';
+const config = getConfiguration(path.resolve(opts.config));
+
 // const workspacePath = path.join(testDataPath, 'vscode-smoketest-express');
-const workspacePath = '/Users/donjayamanne/Desktop/Development/PythonStuff/Blah';
-const extensionsPath = path.join(testDataPath, 'extensions-dir');
+// const workspacePath = config.workspaceFolder; //'/Users/donjayamanne/Desktop/Development/PythonStuff/Blah';
+// const extensionsPath = path.join(testDataPath, 'extensions-dir1234');
+const extensionsPath = '/Users/donjayamanne/.vscode-insiders/extensions';
 mkdirp.sync(extensionsPath);
 opts.screenshots = '/Users/donjayamanne/.vscode-insiders/extensions/pythonVSCode/src/smokeTest/screenShots';
 const screenshotsPath = opts.screenshots ? path.resolve(opts.screenshots) : null;
@@ -59,10 +57,6 @@ if (screenshotsPath) {
 function fail(errorMessage): void {
     console.error(errorMessage);
     process.exit(1);
-}
-
-if (parseInt(process.version.substr(1)) < 6) {
-    fail('Please update your Node version to greater than 6 to run the smoke test.');
 }
 
 const repoPath = path.join(__dirname, '..', '..', '..');
@@ -103,7 +97,7 @@ function getBuildElectronPath(root: string): string {
 let testCodePath = opts.build;
 testCodePath =
     '/Users/donjayamanne/.vscode-insiders/extensions/pythonVSCode/.vscode-test/stable/Visual Studio Code.app';
-testCodePath = '/Applications/Visual Studio Code - Insiders.app';
+// testCodePath = '/Applications/Visual Studio Code - Insiders.app';
 // let stableCodePath = opts['stable-build'];
 let electronPath: string;
 // let stablePath: string;
@@ -127,46 +121,48 @@ if (!fs.existsSync(electronPath || '')) {
 }
 
 const userDataDir = path.join(testDataPath, 'd');
+const quality = Quality.Stable;
 
-let quality: Quality;
-if (process.env.VSCODE_DEV === '1') {
-    quality = Quality.Dev;
-} else if (
-    electronPath.indexOf('Code - Insiders') >= 0 /* macOS/Windows */ ||
-    electronPath.indexOf('code-insiders') /* Linux */ >= 0
-) {
-    quality = Quality.Insiders;
-} else {
-    quality = Quality.Stable;
-}
+// let quality: Quality;
+// if (process.env.VSCODE_DEV === '1') {
+//     quality = Quality.Dev;
+// } else if (
+//     electronPath.indexOf('Code - Insiders') >= 0 /* macOS/Windows */ ||
+//     electronPath.indexOf('code-insiders') /* Linux */ >= 0
+// ) {
+//     quality = Quality.Insiders;
+// } else {
+//     quality = Quality.Stable;
+// }
 
 async function setupRepository(): Promise<void> {
-    if (opts['test-repo']) {
-        console.log('*** Copying test project repository:', opts['test-repo']);
-        rimraf.sync(workspacePath);
-        // not platform friendly
-        cp.execSync(`cp -R "${opts['test-repo']}" "${workspacePath}"`);
-    } else {
-        if (!fs.existsSync(workspacePath)) {
-            console.log('*** Cloning test project repository...');
-            cp.spawnSync('git', ['clone', testRepoUrl, workspacePath]);
-        } else {
-            console.log('*** Cleaning test project repository...');
-            cp.spawnSync('git', ['fetch'], { cwd: workspacePath });
-            cp.spawnSync('git', ['reset', '--hard', 'FETCH_HEAD'], { cwd: workspacePath });
-            cp.spawnSync('git', ['clean', '-xdf'], { cwd: workspacePath });
-        }
-
-        console.log('*** Running yarn...');
-        cp.execSync('yarn', { cwd: workspacePath, stdio: 'inherit' });
+    const env = getConfiguration().environments[opts.environment];
+    if (!config.workspaceFolder) {
+        const folderPrefix = `env ${opts.environment}-${env.type}`;
+        config.workspaceFolder = path.join(config.tempFolder, folderPrefix);
     }
+    if ((await fs.pathExists(config.workspaceFolder))) {
+        console.log(`*** Using existing test project... ${config.workspaceFolder}`);
+    } else {
+        console.log(`*** Cloning test project repository... ${config.workspaceFolder}`);
+        cp.spawnSync('git', ['clone', config.testRepositoryUri, config.workspaceFolder]);
+    }
+    // else {
+    // console.log('*** Cleaning test project repository...');
+    // cp.spawnSync('git', ['fetch'], { cwd: workspacePath });
+    // cp.spawnSync('git', ['reset', '--hard', 'FETCH_HEAD'], { cwd: workspacePath });
+    // cp.spawnSync('git', ['clean', '-xdf'], { cwd: workspacePath });
+    // }
+
+    // console.log('*** Running yarn...');
+    // cp.execSync('yarn', { cwd: workspacePath, stdio: 'inherit' });
 }
 
 async function setup(): Promise<void> {
-    // console.log('*** Test data:', testDataPath);
-    // console.log('*** Preparing smoketest setup...');
-    // // await setupRepository();
-    // console.log('*** Smoketest setup done!\n');
+    console.log('*** Test data:', testDataPath);
+    console.log('*** Preparing smoketest setup...');
+    await setupRepository();
+    console.log('*** Smoketest setup done!\n');
 }
 
 function createOptions(): ApplicationOptions {
@@ -185,7 +181,7 @@ function createOptions(): ApplicationOptions {
     return {
         quality,
         codePath: opts.build,
-        workspacePath,
+        workspacePath: config.workspaceFolder,
         userDataDir,
         extensionsPath,
         waitTime: parseInt(opts['wait-time'] || '0') || 20,
@@ -196,14 +192,14 @@ function createOptions(): ApplicationOptions {
     };
 }
 
-before(async function() {
+before(async function () {
     // allow two minutes for setup
     this.timeout(2 * 60 * 1000);
     await setup();
     this.defaultOptions = createOptions();
 });
 
-after(async function() {
+after(async () => {
     await new Promise(c => setTimeout(c, 500)); // wait for shutdown
 
     if (opts.log) {
@@ -220,18 +216,20 @@ after(async function() {
 // });
 
 describe('Launching VSCode', () => {
-    before(async function() {
+    before(async function () {
         const app = new Application(this.defaultOptions);
         await app!.start();
         this.app = app;
+
+        app.configuration.genericPyhtonPath = await getPythonInterpreterPath(app.configuration.genericPyhtonPath);
     });
 
-    after(async function() {
+    after(async function () {
         await this.app.stop();
     });
 
     if (screenshotsPath) {
-        afterEach(async function() {
+        afterEach(async function () {
             if (this.currentTest.state !== 'failed') {
                 return;
             }
@@ -243,7 +241,7 @@ describe('Launching VSCode', () => {
     }
 
     if (opts.log) {
-        beforeEach(async function() {
+        beforeEach(async function () {
             const app = this.app as Application;
             const title = this.currentTest.fullTitle();
 
@@ -251,20 +249,38 @@ describe('Launching VSCode', () => {
         });
     }
 
-    // setupDataLossTests();
-    // setupDataExplorerTests();
-    // setupDataPreferencesTests();
-    // setupDataSearchTests();
-    // setupDataCSSTests();
-    // setupDataEditorTests();
-    // setupDataDebugTests();
-    // setupDataGitTests();
-    // setupDataStatusbarTests();
-    // setupDataExtensionTests();
-    // setupTerminalTests();
-    // setupDataMultirootTests();
-    // setupDataLocalizationTests();
-    setupDataPythonDebugTests();
+    const env = getConfiguration().environments[opts.environment];
+    describe(`Environment - ${env.name}`, () => {
+        before(async function () {
+            const app = this.app as Application;
+            await updateSetting('python.terminal.activateEnvironment', false, app.workspacePathOrFolder);
+            for (const setting of Object.keys(env.settings)) {
+                await updateSetting(setting as any, env.settings[setting], app.workspacePathOrFolder);
+            }
+            await deletePipEnv(app);
+            await deleteVenvs(app);
+
+            await setupEnvironment(env, app);
+            app.activeEnvironment = env;
+            await updateSetting('python.pythonPath', app.activeEnvironment.pythonPath!, app.workspacePathOrFolder);
+            // Ensure we refresh the environment list.
+            await app.reload();
+            await waitForExtensionToActivate(app);
+            await app.workbench.quickopen.runCommand('Python: Select Interpreter');
+            await app.workbench.quickopen.runCommand('View: Close All Editors');
+            await reloadToRefreshDisplayNames(app);
+        });
+
+        // Setup tests that will not reload.
+        setupActivationTestsNoReload();
+        setupIntellisenseTestsNoReload();
+        setupInterpreterTestsNoReload();
+        setupTerminalTestsNoReload();
+
+        // Setup tests that will cause VSC to reload.
+        setupActivationTestsWithReload();
+        setupInterpreterTestsReload();
+    });
 });
 
 // setupLaunchTests();

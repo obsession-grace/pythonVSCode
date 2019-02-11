@@ -69,6 +69,7 @@ import { DebugSessionEventDispatcher } from './debugger/extension/hooks/eventHan
 import { IDebugSessionEventHandlers } from './debugger/extension/hooks/types';
 import { registerTypes as debugConfigurationRegisterTypes } from './debugger/extension/serviceRegistry';
 import { IDebugConfigurationService, IDebuggerBanner } from './debugger/extension/types';
+import { activate as registerDevTools } from './devTools/index';
 import { registerTypes as formattersRegisterTypes } from './formatters/serviceRegistry';
 import { AutoSelectionRule, IInterpreterAutoSelectionRule, IInterpreterAutoSelectionService } from './interpreter/autoSelection/types';
 import { IInterpreterSelector } from './interpreter/configuration/types';
@@ -274,6 +275,7 @@ function registerServices(context: ExtensionContext, serviceManager: ServiceMana
     debugConfigurationRegisterTypes(serviceManager);
     appRegisterTypes(serviceManager);
     providersRegisterTypes(serviceManager);
+    registerDevTools(serviceManager);
 }
 
 async function initializeServices(context: ExtensionContext, serviceManager: ServiceManager, serviceContainer: ServiceContainer) {

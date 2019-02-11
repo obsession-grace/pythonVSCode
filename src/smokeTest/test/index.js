@@ -34,6 +34,8 @@ if (process.env.BUILD_ARTIFACTSTAGINGDIRECTORY) {
 	};
 }
 
+require('source-map-support').install();
+
 const mocha = new Mocha(options);
 mocha.addFile('out/main.js');
 mocha.run(failures => process.exit(failures ? -1 : 0));

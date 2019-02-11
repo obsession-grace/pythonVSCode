@@ -68,6 +68,7 @@
         "onCommand:python.setInterpreter",
         "onCommand:python.setShebangInterpreter",
         "onCommand:python.viewTestUI",
+        "onCommand:python.viewOutput",
         "onCommand:python.viewTestOutput",
         "onCommand:python.viewOutput",
         "onCommand:python.selectAndRunTestMethod",
@@ -210,6 +211,11 @@
                 "command": "python.refactorExtractMethod",
                 "title": "%python.command.python.refactorExtractMethod.title%",
                 "category": "Python Refactor"
+            },
+            {
+                "command": "python.viewOutput",
+                "title": "%python.command.python.viewOutput.title%",
+                "category": "Python"
             },
             {
                 "command": "python.viewTestOutput",

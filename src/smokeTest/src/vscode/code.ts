@@ -178,8 +178,8 @@ async function poll<T>(
 
     while (true) {
         if (trial > retryCount) {
-            console.error('** Timeout!');
-            console.error(lastError);
+            // console.error('** Timeout!');
+            // console.error(lastError);
 
             throw new Error(`Timeout: ${timeoutMessage} after ${(retryCount * retryInterval) / 1000} seconds.`);
         }
@@ -217,7 +217,7 @@ export class Code {
                     return target[prop];
                 }
 
-                return function(...args) {
+                return function (...args) {
                     logger.log(`${prop}`, ...args.filter(a => typeof a === 'string'));
                     return target[prop].apply(this, args);
                 };
