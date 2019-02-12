@@ -8,7 +8,7 @@ import { CancellationTokenSource, Range, SymbolInformation, SymbolKind, TextEdit
 import { IDocumentManager } from '../../common/application/types';
 import { traceError } from '../../common/logger';
 import { swallowExceptions } from '../../common/utils/decorators';
-import { captureTelemetry } from '../../telemetry';
+import { captureTelemetry, sendTelemetryEvent } from '../../telemetry';
 import { EventName } from '../../telemetry/constants';
 import { ITestCollectionStorageService, TestSuite } from '../common/types';
 import { ITestCodeNavigator, ITestNavigatorHelper } from './types';
@@ -24,6 +24,7 @@ export class TestSuiteCodeNavigator implements ITestCodeNavigator {
     @swallowExceptions('Navigate to test suite')
     @captureTelemetry(EventName.UNITTEST_NAVIGATE_TEST_SUITE, undefined, true)
     public async navigateTo(resource: Uri, suite: TestSuite, focus: boolean = true): Promise<void> {
+        sendTelemetryEvent(EventName.UNITTEST_NAVIGATE_TEST_SUITE, undefined, { focus });
         if (this.cancellationToken) {
             this.cancellationToken.cancel();
         }
