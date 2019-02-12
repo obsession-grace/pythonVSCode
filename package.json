@@ -496,8 +496,7 @@
                 {
                     "command": "python.viewOutput",
                     "title": "%python.command.python.viewOutput.title%",
-                    "category": "Python",
-                    "when": "config.noExists"
+                    "category": "Python"
                 },
                 {
                     "command": "python.runTestNode",
