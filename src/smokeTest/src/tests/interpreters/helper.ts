@@ -21,6 +21,14 @@ const untildify = require('untildify');
 
 const home = untildify('~');
 
+/*
+Selector for elements with display names
+'.quick-input-list-entry .quick-input-list-label .quick-input-list-rows  .quick-input-list-row .monaco-icon-label .label-name span span:first-child'
+Selector for elements with tooltips (paths)
+'.quick-input-list-entry .quick-input-list-label .quick-input-list-rows  .quick-input-list-row:nth-child(2) span span'
+Selector for statubar element
+'.statusbar-item.left.statusbar-entry[statusbar-entry-priority='100'][statusbar-entry-alignment='0'] a'
+*/
 export function getDisplayPath(pathValue: string, cwd?: string): string {
     if (cwd && pathValue.startsWith(cwd)) {
         return `.${path.sep}${path.relative(cwd, pathValue)}`;
@@ -29,6 +37,11 @@ export function getDisplayPath(pathValue: string, cwd?: string): string {
     } else {
         return pathValue;
     }
+}
+
+export async function interpreterInStatusBarDisplaysCorrectPath(pythonPath: string, app: Application) {
+    const tooltip = getDisplayPath(pythonPath, app.workspacePathOrFolder);
+    await app.workbench.statusbar.waitForStatusbarLinkText(tooltip);
 }
 
 export async function selectGenericInterpreter(app: Application, noWait: boolean = false): Promise<void> {
@@ -169,7 +182,7 @@ export async function getPythonInterpreterPath(pythonPath: string): Promise<stri
  * @param {Application} app
  * @returns
  */
-export async function reloadToRefreshCondaDisplayNames(app: Application) {
+export async function reloadToRefreshInterpreterDisplayNames(app: Application) {
     async function isDisplayNameCorrect() {
         const tooltip = getDisplayPath(app.activeEnvironment.pythonPath!, app.workspacePathOrFolder);
         const text = await app.workbench.statusbar.waitForStatusbarLinkText(tooltip);
@@ -186,5 +199,15 @@ export async function reloadToRefreshCondaDisplayNames(app: Application) {
         }
         await app.reload();
         await waitForExtensionToActivate(app);
+    }
+}
+
+export async function waitForPythonPathInStatusBar(pythonPath: string, app: Application) {
+    const statusbarSelector = '.statusbar-item.left.statusbar-entry[statusbar-entry-priority=\'100\'][statusbar-entry-alignment=\'0\'] a';
+    const ele = await app.code.waitForElements(statusbarSelector, true);
+    console.log(ele.length);
+    if (ele.length > 0) {
+        console.log(ele[0].textContent);
+        console.log(ele[0].attributes['title']);
     }
 }

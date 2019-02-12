@@ -30,5 +30,28 @@
     "python.workspaceSymbols.enabled": false,
     "python.formatting.provider": "none",
     "python.terminal.activateEnvironment": false,
-    "python.enableDevTools": true
+    "python.enableDevTools": true,
+    "cucumberautocompletex.steps": ["src/smokeTest/out/steps/**/*.js", "src/smokeTest/src/steps/**/*.ts"],
+    "cucumberautocomplete.steps": ["src/smokeTest/src/steps/**/*.ts"],
+    "cucumberautocomplete.syncfeatures": "src/smokeTest/features/*feature",
+    "cucumberautocomplete.strictGherkinCompletion": true,
+    "cucumberautocomplete.onTypeFormat": true,
+    "editor.quickSuggestions": {
+        "comments": false,
+        "strings": true,
+        "other": true
+    },
+    "cucumberautocomplete.smartSnippets": true,
+    "cucumberautocomplete.stepsInvariants": true,
+    "cucumberautocomplete.customParameters": [
+        {
+            "parameter": "{ab}",
+            "value": "(a|b)"
+        },
+        {
+            "parameter": "{string}",
+            "value": "(definition.py)"
+        }
+    ],
+    "cucumberautocomplete.gherkinDefinitionPart": "(Given|When|Then)\\("
 }

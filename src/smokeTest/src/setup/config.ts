@@ -48,6 +48,7 @@ export type Configuration = {
     environments: Enviroment[];
     genericPyhtonPath: string;
     workspaceFolder: string;
+    userSettingsJsonPath: string;
 };
 
 let configuration: Configuration;

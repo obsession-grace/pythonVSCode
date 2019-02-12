@@ -19,7 +19,7 @@ import { setupEnvironment } from './setup/environment';
 import { waitForExtensionToActivate } from './tests/activation/helper';
 import { setupActivationTestsNoReload, setupActivationTestsWithReload } from './tests/activation/index';
 import { setupIntellisenseTestsNoReload } from './tests/intellisense/index';
-import { deletePipEnv, deleteVenvs, getPythonInterpreterPath, reloadToRefreshCondaDisplayNames as reloadToRefreshDisplayNames } from './tests/interpreters/helper';
+import { deletePipEnv, deleteVenvs, getPythonInterpreterPath, reloadToRefreshInterpreterDisplayNames as reloadToRefreshDisplayNames } from './tests/interpreters/helper';
 import { setupInterpreterTestsNoReload, setupInterpreterTestsReload } from './tests/interpreters/index';
 import { setupTerminalTestsNoReload } from './tests/terminal/index';
 
@@ -31,9 +31,8 @@ process.once('exit', () => rimraf.sync(testDataPath));
 
 const [, , ...args] = process.argv;
 const opts = minimist(args, {
-    string: ['build', 'stable-build', 'wait-time', 'test-repo', 'screenshots', 'log', 'config'],
+    string: ['build', 'stable-build', 'wait-time', 'test-repo', 'screenshots', 'log', 'config', 'environment'],
     boolean: ['verbose'],
-    number: ['environment'],
     default: {
         verbose: false,
         config: 'testConfig.json'

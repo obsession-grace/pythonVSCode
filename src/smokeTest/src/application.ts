@@ -9,6 +9,7 @@ import { Workbench } from './areas/workbench/workbench';
 import { Code, spawn, SpawnOptions } from './vscode/code';
 import { Logger } from './logger';
 import { Configuration, getConfiguration, Enviroment } from './setup/config';
+import { noop } from './helpers';
 
 export const enum Quality {
     Dev,
@@ -30,6 +31,7 @@ export class Application {
     private _config: Configuration;
     private _workspacePathOrFolder: string;
 
+    private _screenshotHook: (buffer: Buffer) => void;
     constructor(private options: ApplicationOptions) {
         this._workspacePathOrFolder = options.workspacePath;
     }
@@ -99,17 +101,21 @@ export class Application {
             this._code = undefined;
         }
     }
-
+    public registerScreenshotHook(hook: (buffer: Buffer) => void) {
+        this._screenshotHook = hook;
+    }
     public async captureScreenshot(name: string): Promise<void> {
-        if (this.options.screenshotsPath) {
-            const raw = await this.code.capturePage();
-            const buffer = Buffer.from(raw, 'base64');
-            const screenshotPath = path.join(this.options.screenshotsPath, `${name}.png`);
-            if (this.options.log) {
-                this.logger.log('*** Screenshot recorded:', screenshotPath);
-            }
-            fs.writeFileSync(screenshotPath, buffer);
+        if (!this.options.screenshotsPath) {
+            return;
         }
+        const raw = await this.code.capturePage();
+        const buffer = Buffer.from(raw, 'base64');
+        const screenshotPath = path.join(this.options.screenshotsPath, `${name}.png`);
+        if (this.options.log) {
+            this.logger.log('*** Screenshot recorded:', screenshotPath);
+        }
+        fs.writeFileSync(screenshotPath, buffer);
+        (this._screenshotHook || noop)(buffer);
     }
     private async _start(workspaceOrFolder = this.workspacePathOrFolder, extraArgs: string[] = []): Promise<any> {
         this._workspacePathOrFolder = workspaceOrFolder;

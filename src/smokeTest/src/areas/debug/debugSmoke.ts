@@ -96,6 +96,10 @@ export class Debug extends Viewlet {
         return lastOutput ? parseInt(lastOutput.substr(portPrefix.length)) : 3000;
     }
 
+    public async debuggerHasStarted() {
+        await this.code.waitForElement(PAUSE);
+        await this.code.waitForElement(DEBUG_STATUS_BAR);
+    }
     async startDebugging(waitForText: string): Promise<void> {
         await this.code.dispatchKeybinding('f5');
         await this.code.waitForElement(PAUSE);
@@ -134,6 +138,11 @@ export class Debug extends Viewlet {
         await this.code.waitForElement(NOT_DEBUG_STATUS_BAR);
     }
 
+    async debuggerHasStopped(): Promise<any> {
+        await this.code.waitForElement(TOOLBAR_HIDDEN);
+        await this.code.waitForElement(NOT_DEBUG_STATUS_BAR);
+    }
+
     async waitForStackFrame(func: (stackFrame: IStackFrame) => boolean, message: string): Promise<IStackFrame> {
         const elements = await this.code.waitForElements(STACK_FRAME, true, elements =>
             elements.some(e => func(toStackFrame(e)))
@@ -166,7 +175,7 @@ export class Debug extends Viewlet {
         await this.code.waitForElements(VARIABLE, false, els => els.length === count);
     }
 
-    private async waitForOutput(fn: (output: string[]) => boolean): Promise<string[]> {
+    public async waitForOutput(fn: (output: string[]) => boolean): Promise<string[]> {
         const elements = await this.code.waitForElements(CONSOLE_OUTPUT, false, elements =>
             fn(elements.map(e => e.textContent))
         );

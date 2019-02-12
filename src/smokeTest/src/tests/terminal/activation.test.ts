@@ -4,15 +4,30 @@
 'use strict';
 
 import * as assert from 'assert';
-import * as fs from 'fs';
+import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as rimraf from 'rimraf';
+import * as tmp from 'tmp';
 import { promisify } from 'util';
+import * as util from 'util';
 import { Application } from '../../application';
 import { sleep } from '../../helpers';
 import { updateSetting } from '../../helpers/settings';
 import { EnvironmentType } from '../../setup/config';
+import { toCommandArgument } from '../../setup/utils';
 
+export async function getPythonPathInActiveTerminal(app: Application) {
+    const logFile = path.join(app.workspacePathOrFolder, 'output.log');
+    await util.promisify(rimraf)(logFile);
+    await Promise.all([
+        app.workbench.terminal.runCommand('python runInTerminal.py'),
+        app.workbench.terminal.waitForTerminalText((lines: string[]) => lines.indexOf('Done') >= 0)
+    ]);
+    return fs
+        .readFileSync(logFile)
+        .toString()
+        .trim();
+}
 // tslint:disable:max-func-body-length no-invalid-this
 export function setup() {
     describe('Activation', () => {
