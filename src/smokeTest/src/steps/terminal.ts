@@ -5,8 +5,6 @@
 
 import * as assert from 'assert';
 import { Given, Then, When } from 'cucumber';
-import * as fs from 'fs-extra';
-import * as path from 'path';
 import { sleep } from '../helpers';
 import { updateSetting } from '../helpers/settings';
 import { getPythonPathInActiveTerminal } from '../tests/terminal/activation.test';
@@ -27,7 +25,7 @@ When('I send the command {string} to the terminal', async (command: string) => {
     await context.app.workbench.terminal.runCommand(command);
 });
 
-When('a python file run in the terminal will run in the activated environment', async (command: string) => {
+When('a python file run in the terminal will run in the activated environment', async () => {
     await fileWillRunInActivatedEnvironment(context.app);
 });
 

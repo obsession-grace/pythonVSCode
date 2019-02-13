@@ -11,7 +11,7 @@
     "copy-driver-definition": "node tools/copy-driver-definition.js",
     "watch-driver-definition": "watch \"node tools/copy-driver-definition.js\" ../../src/vs/platform/driver/node",
     "mocha": "mocha",
-    "test": "cucumber-js features/* -r source-map-support/register -r out/steps/**/*.js --format json:reports/cucumber-report.json --format summary",
+    "test": "cucumber-js features/* -r source-map-support/register -r out/steps/**/*.js --format json:reports/cucumber-report.json --format summary --environment=3",
     "report": "node out/reports/html.js"
   },
   "devDependencies": {

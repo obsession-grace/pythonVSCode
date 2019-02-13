@@ -6,6 +6,10 @@
 import { Given, Then, When } from 'cucumber';
 import { context } from './app';
 
+When('I close all editors', async () => {
+    await context.app.workbench.quickopen.runCommand('View: Close All Editors');
+});
+
 Given('the file {string} is open', async (file: string) => {
     await context.app.workbench.quickopen.openFile(file);
 });

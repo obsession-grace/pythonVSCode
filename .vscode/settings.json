@@ -47,10 +47,6 @@
         {
             "parameter": "{ab}",
             "value": "(a|b)"
-        },
-        {
-            "parameter": "{string}",
-            "value": "(definition.py)"
         }
     ],
     "cucumberautocomplete.gherkinDefinitionPart": "(Given|When|Then)\\("

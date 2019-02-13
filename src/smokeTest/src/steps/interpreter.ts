@@ -8,10 +8,10 @@ import { Given, Then, When } from 'cucumber';
 import * as path from 'path';
 import { sleep } from '../helpers';
 import { getSetting, removeSetting, updateSetting } from '../helpers/settings';
-import { PipEnvEnviroment, VenvEnviroment } from '../setup/config';
-import { waitForExtensionToActivate } from '../tests/activation/helper';
-import { createPipEnv, createVenv, deletePipEnv, deleteVenvs, getDisplayPath, getPythonInterpreterPath, interpreterInStatusBarDisplaysCorrectPath, selectGenericInterpreter, waitForPythonPathInStatusBar } from '../tests/interpreters/helper';
+import { PipEnvEnviroment, VenvEnviroment, EnvironmentType } from '../setup/config';
+import { createPipEnv, createVenv, deletePipEnv, deleteVenvs, getDisplayPath, getPythonInterpreterPath, interpreterInStatusBarDisplaysCorrectPath, selectGenericInterpreter } from '../tests/interpreters/helper';
 import { context } from './app';
+import { CondaGetEnvironmentPrefix } from '../../../client/interpreter/locators/services/condaService';
 
 Given('there are no pipenv environments', async () => {
     await deletePipEnv(context.app);
@@ -19,6 +19,10 @@ Given('there are no pipenv environments', async () => {
 
 Given('there are no virtual environments in the workspace', async () => {
     await deleteVenvs(context.app);
+});
+
+Given('some random interpreter is selected', async () => {
+    await selectGenericInterpreter(context.app);
 });
 
 When('I select some random interpreter', async () => {
@@ -39,19 +43,16 @@ When('I change the python path in settings.json to {string}', async (pythonPath:
     await updateSetting('python.pythonPath', pythonPath, context.app.workspacePathOrFolder);
 });
 
+When('I select a python interpreter', async () => {
+    await updateSetting('python.pythonPath', context.app.activeEnvironment.pythonPath!, context.app.workspacePathOrFolder);
+    await sleep(1000);
+});
+
 Given('there is no python path in settings.json', async () => {
-    const pythonPath = await getPythonInterpreterPath('python');
     await removeSetting('python.pythonPath', context.app.workspacePathOrFolder);
-    await updateSetting('python.pythonPath', pythonPath, path.dirname(context.app.configuration.userSettingsJsonPath));
-    await interpreterInStatusBarDisplaysCorrectPath(pythonPath, context.app);
 });
 
-When('I reload vscode', async (pythonPath: string) => {
-    await context.app.reload();
-    await waitForExtensionToActivate(context.app);
-});
-
-Then('settings.json will automatically be updated with pythonPath', async () => {
+Then('settings.json will automatically be updated with pythonPath', { timeout: 60000 }, async () => {
     const currentPythonPath = await getSetting<string | undefined>('python.pythonPath', context.app.workspacePathOrFolder);
     assert.notEqual(currentPythonPath, undefined);
     await interpreterInStatusBarDisplaysCorrectPath(currentPythonPath!, context.app);
@@ -81,5 +82,10 @@ Then('a message containing the text {string} will be displayed', async (message:
 Then('interpreter informantion in status bar has refreshed', async () => {
     const tooltip = getDisplayPath(context.app.activeEnvironment.pythonPath!, context.app.workspacePathOrFolder);
     const text = await context.app.workbench.statusbar.waitForStatusbarLinkText(tooltip);
-    context.app.activeEnvironment.displayNameParts.forEach(item => assert.notEqual(text.indexOf(item), -1, `'${item}' not found in display name`));
+    context.app.activeEnvironment.displayNameParts.forEach(item => {
+        // In the case of pipenv environments, the spaces are replaced with '_'.
+        const parsed = item.replace('/ /g', '_');
+        const found = text.indexOf(item) >= 0 || text.indexOf(parsed) >= 0;
+        assert.equal(found, true, `'${item}' not found in display name`);
+    });
 });

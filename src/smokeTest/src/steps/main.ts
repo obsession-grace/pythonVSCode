@@ -21,6 +21,7 @@ import { setupEnvironment } from '../setup/environment';
 import { waitForExtensionToActivate } from '../tests/activation/helper';
 import { context } from './app';
 import { EventEmitter } from 'events';
+import { sleep } from '../helpers';
 // import { Application, ApplicationOptions, Quality } from './application';
 // import { updateSetting } from './helpers/settings';
 // import { ConsoleLogger, FileLogger, Logger, MultiLogger } from './logger';
@@ -252,7 +253,6 @@ BeforeAll({ timeout: 60 * 1000 }, async function () {
 });
 Before(async function (scenario: HookScenarioResult) {
     const location = `line:${scenario.pickle.locations[0].line}`;
-    console.log(`Before ${scenario.pickle.name}, ${location}`);
     await updateSetting('python.pythonPath', context.app.activeEnvironment.pythonPath!, context.app.workspacePathOrFolder);
     await context.app.workbench.quickopen.runCommand('View: Close All Editors');
     await context.app.workbench.quickopen.runCommand('Terminal: Kill the Active Terminal Instance');
