@@ -172,7 +172,7 @@ export const ITestVisitor = Symbol('ITestVisitor');
 
 export interface ITestVisitor {
     visitTestFunction(testFunction: TestFunction): void;
-    zvisitTestSuite(testSuite: TestSuite): void;
+    visitTestSuite(testSuite: TestSuite): void;
     visitTestFile(testFile: TestFile): void;
     visitTestFolder(testFile: TestFolder): void;
 }
