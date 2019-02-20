@@ -26,7 +26,6 @@ import { TestResultsService } from '../../client/unittests/common/services/testR
 import { UnitTestDiagnosticService } from '../../client/unittests/common/services/unitTestDiagnosticService';
 import { TestsHelper } from '../../client/unittests/common/testUtils';
 import { TestFlatteningVisitor } from '../../client/unittests/common/testVisitors/flatteningVisitor';
-import { TestFolderGenerationVisitor } from '../../client/unittests/common/testVisitors/folderGenerationVisitor';
 import { TestResultResetVisitor } from '../../client/unittests/common/testVisitors/resultResetVisitor';
 import {
     ITestCollectionStorageService,
@@ -75,7 +74,6 @@ export class UnitTestIocContainer extends IocContainer {
 
     public registerTestVisitors() {
         this.serviceManager.add<ITestVisitor>(ITestVisitor, TestFlatteningVisitor, 'TestFlatteningVisitor');
-        this.serviceManager.add<ITestVisitor>(ITestVisitor, TestFolderGenerationVisitor, 'TestFolderGenerationVisitor');
         this.serviceManager.add<ITestVisitor>(ITestVisitor, TestResultResetVisitor, 'TestResultResetVisitor');
     }
 

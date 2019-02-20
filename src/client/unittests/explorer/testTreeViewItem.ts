@@ -5,17 +5,12 @@
 
 // tslint:disable:max-classes-per-file
 
-import {
-    TreeItem, TreeItemCollapsibleState, Uri
-} from 'vscode';
+import { ThemeIcon, TreeItem, TreeItemCollapsibleState, Uri } from 'vscode';
 import { Commands } from '../../common/constants';
-import { traceError } from '../../common/logger';
+import { getIcon } from '../../common/utils/icons';
 import { noop } from '../../common/utils/misc';
-import { TestsHelper } from '../common/testUtils';
-import {
-    TestFile, TestFolder, TestFunction,
-    TestStatus, TestSuite, TestType
-} from '../common/types';
+import { getTestFile, getTestFolder, getTestFunction, getTestSuite, getTestType } from '../common/testUtils';
+import { TestFile, TestFolder, TestFunction, TestStatus, TestSuite, TestType } from '../common/types';
 import { TestDataItem } from '../types';
 
 /**
@@ -25,7 +20,7 @@ import { TestDataItem } from '../types';
  */
 export abstract class TestTreeItem extends TreeItem {
     public readonly testType: TestType;
-    private _children: TestTreeItem[];
+    private _children?: TestTreeItem[];
 
     constructor(
         public readonly resource: Uri,
@@ -35,10 +30,44 @@ export abstract class TestTreeItem extends TreeItem {
         collabsible: boolean = true
     ) {
         super(label, collabsible ? TreeItemCollapsibleState.Collapsed : TreeItemCollapsibleState.None);
-        this.testType = TestsHelper.getTestType(this.data);
+        this.testType = getTestType(this.data);
         this.setCommand();
+        if (this.testType === TestType.testFile) {
+            this.resourceUri = Uri.file((this.data as TestFile).fullPath);
+        }
     }
-
+    public get iconPath(): string | Uri | { light: string | Uri; dark: string | Uri } | ThemeIcon {
+        if (!this.data) {
+            return '';
+        }
+        const status = this.data.status;
+        switch (status) {
+            case TestStatus.Error:
+            case TestStatus.Fail: {
+                return getIcon('status-error.svg');
+            }
+            case TestStatus.Pass: {
+                return getIcon('status-ok.svg');
+            }
+            case TestStatus.Discovering:
+            case TestStatus.Running: {
+                return getIcon('running.svg');
+            }
+            default: {
+                switch (this.testType) {
+                    case TestType.testFile: {
+                        return ThemeIcon.File;
+                    }
+                    case TestType.testFolder: {
+                        return ThemeIcon.Folder;
+                    }
+                    default: {
+                        return '';
+                    }
+                }
+            }
+        }
+    }
     /**
      * Parent is an extension to the TreeItem, to make it trivial to discover the node's parent.
      */
@@ -84,16 +113,11 @@ export abstract class TestTreeItem extends TreeItem {
             }
         }
     }
-
 }
 
-export class TestFunctionTreeItem extends TestTreeItem {
-    constructor(
-        resource: Uri,
-        parent: TestDataItem,
-        fn: TestFunction
-    ) {
-        super(resource, fn, parent, `[Function] ${fn.name}`, false);
+class TestFunctionTreeItem extends TestTreeItem {
+    constructor(resource: Uri, parent: TestDataItem, fn: TestFunction) {
+        super(resource, fn, parent, fn.name, false);
     }
 
     public get contextValue(): string {
@@ -108,13 +132,9 @@ export class TestFunctionTreeItem extends TestTreeItem {
     }
 }
 
-export class TestSuiteTreeItem extends TestTreeItem {
-    constructor(
-        resource: Uri,
-        parent: TestDataItem,
-        suite: TestSuite
-    ) {
-        super(resource, suite, parent, `[Suite] ${suite.name}`);
+class TestSuiteTreeItem extends TestTreeItem {
+    constructor(resource: Uri, parent: TestDataItem, suite: TestSuite) {
+        super(resource, suite, parent, suite.name);
     }
 
     public get contextValue(): string {
@@ -126,7 +146,10 @@ export class TestSuiteTreeItem extends TestTreeItem {
      */
     protected getChildrenImpl(): Readonly<TestTreeItem[]> {
         const children: TestTreeItem[] = [];
-        const suite: Readonly<TestSuite> = TestsHelper.getTestSuite(this.data);
+        const suite = getTestSuite(this.data);
+        if (!suite) {
+            return [];
+        }
         suite.functions.forEach((fn: TestFunction) => {
             children.push(new TestFunctionTreeItem(this.resource, this.data, fn));
         });
@@ -137,13 +160,9 @@ export class TestSuiteTreeItem extends TestTreeItem {
     }
 }
 
-export class TestFileTreeItem extends TestTreeItem {
-    constructor(
-        resource: Uri,
-        parent: TestDataItem,
-        fl: TestFile
-    ) {
-        super(resource, fl, parent, `[File] ${fl.name}`);
+class TestFileTreeItem extends TestTreeItem {
+    constructor(resource: Uri, parent: TestDataItem, fl: TestFile) {
+        super(resource, fl, parent, fl.name);
     }
 
     public get contextValue(): string {
@@ -155,7 +174,10 @@ export class TestFileTreeItem extends TestTreeItem {
      */
     protected getChildrenImpl(): Readonly<TestTreeItem[]> {
         const children: TestTreeItem[] = [];
-        const fl: Readonly<TestFile> = TestsHelper.getTestFile(this.data);
+        const fl = getTestFile(this.data);
+        if (!fl) {
+            return [];
+        }
         fl.functions.forEach((fn: TestFunction) => {
             children.push(new TestFunctionTreeItem(this.resource, this.data, fn));
         });
@@ -166,13 +188,9 @@ export class TestFileTreeItem extends TestTreeItem {
     }
 }
 
-export class TestFolderTreeItem extends TestTreeItem {
-    constructor(
-        resource: Uri,
-        parent: TestDataItem,
-        folder: TestFolder
-    ) {
-        super(resource, folder, parent, `[Folder] ${folder.name}`);
+class TestFolderTreeItem extends TestTreeItem {
+    constructor(resource: Uri, parent: TestDataItem, folder: TestFolder) {
+        super(resource, folder, parent, folder.name);
     }
 
     public get contextValue(): string {
@@ -184,7 +202,10 @@ export class TestFolderTreeItem extends TestTreeItem {
      */
     protected getChildrenImpl(): Readonly<TestTreeItem[]> {
         const children: TestTreeItem[] = [];
-        const folder: Readonly<TestFolder> = TestsHelper.getTestFolder(this.data);
+        const folder = getTestFolder(this.data);
+        if (!folder) {
+            return [];
+        }
         folder.testFiles.forEach((fl: TestFile) => {
             children.push(new TestFileTreeItem(this.resource, this.data, fl));
         });
@@ -199,34 +220,23 @@ export class TestFolderTreeItem extends TestTreeItem {
  * @param testData The data item being represented in this tree view node.
  * @param parent The parent (or undefined, if the item is a root folder) of the test item.
  */
-export function createTreeViewItemFrom(
-    resource: Uri,
-    testData: Readonly<TestDataItem>,
-    parent?: TestDataItem
-): TestTreeItem {
-    let item: TestTreeItem;
-    const testDataType = TestsHelper.getTestType(testData);
+export function createTreeViewItemFrom(resource: Uri, testData: Readonly<TestDataItem>, parent?: TestDataItem): TestTreeItem {
+    const testDataType = getTestType(testData);
     switch (testDataType) {
         case TestType.testFile: {
-            item = new TestFileTreeItem(resource, parent, TestsHelper.getTestFile(testData));
-            break;
+            return new TestFileTreeItem(resource, parent!, getTestFile(testData)!);
         }
         case TestType.testFolder: {
-            item = new TestFolderTreeItem(resource, parent, TestsHelper.getTestFolder(testData));
-            break;
+            return new TestFolderTreeItem(resource, parent!, getTestFolder(testData)!);
         }
         case TestType.testSuite: {
-            item = new TestSuiteTreeItem(resource, parent, TestsHelper.getTestSuite(testData));
-            break;
+            return new TestSuiteTreeItem(resource, parent!, getTestSuite(testData)!);
         }
         case TestType.testFunction: {
-            item = new TestFunctionTreeItem(resource, parent, TestsHelper.getTestFunction(testData));
-            break;
+            return new TestFunctionTreeItem(resource, parent!, getTestFunction(testData)!);
         }
         default: {
-            traceError(`Cannot create test view item for unknown test Data Type "${testDataType}". This item will not appear in the Test Explorer.`);
-            break;
+            throw new Error(`Cannot create test view item for unknown test Data Type "${testDataType}". This item will not appear in the Test Explorer.`);
         }
     }
-    return item;
 }
