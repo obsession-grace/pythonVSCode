@@ -66,7 +66,6 @@ export abstract class BaseTestManager implements ITestManager {
     private _installer!: IInstaller;
     private testsStatusUpdaterService: ITestsStatusUpdaterService;
     private discoverTestsPromise?: Promise<Tests>;
-    private runningTestsPromise?: Promise<Tests>;
     private _onDidStatusChange = new EventEmitter<WorkspaceTestStatus>();
     private get installer(): IInstaller {
         if (!this._installer) {
@@ -134,9 +133,6 @@ export abstract class BaseTestManager implements ITestManager {
     public async discoverTests(cmdSource: CommandSource, ignoreCache: boolean = false, quietMode: boolean = false, userInitiated: boolean = false): Promise<Tests> {
         if (this.discoverTestsPromise) {
             return this.discoverTestsPromise;
-        }
-        if (this.runningTestsPromise) {
-            await this.runningTestsPromise.catch(noop);
         }
         this.discoverTestsPromise = this._discoverTests(cmdSource, ignoreCache, quietMode, userInitiated);
         this.discoverTestsPromise.catch(noop).then(() => this.discoverTestsPromise = undefined).ignoreErrors();
@@ -223,17 +219,6 @@ export abstract class BaseTestManager implements ITestManager {
             });
     }
     public async runTest(cmdSource: CommandSource, testsToRun?: TestsToRun, runFailedTests?: boolean, debug?: boolean): Promise<Tests> {
-        if (this.runningTestsPromise) {
-            await this.runningTestsPromise.catch(noop);
-        }
-        if (this.discoverTestsPromise) {
-            await this.discoverTestsPromise.catch(noop);
-        }
-        this.runningTestsPromise = this._runTest(cmdSource, testsToRun, runFailedTests, debug);
-        this.runningTestsPromise.catch(noop).then(() => this.runningTestsPromise = undefined).ignoreErrors();
-        return this.runningTestsPromise;
-    }
-    private async _runTest(cmdSource: CommandSource, testsToRun?: TestsToRun, runFailedTests?: boolean, debug?: boolean): Promise<Tests> {
         const moreInfo = {
             Test_Provider: this.testProvider,
             Run_Failed_Tests: 'false',
@@ -287,7 +272,7 @@ export abstract class BaseTestManager implements ITestManager {
         // If we do so, then we end up re-discovering the unit tests and clearing previously cached list of failed tests
         // Similarly, if running a specific test or test file, don't clear the cache (possible tests have some state information retained)
         const clearDiscoveredTestCache = runFailedTests || moreInfo.Run_Specific_File || moreInfo.Run_Specific_Class || moreInfo.Run_Specific_Function ? false : true;
-        return this._discoverTests(cmdSource, clearDiscoveredTestCache, true, true)
+        return this.discoverTests(cmdSource, clearDiscoveredTestCache, true, true)
             .catch(reason => {
                 if (this.testDiscoveryCancellationToken && this.testDiscoveryCancellationToken.isCancellationRequested) {
                     return Promise.reject<Tests>(reason);
