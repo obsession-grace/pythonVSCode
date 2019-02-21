@@ -281,8 +281,8 @@
                 "title": "%python.command.python.discoverTests.title%",
                 "category": "Python",
                 "icon": {
-                    "light": "resources/dark/running.svg",
-                    "dark": "resources/dark/running.svg"
+                    "light": "resources/dark/discovering-tests.svg",
+                    "dark": "resources/dark/discovering-tests.svg"
                 }
             },
             {

@@ -9,6 +9,7 @@ import { ThemeIcon, TreeItem, TreeItemCollapsibleState, Uri } from 'vscode';
 import { Commands } from '../../common/constants';
 import { getIcon } from '../../common/utils/icons';
 import { noop } from '../../common/utils/misc';
+import { Icons } from '../common/constants';
 import { getTestFile, getTestFolder, getTestFunction, getTestSuite, getTestType } from '../common/testUtils';
 import { TestFile, TestFolder, TestFunction, TestStatus, TestSuite, TestType } from '../common/types';
 import { TestDataItem } from '../types';
@@ -20,7 +21,6 @@ import { TestDataItem } from '../types';
  */
 export abstract class TestTreeItem extends TreeItem {
     public readonly testType: TestType;
-    private _children?: TestTreeItem[];
 
     constructor(
         public readonly resource: Uri,
@@ -44,14 +44,14 @@ export abstract class TestTreeItem extends TreeItem {
         switch (status) {
             case TestStatus.Error:
             case TestStatus.Fail: {
-                return getIcon('status-error.svg');
+                return getIcon(Icons.failed);
             }
             case TestStatus.Pass: {
-                return getIcon('status-ok.svg');
+                return getIcon(Icons.passed);
             }
             case TestStatus.Discovering:
             case TestStatus.Running: {
-                return getIcon('running.svg');
+                return getIcon(Icons.discovering);
             }
             default: {
                 switch (this.testType) {
@@ -81,18 +81,6 @@ export abstract class TestTreeItem extends TreeItem {
     public get testStatus(): string {
         return this.data.status ? this.data.status : TestStatus.Unknown;
     }
-
-    /**
-     * Each test type will provide its children in a different way. pImpl used here.
-     */
-    public get children(): TestTreeItem[] {
-        if (this._children === undefined) {
-            this._children = this.getChildrenImpl();
-        }
-        return this._children;
-    }
-
-    protected abstract getChildrenImpl(): Readonly<TestTreeItem[]>;
 
     private setCommand() {
         switch (this.testType) {
@@ -141,23 +129,6 @@ class TestSuiteTreeItem extends TestTreeItem {
         return TestType.testSuite;
     }
 
-    /**
-     * Test suite items have functions and/or suites as subordinates.
-     */
-    protected getChildrenImpl(): Readonly<TestTreeItem[]> {
-        const children: TestTreeItem[] = [];
-        const suite = getTestSuite(this.data);
-        if (!suite) {
-            return [];
-        }
-        suite.functions.forEach((fn: TestFunction) => {
-            children.push(new TestFunctionTreeItem(this.resource, this.data, fn));
-        });
-        suite.suites.forEach((subSuite: TestSuite) => {
-            children.push(new TestSuiteTreeItem(this.resource, this.data, subSuite));
-        });
-        return children;
-    }
 }
 
 class TestFileTreeItem extends TestTreeItem {
@@ -168,24 +139,6 @@ class TestFileTreeItem extends TestTreeItem {
     public get contextValue(): string {
         return TestType.testFile;
     }
-
-    /**
-     * Each test file can contain functions or suites.
-     */
-    protected getChildrenImpl(): Readonly<TestTreeItem[]> {
-        const children: TestTreeItem[] = [];
-        const fl = getTestFile(this.data);
-        if (!fl) {
-            return [];
-        }
-        fl.functions.forEach((fn: TestFunction) => {
-            children.push(new TestFunctionTreeItem(this.resource, this.data, fn));
-        });
-        fl.suites.forEach((suite: TestSuite) => {
-            children.push(new TestSuiteTreeItem(this.resource, this.data, suite));
-        });
-        return children;
-    }
 }
 
 class TestFolderTreeItem extends TestTreeItem {
@@ -195,21 +148,6 @@ class TestFolderTreeItem extends TestTreeItem {
 
     public get contextValue(): string {
         return TestType.testFolder;
-    }
-
-    /**
-     * Test folders can contain only files. (Other folders are represented in a flat strucuture, never hierarchical)
-     */
-    protected getChildrenImpl(): Readonly<TestTreeItem[]> {
-        const children: TestTreeItem[] = [];
-        const folder = getTestFolder(this.data);
-        if (!folder) {
-            return [];
-        }
-        folder.testFiles.forEach((fl: TestFile) => {
-            children.push(new TestFileTreeItem(this.resource, this.data, fl));
-        });
-        return children;
     }
 }
 
