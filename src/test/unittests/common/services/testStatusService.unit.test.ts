@@ -14,7 +14,7 @@ import { TestDataItem } from '../../../../client/unittests/types';
 import { createMockTestDataItem } from '../testUtils.unit.test';
 
 // tslint:disable:no-any max-func-body-length
-suite('Unit Testsx - Tests Status Updater', () => {
+suite('Unit Tests - Tests Status Updater', () => {
     let storage: ITestCollectionStorageService;
     let updater: ITestsStatusUpdaterService;
     const workspaceUri = Uri.file(__filename);
