@@ -644,7 +644,7 @@
                 {
                     "command": "python.debugtests",
                     "when": "view == python_tests && !busyTests",
-                    "group": "navigation@4"
+                    "group": "navigation@3"
                 },
                 {
                     "command": "python.runtests",
@@ -659,12 +659,12 @@
                 {
                     "command": "python.discoverTests",
                     "when": "view == python_tests && !busyTests",
-                    "group": "navigation@3"
+                    "group": "navigation@4"
                 },
                 {
                     "command": "python.discoveringTests",
                     "when": "view == python_tests && discoveringTests",
-                    "group": "navigation@3"
+                    "group": "navigation@4"
                 },
                 {
                     "command": "python.runFailedTests",
@@ -2150,7 +2150,7 @@
         "compile-webviews-verbose": "npx webpack --config webpack.datascience-ui.config.js",
         "postinstall": "node ./node_modules/vscode/bin/install && node ./build/ci/postInstall.js",
         "test": "node ./out/test/standardTest.js && node ./out/test/multiRootTest.js",
-        "test:unittests": "mocha --require source-map-support/register --opts ./build/.mocha.unittests.opts",
+        "test:unittests": "mocha --require source-map-support/register --opts ./build/.mocha.unittests.opts --grep='xUnit'",
         "test:unittests:cover": "nyc --nycrc-path ./build/.nycrc npm run test:unittests",
         "test:functional": "mocha --require source-map-support/register --opts ./build/.mocha.functional.opts",
         "test:functional:cover": "nyc --nycrc-path ./build/.nycrc npm run test:functional",
