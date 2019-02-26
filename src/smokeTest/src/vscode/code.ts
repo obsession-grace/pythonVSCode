@@ -7,7 +7,7 @@ import * as path from 'path';
 import * as cp from 'child_process';
 import * as os from 'os';
 import { tmpName } from 'tmp';
-import { IDriver, connect as connectDriver, IDisposable, IElement, Thenable } from './driver';
+import { IDriver, connect as connectDriver, IDisposable, IElement } from './driver';
 import { Logger } from '../logger';
 
 const repoPath = path.join(__dirname, '../../../..');
@@ -108,7 +108,7 @@ export async function spawn(options: SpawnOptions): Promise<Code> {
     let codePath = options.codePath;
     codePath =
         '/Users/donjayamanne/.vscode-insiders/extensions/pythonVSCode/.vscode-test/stable/Visual Studio Code.app';
-    codePath = '/Applications/Visual Studio Code - Insiders.app';
+    // codePath = '/Applications/Visual Studio Code - Insiders.app';
     let electronPath = codePath ? getBuildElectronPath(codePath) : getDevElectronPath();
     // const vscodeAppPath = '/Users/donjayamanne/.vscode-insiders/extensions/pythonVSCode/.vscode-test/stable/Visual Studio Code.app';
     electronPath =

@@ -47,7 +47,7 @@ const opts = minimist(args, {
     }
 });
 
-const config = getConfiguration(path.resolve(opts.config));
+const config = getConfiguration('/Users/donjayamanne/.vscode-insiders/extensions/pythonVSCode/src/smokeTest/testConfig.json');
 const extensionsPath = '/Users/donjayamanne/.vscode-insiders/extensions';
 mkdirp.sync(extensionsPath);
 opts.screenshots = '/Users/donjayamanne/.vscode-insiders/extensions/pythonVSCode/src/smokeTest/screenShots';
