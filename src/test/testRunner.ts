@@ -104,7 +104,7 @@ export function run(testsRoot: string, callback: TestCallback): void {
      */
     function initializationScript() {
         const ex = new Error('Failed to initialize extension for tests');
-        const failed = new Promise((_, reject) => setTimeout(() => reject(ex), 60_000));
+        const failed = new Promise((_, reject) => setTimeout(() => reject(ex), 120_000));
         return Promise.race([initialize(), failed]);
     }
     // Run the tests.
