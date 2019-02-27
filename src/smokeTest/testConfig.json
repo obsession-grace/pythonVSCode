@@ -12,6 +12,26 @@
     "genericPyhtonPath": "python",
     "environments": [
         {
+            "type": "conda",
+            "name": "py3.7",
+            "pythonPath": "/Users/donjayamanne/.local/share/virtualenvs/flake8GitHubApp-OUEFoLIB/bin/python",
+            "displayNameParts": ["Python", "3.7"],
+            "delayForActivation": 5000,
+            "settings": {
+                "python.jediEnabled": false
+            }
+        },
+        {
+            "type": "conda",
+            "name": "py3.7",
+            "pythonPath": "/Library/Frameworks/Python.framework/Versions/3.7/bin/python3",
+            "displayNameParts": ["Python", "3.7"],
+            "delayForActivation": 5000,
+            "settings": {
+                "python.jediEnabled": false
+            }
+        },
+        {
             "type": "virtualenv",
             "name": "virtualenv (fishvenv1)",
             "pythonPath": "/Users/donjayamanne/.virtualenvs/fishvenv1/bin/python",
