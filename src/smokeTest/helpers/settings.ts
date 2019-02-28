@@ -9,7 +9,10 @@ import * as stripJsonComments from 'strip-json-comments';
 
 type Setting = 'python.pythonPath' |
     'python.terminal.activateEnvironment' |
-    'python.jediEnabled';
+    'python.jediEnabled' |
+    'python.unitTest.nosetestsEnabled' |
+    'python.unitTest.pyTestEnabled' |
+    'python.unitTest.unittestEnabled';
 
 type DebugSetting = 'stopOnEntry';
 

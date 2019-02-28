@@ -4,12 +4,17 @@
 'use strict';
 
 import * as assert from 'assert';
-import { Given, Then, When } from 'cucumber';
-import { Problems, ProblemSeverity } from '../areas/problems/problems';
-import { context } from './app';
-import { sleep } from '../helpers';
 import { expect } from 'chai';
+import { Given, Then, When } from 'cucumber';
+import { sleep } from '../helpers';
+import { updateSetting } from '../helpers/settings';
+import { context } from './app';
 
+Given('the test framework is {word}', async (testFramework: string) => {
+    await updateSetting('python.unitTest.nosetestsEnabled', testFramework === 'nose', context.app.workspacePathOrFolder);
+    await updateSetting('python.unitTest.pyTestEnabled', testFramework === 'pytest', context.app.workspacePathOrFolder);
+    await updateSetting('python.unitTest.unittestEnabled', testFramework === 'unittest', context.app.workspacePathOrFolder);
+});
 Then('the toolbar button with the text {string} is visible', async (title: string) => {
     await context.app.code.waitForElement(`div[id="workbench.parts.sidebar"] a[title="${title}"]`);
 });

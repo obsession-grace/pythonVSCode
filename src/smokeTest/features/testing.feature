@@ -1,6 +1,7 @@
+@testing
 Feature: Testing
-    @WorkspaceFolder:/Users/donjayamanne/Desktop/Development/vscode/smokeTests/testing
     Scenario: Icons with no failures
+        Given the workspace is based on "/Users/donjayamanne/Desktop/Development/vscode/smokeTests/testing"
         Given the file "tests/test_discovery_delay" is updated with the value "0"
         Given the file "tests/test_running_delay" is updated with the value "0"
         Given the file "tests/data.json" is updated with the value "[1,2,3,4,5,6]"
@@ -16,8 +17,8 @@ Feature: Testing
         Then the toolbar button with the text "Run Failed Unit Tests" is not visible
         Then the toolbar button with the text "Stop" is not visible
 
-    @WorkspaceFolder:/Users/donjayamanne/Desktop/Development/vscode/smokeTests/testing
     Scenario: Icons with failures
+        Given the workspace is based on "/Users/donjayamanne/Desktop/Development/vscode/smokeTests/testing"
         Given the file "tests/test_discovery_delay" is updated with the value "0"
         Given the file "tests/test_running_delay" is updated with the value "0"
         Given the file "tests/data.json" is updated with the value "[0,2,3,4,5,6]"
@@ -33,8 +34,8 @@ Feature: Testing
         Then the toolbar button with the text "Run Failed Unit Tests" is visible
         Then the toolbar button with the text "Stop" is not visible
 
-    @WorkspaceFolder:/Users/donjayamanne/Desktop/Development/vscode/smokeTests/testing
     Scenario: Icons while discovering
+        Given the workspace is based on "/Users/donjayamanne/Desktop/Development/vscode/smokeTests/testing"
         Given the file "tests/test_discovery_delay" is updated with the value "0"
         Given the file "tests/test_running_delay" is updated with the value "0"
         Then wait for 1 second
@@ -57,8 +58,8 @@ Feature: Testing
         Then wait for 5 second
         Then the toolbar button with the text "Stop" is not visible
 
-    @WorkspaceFolder:/Users/donjayamanne/Desktop/Development/vscode/smokeTests/testing
     Scenario: Icons while running
+        Given the workspace is based on "/Users/donjayamanne/Desktop/Development/vscode/smokeTests/testing"
         Given the file "tests/test_discovery_delay" is updated with the value "0"
         Given the file "tests/test_running_delay" is updated with the value "0"
         Then wait for 1 second
@@ -79,8 +80,8 @@ Feature: Testing
         Then wait for 10 second
         Then the toolbar button with the text "Stop" is not visible
 
-    @WorkspaceFolder:/Users/donjayamanne/Desktop/Development/vscode/smokeTests/testing
     Scenario: Stop discovering slow tests
+        Given the workspace is based on "/Users/donjayamanne/Desktop/Development/vscode/smokeTests/testing"
         Given the file "tests/test_discovery_delay" is updated with the value "0"
         Given the file "tests/test_running_delay" is updated with the value "0"
         Given the file "tests/data.json" is updated with the value "[1,2,1,4,5,6]"
@@ -114,8 +115,8 @@ Feature: Testing
         Then take a screenshot
 
 
-    @WorkspaceFolder:/Users/donjayamanne/Desktop/Development/vscode/smokeTests/testing
     Scenario: Stop slow running tests
+        Given the workspace is based on "/Users/donjayamanne/Desktop/Development/vscode/smokeTests/testing"
         Given the file "tests/test_discovery_delay" is updated with the value "0"
         Given the file "tests/test_running_delay" is updated with the value "10"
         Given the file "tests/data.json" is updated with the value "[1,2,1,4,5,6]"
@@ -145,8 +146,8 @@ Feature: Testing
         Then the toolbar button with the text "Stop" is not visible
         Then take a screenshot
 
-    @WorkspaceFolder:/Users/donjayamanne/Desktop/Development/vscode/smokeTests/testing
     Scenario: Failed and success icons
+        Given the workspace is based on "/Users/donjayamanne/Desktop/Development/vscode/smokeTests/testing"
         Given the file "tests/test_discovery_delay" is updated with the value "0"
         Given the file "tests/test_running_delay" is updated with the value "0"
         Given the file "tests/data.json" is updated with the value "[1,2,1,1,1,6]"
@@ -182,8 +183,8 @@ Feature: Testing
         Then has 9 success test items
         Then take a screenshot
 
-    @WorkspaceFolder:/Users/donjayamanne/Desktop/Development/vscode/smokeTests/testing
     Scenario: Running single item
+        Given the workspace is based on "/Users/donjayamanne/Desktop/Development/vscode/smokeTests/testing"
         Given the file "tests/test_discovery_delay" is updated with the value "0"
         Given the file "tests/test_running_delay" is updated with the value "0"
         Given the file "tests/data.json" is updated with the value "[1,2,3,4,5,6]"
@@ -226,8 +227,8 @@ Feature: Testing
         Then has 9 success test items
         Then take a screenshot
 
-    @WorkspaceFolder:/Users/donjayamanne/Desktop/Development/vscode/smokeTests/testing
     Scenario: Running failed tests
+        Given the workspace is based on "/Users/donjayamanne/Desktop/Development/vscode/smokeTests/testing"
         Given the file "tests/test_discovery_delay" is updated with the value "0"
         Given the file "tests/test_running_delay" is updated with the value "0"
         Given the file "tests/data.json" is updated with the value "[0,0,0,4,5,6]"
@@ -278,8 +279,8 @@ Feature: Testing
         Then has 9 success test items
         Then take a screenshot
 
-    @WorkspaceFolder:/Users/donjayamanne/Desktop/Development/vscode/smokeTests/testing
     Scenario: Opens test file
+        Given the workspace is based on "/Users/donjayamanne/Desktop/Development/vscode/smokeTests/testing"
         Given the file "tests/test_discovery_delay" is updated with the value "0"
         Given the file "tests/test_running_delay" is updated with the value "0"
         Given the file "tests/data.json" is updated with the value "[1,2,1,1,1,6]"
@@ -321,8 +322,8 @@ Feature: Testing
         Then the file "test_two.py" will be opened
         Then take a screenshot
 
-    @WorkspaceFolder:/Users/donjayamanne/Desktop/Development/vscode/smokeTests/testing
     Scenario: Opens test file and sets focus
+        Given the workspace is based on "/Users/donjayamanne/Desktop/Development/vscode/smokeTests/testing"
         Given the file "tests/test_discovery_delay" is updated with the value "0"
         Given the file "tests/test_running_delay" is updated with the value "0"
         Given the file "tests/data.json" is updated with the value "[1,2,1,1,1,6]"
@@ -359,9 +360,9 @@ Feature: Testing
         Then line 10 of file "test_two.py" will be highlighted
         Then take a screenshot
 
-
-    @WorkspaceFolder:/Users/donjayamanne/Desktop/Development/vscode/smokeTests/testing
+    @debug
     Scenario: Debug all tests and add breakpoints to two files
+        Given the workspace is based on "/Users/donjayamanne/Desktop/Development/vscode/smokeTests/testing"
         Given the file "tests/test_discovery_delay" is updated with the value "0"
         Given the file "tests/test_running_delay" is updated with the value "0"
         Given the file "tests/data.json" is updated with the value "[1,2,3,4,5,6]"
@@ -392,8 +393,9 @@ Feature: Testing
         # Continue again, as the debugger breaks into sys.exit.
         When I select the command "Debug: Continue"
 
-    @WorkspaceFolder:/Users/donjayamanne/Desktop/Development/vscode/smokeTests/testing
+    @debug
     Scenario: Debug file with breakpoint
+        Given the workspace is based on "/Users/donjayamanne/Desktop/Development/vscode/smokeTests/testing"
         Given the file "tests/test_discovery_delay" is updated with the value "0"
         Given the file "tests/test_running_delay" is updated with the value "0"
         Given the file "tests/data.json" is updated with the value "[1,2,3,4,5,6]"
@@ -435,8 +437,9 @@ Feature: Testing
         # Continue again, as the debugger breaks into sys.exit.
         When I select the command "Debug: Continue"
 
-    @WorkspaceFolder:/Users/donjayamanne/Desktop/Development/vscode/smokeTests/testing
+    @debug
     Scenario: Debug suite with breakpoint
+        Given the workspace is based on "/Users/donjayamanne/Desktop/Development/vscode/smokeTests/testing"
         Given the file "tests/test_discovery_delay" is updated with the value "0"
         Given the file "tests/test_running_delay" is updated with the value "0"
         Given the file "tests/data.json" is updated with the value "[1,2,3,4,5,6]"
@@ -478,8 +481,9 @@ Feature: Testing
         # Continue again, as the debugger breaks into sys.exit.
         When I select the command "Debug: Continue"
 
-    @WorkspaceFolder:/Users/donjayamanne/Desktop/Development/vscode/smokeTests/testing
+    @debug
     Scenario: Debug function with breakpoint
+        Given the workspace is based on "/Users/donjayamanne/Desktop/Development/vscode/smokeTests/testing"
         Given the file "tests/test_discovery_delay" is updated with the value "0"
         Given the file "tests/test_running_delay" is updated with the value "0"
         Given the file "tests/data.json" is updated with the value "[1,2,3,4,5,6]"
@@ -521,8 +525,9 @@ Feature: Testing
         # Continue again, as the debugger breaks into sys.exit.
         When I select the command "Debug: Continue"
 
-    @WorkspaceFolder:/Users/donjayamanne/Desktop/Development/vscode/smokeTests/testing
+    @codelens
     Scenario: Code Lenses appear
+        Given the workspace is based on "/Users/donjayamanne/Desktop/Development/vscode/smokeTests/testing"
         Given the file "tests/test_discovery_delay" is updated with the value "0"
         Given the file "tests/test_running_delay" is updated with the value "0"
         When I select the command "Python: Discover Unit Tests"
@@ -533,8 +538,9 @@ Feature: Testing
         Then code lens "Run Test" is visible
         Then code lens "Debug Test" is visible
 
-    @WorkspaceFolder:/Users/donjayamanne/Desktop/Development/vscode/smokeTests/testing
+    @codelens
     Scenario: Running test suite via Code Lenses will display progress indicator on tree
+        Given the workspace is based on "/Users/donjayamanne/Desktop/Development/vscode/smokeTests/testing"
         Given the file "tests/test_discovery_delay" is updated with the value "0"
         Given the file "tests/test_running_delay" is updated with the value "2"
         When I select the command "Python: Discover Unit Tests"
@@ -567,8 +573,9 @@ Feature: Testing
         Then wait for 10 second
         Then the toolbar button with the text "Stop" is not visible
 
-    @WorkspaceFolder:/Users/donjayamanne/Desktop/Development/vscode/smokeTests/testing
+    @codelens
     Scenario: Running test function via Code Lenses will display progress indicator on tree
+        Given the workspace is based on "/Users/donjayamanne/Desktop/Development/vscode/smokeTests/testing"
         Given the file "tests/test_discovery_delay" is updated with the value "0"
         Given the file "tests/test_running_delay" is updated with the value "2"
         When I select the command "Python: Discover Unit Tests"
@@ -601,8 +608,9 @@ Feature: Testing
         Then wait for 10 second
         Then the toolbar button with the text "Stop" is not visible
 
-    @WorkspaceFolder:/Users/donjayamanne/Desktop/Development/vscode/smokeTests/testing
+    @codelens @debug
     Scenario: Debugging test suite via Code Lenses
+        Given the workspace is based on "/Users/donjayamanne/Desktop/Development/vscode/smokeTests/testing"
         Given the file "tests/test_discovery_delay" is updated with the value "0"
         Given the file "tests/test_running_delay" is updated with the value "0"
         Given the file "test_one.py" is open
@@ -653,8 +661,8 @@ Feature: Testing
         # Continue again, as the debugger breaks into sys.exit.
         When I select the command "Debug: Continue"
 
-    @WorkspaceFolder:/Users/donjayamanne/Desktop/Development/vscode/smokeTests/testing
     Scenario: Debugging test function via Code Lenses
+        Given the workspace is based on "/Users/donjayamanne/Desktop/Development/vscode/smokeTests/testing"
         Given the file "tests/test_discovery_delay" is updated with the value "0"
         Given the file "tests/test_running_delay" is updated with the value "0"
         Given the file "test_one.py" is open

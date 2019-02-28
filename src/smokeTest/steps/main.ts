@@ -126,11 +126,15 @@ fs.ensureDirSync(path.dirname(config.userSettingsJsonPath));
 fs.writeFileSync(config.userSettingsJsonPath, JSON.stringify({}));
 const quality = Quality.Stable;
 
-async function setupWorkspaceFolder(workspaceFolderSource: string): Promise<void> {
+export async function setupWorkspaceFolder(workspaceFolderSource: string): Promise<void> {
     config.workspaceFolder = path.join(config.tempFolder, 'workspace folder');
     await fs.ensureDir(config.workspaceFolder);
     await new Promise((c, e) => rimraf(config.workspaceFolder, { maxBusyTries: 10 }, err => (err ? e(err) : c())));
     await new Promise((c, e) => ncp(workspaceFolderSource, config.workspaceFolder, err => (err ? e(err) : c())));
+    await fs.ensureDir(path.join(config.workspaceFolder, '.vscode'));
+    if (!await fs.pathExists(path.join(config.workspaceFolder, '.vscode', 'settings.json'))) {
+        fs.writeFileSync(path.join(config.workspaceFolder, '.vscode', 'settings.json'), JSON.stringify({}));
+    }
     await sleep(100);
 }
 async function setupRepository(): Promise<void> {
@@ -253,10 +257,10 @@ BeforeAll({ timeout: 120_000 }, async function () {
         // await updateSetting(setting as any, env.settings[setting], app.workspacePathOrFolder);
         await updateSetting(setting as any, env.settings[setting], path.dirname(config.userSettingsJsonPath));
     }
-    await deletePipEnv(app);
-    await deleteVenvs(app);
+    // await deletePipEnv(app);
+    // await deleteVenvs(app);
 
-    await setupEnvironment(env, app);
+    // await setupEnvironment(env, app);
     app.activeEnvironment = env;
     // await updateSetting('python.pythonPath', app.activeEnvironment.pythonPath!, app.workspacePathOrFolder);
     await updateSetting('python.pythonPath', app.activeEnvironment.pythonPath!, path.dirname(config.userSettingsJsonPath));
@@ -269,27 +273,24 @@ BeforeAll({ timeout: 120_000 }, async function () {
     await reloadToRefreshInterpreterDisplayNames(app);
 });
 Before(async function (scenario: HookScenarioResult) {
-    const tagNames = scenario.pickle.tags.map(item => item.name);
-    const folder = tagNames.find(tag => tag.startsWith('@WorkspaceFolder:')).substring('@WorkspaceFolder:'.length).replace(/_/g, ' ');
-    await setupWorkspaceFolder(folder);
+    // const tagNames = scenario.pickle.tags.map(item => item.name);
+    // const folder = tagNames.find(tag => tag.startsWith('@WorkspaceFolder:')).substring('@WorkspaceFolder:'.length).replace(/_/g, ' ');
+    // await setupWorkspaceFolder(folder);
 
-    await fs.ensureDir(path.join(config.workspaceFolder, '.vscode'));
-    if (!await fs.pathExists(path.join(config.workspaceFolder, '.vscode', 'settings.json'))) {
-        fs.writeFileSync(path.join(config.workspaceFolder, '.vscode', 'settings.json'), JSON.stringify({}));
-    }
+    // await fs.ensureDir(path.join(config.workspaceFolder, '.vscode'));
+    // if (!await fs.pathExists(path.join(config.workspaceFolder, '.vscode', 'settings.json'))) {
+    //     fs.writeFileSync(path.join(config.workspaceFolder, '.vscode', 'settings.json'), JSON.stringify({}));
+    // }
 
     // tslint:disable-next-line:no-console
     console.info(scenario.pickle.name);
-    await updateSetting('python.pythonPath', context.app.activeEnvironment.pythonPath!, context.app.workspacePathOrFolder);
-    await context.app.workbench.quickopen.runCommand('View: Close All Editors');
-    await context.app.workbench.quickopen.runCommand('Terminal: Kill the Active Terminal Instance');
-    await context.app.workbench.quickopen.runCommand('Debug: Stop');
-    // if (tagNames.indexOf('@debug') >= 0) {
-    await context.app.workbench.quickopen.runCommand('Debug: Remove All Breakpoints');
-    await context.app.workbench.quickopen.runCommand('Debug: Stop');
-    await context.app.workbench.quickopen.runCommand('View: Close Panel');
-    // context.app.attachJson({ 'test-runner': 'pytest', python: '3.7' });
-    // }
+    // await updateSetting('python.pythonPath', context.app.activeEnvironment.pythonPath!, context.app.workspacePathOrFolder);
+    // await context.app.workbench.quickopen.runCommand('View: Close All Editors');
+    // await context.app.workbench.quickopen.runCommand('Terminal: Kill the Active Terminal Instance');
+    // await context.app.workbench.quickopen.runCommand('Debug: Stop');
+    // await context.app.workbench.quickopen.runCommand('Debug: Remove All Breakpoints');
+    // await context.app.workbench.quickopen.runCommand('Debug: Stop');
+    // await context.app.workbench.quickopen.runCommand('View: Close Panel');
 });
 
 After(async function (scenario: HookScenarioResult) {

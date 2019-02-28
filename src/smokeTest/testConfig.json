@@ -12,6 +12,9 @@
     "genericPyhtonPath": "python",
     "environments": [
         {
+            "tags":[
+
+            ],
             "type": "conda",
             "name": "py3.7",
             "pythonPath": "/Users/donjayamanne/.local/share/virtualenvs/flake8GitHubApp-OUEFoLIB/bin/python",
@@ -19,6 +22,9 @@
             "delayForActivation": 5000,
             "settings": {
                 "python.jediEnabled": false
+            },
+            "workspace.settings": {
+
             }
         },
         {
