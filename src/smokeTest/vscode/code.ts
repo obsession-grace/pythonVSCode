@@ -154,7 +154,8 @@ export async function spawn(options: ISpawnOptions): Promise<Code> {
     }
 
     const spawnOptions: cp.SpawnOptions = {};
-
+    console.log(electronPath);
+    console.log(args);
     const child = cp.spawn(electronPath, args, spawnOptions);
 
     instances.add(child);
@@ -290,27 +291,33 @@ export class Code {
     public async waitForElements(
         selector: string,
         recursive: boolean,
-        accept: (result: IElement[]) => boolean = result => result.length > 0
+        accept: (result: IElement[]) => boolean = result => result.length > 0,
+        retryCount: number = 200,
+        retryInterval: number = 100 // millis
     ): Promise<IElement[]> {
         const windowId = await this.getActiveWindowId();
         return await poll(
             () => this.driver.getElements(windowId, selector, recursive),
             accept,
-            `get elements '${selector}'`
+            `get elements '${selector}'`,
+            retryCount,
+            retryInterval
         );
     }
 
     public async waitForElement(
         selector: string,
         accept: (result: IElement | undefined) => boolean = result => !!result,
-        retryCount: number = 200
+        retryCount: number = 200,
+        retryInterval: number = 100 // millis
     ): Promise<IElement> {
         const windowId = await this.getActiveWindowId();
         return await poll<IElement>(
             () => this.driver.getElements(windowId, selector).then(els => els[0]),
             accept,
             `get element '${selector}'`,
-            retryCount
+            retryCount,
+            retryInterval
         );
     }
 

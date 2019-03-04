@@ -3,12 +3,12 @@
 
 'use strict';
 
-import { Given, Then, When } from 'cucumber';
-import { context } from './app';
-import * as path from 'path';
-import * as fs from 'fs-extra';
-import { sleep } from '../../client/common/utils/async';
 import { expect } from 'chai';
+import { Given, Then, When } from 'cucumber';
+import * as fs from 'fs-extra';
+import * as path from 'path';
+import { sleep } from '../../client/common/utils/async';
+import { context } from './app';
 
 When('I close all editors', async () => {
     await context.app.workbench.quickopen.runCommand('View: Close All Editors');
@@ -19,6 +19,13 @@ Given('the file {string} is open', async (file: string) => {
 });
 Then('the file {string} will be opened', async (file: string) => {
     await context.app.workbench.quickopen.isFileOpen(file);
+});
+Then('code lens {string} is visible in {int} seconds', async (title: string, timeout: number) => {
+    const retryInterval = 200;
+    const retryCount = timeout * 1000 / 200;
+    const eles = await context.app.code.waitForElements('div[id="workbench.editors.files.textFileEditor"] span.codelens-decoration a', true, undefined, retryCount, retryInterval);
+    const expectedLenses = eles.filter(item => item.textContent.trim().indexOf(title) === 0);
+    expect(expectedLenses).to.be.lengthOf.greaterThan(0);
 });
 Then('code lens {string} is visible', async (title: string) => {
     const eles = await context.app.code.waitForElements('div[id="workbench.editors.files.textFileEditor"] span.codelens-decoration a', true);

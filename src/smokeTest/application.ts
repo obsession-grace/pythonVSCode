@@ -38,7 +38,7 @@ export class Application {
     }
     public activeEnvironment: Enviroment;
     public get isJedi(): boolean {
-        return this.activeEnvironment.settings['python.jediEnabled'];
+        return this.activeEnvironment['user.settings']['python.jediEnabled'];
     }
 
     public get quality(): Quality {

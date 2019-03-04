@@ -3,6 +3,24 @@
     "version": "0.1.0",
     "configurations": [
         {
+            "name": "Python: Module",
+            "type": "python",
+            "request": "launch",
+            "module": "behave",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/src/pysmoke",
+            "stopOnEntry": true,
+            "debugStdLib": true
+        },
+        {
+            "name": "Python: Terminal (integrated)",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/src/pysmoek"
+        },
+        {
             "name": "Extension",
             "type": "extensionHost",
             "request": "launch",
@@ -119,20 +137,23 @@
             }
         },
         {
-            "name": "Unit Tests (without VS Code, *.unit.test.ts)",
+            "name": "Smoke tests (cucumber)",
             "type": "node",
             "request": "launch",
-            "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+            "program": "${workspaceFolder}/node_modules/cucumber/bin/cucumber-js",
             "stopOnEntry": false,
             "sourceMaps": true,
             "args": [
-                "./out/test/**/*.unit.test.js",
-                "--require=out/test/unittests.js",
-                "--ui=tdd",
-                "--recursive",
-                "--colors",
-                "--timeout=300000",
-                "--grep="
+                "src/smokeTest/features/*",
+                "-r",
+                "source-map-support/register",
+                "-r",
+                "out/smokeTest/steps/**/*.js",
+                "--format",
+                "json:tmp/reports/cucumber-report.json",
+                "--format",
+                "summary",
+                "--environment=0"
             ],
             "outFiles": [
                 "${workspaceFolder}/out/**/*.js"

@@ -7,7 +7,7 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as stripJsonComments from 'strip-json-comments';
 
-type Setting = 'python.pythonPath' |
+export type Setting = 'python.pythonPath' |
     'python.terminal.activateEnvironment' |
     'python.jediEnabled' |
     'python.unitTest.nosetestsEnabled' |

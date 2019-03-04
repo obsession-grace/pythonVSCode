@@ -31,7 +31,10 @@
     "python.formatting.provider": "none",
     "python.terminal.activateEnvironment": false,
     "python.enableDevTools": true,
-    "cucumberautocomplete.steps": ["src/smokeTest/steps/**/*.ts"],
+    "python.jediEnabled": true,
+    "cucumberautocomplete.steps": ["src/smokeTest/steps/**/*.ts", "src/pysmoke/steps/**/*.py"],
+    "cucumberautocomplete.stepsx": ["src/pysmoke/steps/**/*.py"],
+    "cucumberautocomplete.syncfeaturesx": "src/pysmoke/features/*feature",
     "cucumberautocomplete.syncfeatures": "src/smokeTest/features/*feature",
     "cucumberautocomplete.strictGherkinCompletion": true,
     "cucumberautocomplete.onTypeFormat": true,
@@ -48,5 +51,6 @@
             "value": "(a|b)"
         }
     ],
-    "cucumberautocomplete.gherkinDefinitionPart": "(Given|When|Then)\\("
+    "cucumberautocomplete.gherkinDefinitionPart": "(Given|When|Then)\\(",
+    "python.pythonPath": "/Users/donjayamanne/.local/share/virtualenvs/pythonVSCode-5rU-mS3t/bin/python"
 }

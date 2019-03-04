@@ -16,12 +16,14 @@ import { Application, IApplicationOptions, Quality } from '../application';
 import { ConsoleLogger, FileLogger, ILogger, MultiLogger } from '../logger';
 import { getConfiguration } from '../setup/config';
 import { getPythonInterpreterPath, deletePipEnv, deleteVenvs, reloadToRefreshInterpreterDisplayNames } from '../tests/interpreters/helper';
-import { updateSetting } from '../helpers/settings';
+import { updateSetting, Setting } from '../helpers/settings';
 import { setupEnvironment } from '../setup/environment';
 import { waitForExtensionToActivate } from '../tests/activation/helper';
 import { context } from './app';
 import { EventEmitter } from 'events';
 import { sleep } from '../helpers';
+import { closeMessages, hasMessages, getMessages } from '../helpers/messages';
+import { killRunningTests } from './testing';
 // import { Application, ApplicationOptions, Quality } from './application';
 // import { updateSetting } from './helpers/settings';
 // import { ConsoleLogger, FileLogger, Logger, MultiLogger } from './logger';
@@ -56,7 +58,7 @@ const screenshotsPath = opts.screenshots ? path.resolve(opts.screenshots) : null
 const tmpDir = tmp.dirSync({ prefix: 't' }) as { name: string; removeCallback: Function };
 // const testDataPath = tmpDir.name;
 const testDataPath = path.join(config.tempFolder, 'testData');
-process.once('exit', () => rimraf.sync(testDataPath));
+// process.once('exit', () => rimraf.sync(testDataPath));
 
 if (screenshotsPath) {
     mkdirp.sync(screenshotsPath);
@@ -120,14 +122,14 @@ if (!fs.existsSync(electronPath || '')) {
     fail(`Can't find Code at ${electronPath}.`);
 }
 
-const userDataDir = path.join(testDataPath, 'd');
+const userDataDir = path.join(testDataPath, `d${opts.environment}`);
 config.userSettingsJsonPath = path.join(userDataDir, 'User', 'settings.json');
 fs.ensureDirSync(path.dirname(config.userSettingsJsonPath));
 fs.writeFileSync(config.userSettingsJsonPath, JSON.stringify({}));
 const quality = Quality.Stable;
 
 export async function setupWorkspaceFolder(workspaceFolderSource: string): Promise<void> {
-    config.workspaceFolder = path.join(config.tempFolder, 'workspace folder');
+    config.workspaceFolder = path.join(config.tempFolder, `workspace folder${opts.environment}`);
     await fs.ensureDir(config.workspaceFolder);
     await new Promise((c, e) => rimraf(config.workspaceFolder, { maxBusyTries: 10 }, err => (err ? e(err) : c())));
     await new Promise((c, e) => ncp(workspaceFolderSource, config.workspaceFolder, err => (err ? e(err) : c())));
@@ -163,7 +165,8 @@ async function setupRepository(): Promise<void> {
 async function setup(): Promise<void> {
     console.log('*** Test data:', testDataPath);
     console.log('*** Preparing smoketest setup...');
-    config.workspaceFolder = path.join(config.tempFolder, 'workspace folder');
+    config.workspaceFolder = path.join(config.tempFolder, `workspace folder${opts.environment}`);
+    console.log(`*** Workspace folder ${config.workspaceFolder}...`);
     if (await fs.pathExists(config.workspaceFolder)) {
         await new Promise((c, e) => rimraf(config.workspaceFolder, { maxBusyTries: 10 }, err => (err ? e(err) : c())));
     }
@@ -253,9 +256,9 @@ BeforeAll({ timeout: 120_000 }, async function () {
     const env = getConfiguration().environments[opts.environment];
     // await updateSetting('python.terminal.activateEnvironment', false, app.workspacePathOrFolder);
     await updateSetting('python.terminal.activateEnvironment', false, path.dirname(config.userSettingsJsonPath));
-    for (const setting of Object.keys(env.settings)) {
+    for (const setting of Object.keys(env['user.settings'])) {
         // await updateSetting(setting as any, env.settings[setting], app.workspacePathOrFolder);
-        await updateSetting(setting as any, env.settings[setting], path.dirname(config.userSettingsJsonPath));
+        await updateSetting(setting as any, env['user.settings'][setting], path.dirname(config.userSettingsJsonPath));
     }
     // await deletePipEnv(app);
     // await deleteVenvs(app);
@@ -271,32 +274,51 @@ BeforeAll({ timeout: 120_000 }, async function () {
     await app.workbench.quickopen.runCommand('View: Close All Editors');
     await app.workbench.quickopen.runCommand('Terminal: Kill the Active Terminal Instance');
     await reloadToRefreshInterpreterDisplayNames(app);
+    await context.app.workbench.quickopen.runCommand('Notifications: Clear All Notifications');
 });
+
+let lastSetWorkspaceFolder = '';
 Before(async function (scenario: HookScenarioResult) {
-    // const tagNames = scenario.pickle.tags.map(item => item.name);
-    // const folder = tagNames.find(tag => tag.startsWith('@WorkspaceFolder:')).substring('@WorkspaceFolder:'.length).replace(/_/g, ' ');
-    // await setupWorkspaceFolder(folder);
-
-    // await fs.ensureDir(path.join(config.workspaceFolder, '.vscode'));
-    // if (!await fs.pathExists(path.join(config.workspaceFolder, '.vscode', 'settings.json'))) {
-    //     fs.writeFileSync(path.join(config.workspaceFolder, '.vscode', 'settings.json'), JSON.stringify({}));
-    // }
-
+    const tagNames = scenario.pickle.tags.map(item => item.name);
     // tslint:disable-next-line:no-console
-    console.info(scenario.pickle.name);
-    // await updateSetting('python.pythonPath', context.app.activeEnvironment.pythonPath!, context.app.workspacePathOrFolder);
-    // await context.app.workbench.quickopen.runCommand('View: Close All Editors');
-    // await context.app.workbench.quickopen.runCommand('Terminal: Kill the Active Terminal Instance');
-    // await context.app.workbench.quickopen.runCommand('Debug: Stop');
-    // await context.app.workbench.quickopen.runCommand('Debug: Remove All Breakpoints');
-    // await context.app.workbench.quickopen.runCommand('Debug: Stop');
-    // await context.app.workbench.quickopen.runCommand('View: Close Panel');
+    console.log(scenario.pickle.name);
+    if (tagNames.indexOf('@continue')) {
+        return;
+    }
+    const workspaceFolder = tagNames.filter(item => item.substr(1)).find(item => item.indexOf('/') === 0);
+    const resetWorkspace = tagNames.indexOf('@doNotResetWorkspace') === -1 || workspaceFolder !== lastSetWorkspaceFolder;
+    if (workspaceFolder && resetWorkspace) {
+        await setupWorkspaceFolder(workspaceFolder);
+        await updateSetting('python.pythonPath', context.app.activeEnvironment.pythonPath!, context.app.workspacePathOrFolder);
+        const env = context.app.activeEnvironment;
+
+        for (const setting of Object.keys(env['workspace.settings']) as Setting[]) {
+            await updateSetting(setting, env['workspace.settings'][setting], context.app.workspacePathOrFolder);
+        }
+        lastSetWorkspaceFolder = workspaceFolder;
+    }
+    if (tagNames.indexOf('@testing') >= 0) {
+        await killRunningTests();
+    }
+    await context.app.workbench.quickopen.runCommand('Notifications: Clear All Notifications');
+    await context.app.workbench.quickopen.runCommand('View: Close All Editors');
+    await context.app.workbench.quickopen.runCommand('Terminal: Kill the Active Terminal Instance');
+    await context.app.workbench.quickopen.runCommand('Debug: Stop');
+    await context.app.workbench.quickopen.runCommand('Debug: Remove All Breakpoints');
+    await context.app.workbench.quickopen.runCommand('Debug: Stop');
+    await context.app.workbench.quickopen.runCommand('View: Close Panel');
 });
 
 After(async function (scenario: HookScenarioResult) {
     const location = `line:${scenario.pickle.locations[0].line}`;
     const name = `${scenario.pickle.name}:${location}`.replace(/[^a-z0-9\-]/gi, '_');
     await context.app.captureScreenshot(name);
+    if (await hasMessages()) {
+        const messages = await getMessages();
+        const messageToLog = messages.join(',');
+        context.app.attachJson(messageToLog);
+        await context.app.captureScreenshot(name);
+    }
 });
 AfterAll({ timeout: 60 * 1000 }, async function () {
     await context.app.stop().catch(ex => {

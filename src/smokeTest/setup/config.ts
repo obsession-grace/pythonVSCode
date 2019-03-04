@@ -9,6 +9,7 @@ import * as stripComments from 'strip-json-comments';
 
 // tslint:disable: no-any
 export enum EnvironmentType {
+    other = 'other',
     pipenv = 'pipenv',
     venv = 'venv',
     virtualenv = 'virtualenv',
@@ -18,10 +19,13 @@ export enum EnvironmentType {
 export type Enviroment = {
     name: string;
     type: EnvironmentType;
+    tags: string;
+    pythonVersion: string;
     displayNameParts: string[];
     delayForActivation: number;
     pythonPath?: string;
-    settings: { [key: string]: any };
+    'user.settings': { [key: string]: any };
+    'workspace.settings': { [key: string]: any };
 };
 export type PipEnvEnviroment = Enviroment & {
     pipEnvArgs?: string[];

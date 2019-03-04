@@ -4,10 +4,13 @@
 'use strict';
 
 import { Then, When } from 'cucumber';
-import { sleep } from '../helpers';
+import { noop, sleep } from '../helpers';
 import { waitForExtensionToActivate } from '../tests/activation/helper';
 import { context } from './app';
 
+Then('Step {string}', async (step: string) => {
+    noop();
+});
 Then('wait for {int} milliseconds', async (ms: number) => {
     await sleep(ms);
 });

@@ -34,6 +34,7 @@ When('stopOnEntry is false in launch.json', async () => {
 });
 
 Then('debugger starts', async () => {
+    await sleep(200);
     await context.app.workbench.debug.debuggerHasStarted();
 });
 
