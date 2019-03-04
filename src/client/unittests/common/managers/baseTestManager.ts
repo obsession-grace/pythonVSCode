@@ -133,15 +133,15 @@ export abstract class BaseTestManager implements ITestManager {
 
         this.testResultsService.resetResults(this.tests!);
     }
-    public async discoverTests(cmdSource: CommandSource, ignoreCache: boolean = false, quietMode: boolean = false, userInitiated: boolean = false): Promise<Tests> {
+    public async discoverTests(cmdSource: CommandSource, ignoreCache: boolean = false, quietMode: boolean = false, userInitiated: boolean = false, clearTestStatus: boolean = false): Promise<Tests> {
         if (this.discoverTestsPromise) {
             return this.discoverTestsPromise;
         }
-        this.discoverTestsPromise = this._discoverTests(cmdSource, ignoreCache, quietMode, userInitiated);
+        this.discoverTestsPromise = this._discoverTests(cmdSource, ignoreCache, quietMode, userInitiated, clearTestStatus);
         this.discoverTestsPromise.catch(noop).then(() => this.discoverTestsPromise = undefined).ignoreErrors();
         return this.discoverTestsPromise;
     }
-    private async _discoverTests(cmdSource: CommandSource, ignoreCache: boolean = false, quietMode: boolean = false, userInitiated: boolean = false): Promise<Tests> {
+    private async _discoverTests(cmdSource: CommandSource, ignoreCache: boolean = false, quietMode: boolean = false, userInitiated: boolean = false, clearTestStatus: boolean = false): Promise<Tests> {
         if (!ignoreCache && this.tests! && this.tests!.testFunctions.length > 0) {
             this.updateStatus(TestStatus.Idle);
             return Promise.resolve(this.tests!);
@@ -168,8 +168,13 @@ export abstract class BaseTestManager implements ITestManager {
         return discoveryService
             .discoverTests(discoveryOptions)
             .then(tests => {
-                this.tests = tests;
-                this.resetTestResults();
+                if (clearTestStatus) {
+                    this.resetTestResults();
+                }
+                const wkspace = this.workspaceService.getWorkspaceFolder(Uri.file(this.rootDirectory))!.uri;
+                // When storing tests, the data will be merged with existing test information.
+                this.testCollectionStorage.storeTests(wkspace, tests);
+                this.tests = tests = this.testCollectionStorage.getTests(wkspace)!;
                 this.updateStatus(TestStatus.Idle);
                 this.discoverTestsPromise = undefined;
 
@@ -188,8 +193,6 @@ export abstract class BaseTestManager implements ITestManager {
                     const testsHelper = this.serviceContainer.get<ITestsHelper>(ITestsHelper);
                     testsHelper.displayTestErrorMessage('There were some errors in discovering unit tests');
                 }
-                const wkspace = this.workspaceService.getWorkspaceFolder(Uri.file(this.rootDirectory))!.uri;
-                this.testCollectionStorage.storeTests(wkspace, tests);
                 this.disposeCancellationToken(CancellationTokenType.testDiscovery);
                 sendTelemetryEvent(EventName.UNITTEST_DISCOVER, undefined, telementryProperties);
                 return tests;
@@ -216,7 +219,7 @@ export abstract class BaseTestManager implements ITestManager {
                     this.outputChannel.appendLine(reason.toString());
                 }
                 const wkspace = this.workspaceService.getWorkspaceFolder(Uri.file(this.rootDirectory))!.uri;
-                this.testCollectionStorage.storeTests(wkspace, null);
+                this.testCollectionStorage.storeTests(wkspace, undefined);
                 this.disposeCancellationToken(CancellationTokenType.testDiscovery);
                 return Promise.reject(reason);
             });
@@ -240,7 +243,6 @@ export abstract class BaseTestManager implements ITestManager {
         };
 
         if (!runFailedTests && !testsToRun) {
-            this.resetTestResults();
             this.testsStatusUpdaterService.updateStatusAsRunning(this.workspaceFolder, this.tests);
         }
 
