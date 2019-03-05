@@ -28,7 +28,7 @@ export class PythonExecutionService implements IPythonExecutionService {
     public async getInterpreterInformation(): Promise<InterpreterInfomation | undefined> {
         const file = path.join(EXTENSION_ROOT_DIR, 'pythonFiles', 'interpreterInfo.py');
         try {
-            const jsonValue = await this.procService.exec(this.pythonPath, [file], { mergeStdOutErr: true })
+            const jsonValue = await this.procService.exec(this.pythonPath, [file], { mergeStdOutErr: true, detached: true })
                 .then(output => output.stdout.trim());
 
             let json: { versionInfo: PythonVersionInfo; sysPrefix: string; sysVersion: string; is64Bit: boolean };

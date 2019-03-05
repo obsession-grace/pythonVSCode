@@ -72,8 +72,8 @@ export class LaunchConfigurationResolver extends BaseConfigurationResolver<Launc
         if (typeof debugConfiguration.showReturnValue !== 'boolean') {
             debugConfiguration.showReturnValue = false;
         }
-        if (!debugConfiguration.console) {
-            debugConfiguration.console = 'integratedTerminal';
+        if (debugConfiguration.debugStdLib) {
+            debugConfiguration.justMyCode = true;
         }
         // If using a terminal, then never open internal console.
         if (debugConfiguration.console !== 'none' && !debugConfiguration.internalConsoleOptions) {

@@ -37,7 +37,7 @@ export class PipEnvService extends CacheableLocatorService implements IPipEnvSer
         this.pipEnvServiceHelper = this.serviceContainer.get<IPipEnvServiceHelper>(IPipEnvServiceHelper);
     }
     // tslint:disable-next-line:no-empty
-    public dispose() {}
+    public dispose() { }
     public async isRelatedPipEnvironment(dir: string, pythonPath: string): Promise<boolean> {
         // In PipEnv, the name of the cwd is used as a prefix in the virtual env.
         if (pythonPath.indexOf(`${path.sep}${path.basename(dir)}-`) === -1) {
@@ -129,7 +129,7 @@ export class PipEnvService extends CacheableLocatorService implements IPipEnvSer
         try {
             const processService = await this.processServiceFactory.create(Uri.file(rootPath));
             const execName = this.executable;
-            const result = await processService.exec(execName, [arg], { cwd: rootPath });
+            const result = await processService.exec(execName, [arg], { cwd: rootPath, detached: true });
             if (result) {
                 const stdout = result.stdout ? result.stdout.trim() : '';
                 const stderr = result.stderr ? result.stderr.trim() : '';

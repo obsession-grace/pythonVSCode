@@ -8,7 +8,7 @@ import * as md5 from 'md5';
 import { Disposable, Event, EventEmitter, Uri } from 'vscode';
 import { IWorkspaceService } from '../../../common/application/types';
 import '../../../common/extensions';
-import { Logger, traceVerbose } from '../../../common/logger';
+import { Logger, traceError, traceVerbose } from '../../../common/logger';
 import { IDisposableRegistry, IPersistentStateFactory } from '../../../common/types';
 import { createDeferred, Deferred } from '../../../common/utils/async';
 import { IServiceContainer } from '../../../ioc/types';
@@ -16,6 +16,16 @@ import { sendTelemetryWhenDone } from '../../../telemetry';
 import { EventName } from '../../../telemetry/constants';
 import { IInterpreterLocatorService, IInterpreterWatcher, PythonInterpreter } from '../../contracts';
 
+enum LocatorService {
+    CondaEnvFileService = 'CondaEnvFileService',
+    CondaEnvService = 'CondaEnvService',
+    CurrentPathService = 'CurrentPathService',
+    VirtualEnvService = 'VirtualEnvService',
+    KnownPathsService = 'KnownPathsService',
+    PipEnvService = 'PipEnvService',
+    WindowsRegistryService = 'WindowsRegistryService',
+    WorkspaceVirtualEnvService = 'WorkspaceVirtualEnvService'
+}
 @injectable()
 export abstract class CacheableLocatorService implements IInterpreterLocatorService {
     protected readonly _hasInterpreters: Deferred<boolean>;
@@ -37,10 +47,19 @@ export abstract class CacheableLocatorService implements IInterpreterLocatorServ
     }
     public abstract dispose(): void;
     public async getInterpreters(resource?: Uri, ignoreCache?: boolean): Promise<PythonInterpreter[]> {
+        // https://github.com/Microsoft/vscode-python/issues/3967
+        // https://github.com/Microsoft/vscode-python/issues/4377
+        const workspaceService = this.serviceContainer.get<IWorkspaceService>(IWorkspaceService);
+        const configs = workspaceService.getConfiguration('python', resource).get<{ type: LocatorService; enabled: boolean }[]>('diagnostics.interpreterLocators');
+        if (Array.isArray(configs) && configs.find(setting => setting.type === this.name && setting.enabled === false)) {
+            traceVerbose(`Skipping interpreter location for ${this.name} based on setting.`);
+            return [];
+        }
         const cacheKey = this.getCacheKey(resource);
         let deferred = this.promisesPerResource.get(cacheKey);
 
         if (!deferred || ignoreCache) {
+            traceVerbose(`Locating Interpreters for ${this.name}`);
             deferred = createDeferred<PythonInterpreter[]>();
             this.promisesPerResource.set(cacheKey, deferred);
 
@@ -53,7 +72,11 @@ export abstract class CacheableLocatorService implements IInterpreterLocatorServ
                     traceVerbose(`Interpreters returned by ${this.name} are of count ${Array.isArray(items) ? items.length : 0}`);
                     deferred!.resolve(items);
                 })
-                .catch(ex => deferred!.reject(ex));
+                .catch(ex => {
+                    traceError(`Locating Interpreters for ${this.name} failed`, ex);
+                    deferred!.reject(ex);
+                    return Promise.reject(ex);
+                });
 
             sendTelemetryWhenDone(EventName.PYTHON_INTERPRETER_DISCOVERY, promise, undefined, { locator: this.name });
             this.locating.fire(deferred.promise);

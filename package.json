@@ -1179,6 +1179,43 @@
                     "description": "Enable source map support for meaningful strack traces in error logs.",
                     "scope": "application"
                 },
+                "python.diagnostics.interpreterLocators": {
+                    "scope": "resource",
+                    "type": "array",
+                    "label": "Interpreters locators.",
+                    "description": "Enable/disable interpreter locators.",
+                    "items": {
+                        "type": "object",
+                        "label": "Interpreter",
+                        "required": [
+                            "type",
+                            "enabled"
+                        ],
+                        "properties": {
+                            "type": {
+                                "type": "string",
+                                "enum": [
+                                    "CondaEnvFileService",
+                                    "CondaEnvService",
+                                    "CurrentPathService",
+                                    "VirtualEnvService",
+                                    "KnownPathsService",
+                                    "PipEnvService",
+                                    "WindowsRegistryService",
+                                    "WorkspaceVirtualEnvService"
+                                ],
+                                "label": "Type of interpreters to be searched",
+                                "default": "CondaEnvFileService"
+                            },
+                            "enabled": {
+                                "type": "boolean",
+                                "label": "Whether these types of interpreters will be located or not.",
+                                "default": true
+                            }
+                        }
+                    },
+                    "default": []
+                },
                 "python.autoComplete.addBrackets": {
                     "type": "boolean",
                     "default": false,

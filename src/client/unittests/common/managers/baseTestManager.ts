@@ -37,6 +37,7 @@ import {
     TestStatus,
     TestsToRun
 } from './../types';
+import { traceError } from '../../../common/logger';
 
 enum CancellationTokenType {
     testDiscovery,
@@ -195,6 +196,9 @@ export abstract class BaseTestManager implements ITestManager {
                 return tests;
             })
             .catch((reason: {}) => {
+                // https://github.com/Microsoft/vscode-python/issues/3994
+                // tslint:disable-next-line:no-any
+                traceError('Test discovery error:', reason as any);
                 if (userInitiated) {
                     this.testsStatusUpdaterService.updateStatusAsUnknown(this.workspaceFolder, this.tests);
                 }
