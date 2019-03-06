@@ -24,7 +24,7 @@ suite('Unit Tests - Storage Service', () => {
     setup(() => {
         resultsService = mock(TestResultsService);
         workspaceService = mock(WorkspaceService);
-        storageService = new TestCollectionStorageService([], instance(resultsService), instance(workspaceService));
+        storageService = new TestCollectionStorageService([], instance(workspaceService));
         setupTestData1();
         setupTestData2();
     });

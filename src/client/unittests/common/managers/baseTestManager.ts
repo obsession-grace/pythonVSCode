@@ -14,6 +14,7 @@ import {
 import { ICommandManager, IWorkspaceService } from '../../../common/application/types';
 import '../../../common/extensions';
 import { isNotInstalledError } from '../../../common/helpers';
+import { traceError } from '../../../common/logger';
 import { IFileSystem } from '../../../common/platform/types';
 import { IConfigurationService, IDisposableRegistry, IInstaller, IOutputChannel, IPythonSettings, Product } from '../../../common/types';
 import { getNamesAndValues } from '../../../common/utils/enum';
@@ -23,7 +24,7 @@ import { EventName } from '../../../telemetry/constants';
 import { sendTelemetryEvent } from '../../../telemetry/index';
 import { TestDiscoverytTelemetry, TestRunTelemetry } from '../../../telemetry/types';
 import { IPythonUnitTestMessage, IUnitTestDiagnosticService, WorkspaceTestStatus } from '../../types';
-import { ITestsStatusUpdaterService } from '../types';
+import { copyTestResults } from '../testUtils';
 import { CANCELLATION_REASON, CommandSource, TEST_OUTPUT_CHANNEL } from './../constants';
 import {
     ITestCollectionStorageService,
@@ -31,6 +32,7 @@ import {
     ITestManager,
     ITestResultsService,
     ITestsHelper,
+    ITestsStatusUpdaterService,
     TestDiscoveryOptions,
     TestProvider,
     Tests,
@@ -56,19 +58,19 @@ export abstract class BaseTestManager implements ITestManager {
     protected get testResultsService() {
         return this._testResultsService;
     }
-    private testCollectionStorage: ITestCollectionStorageService;
-    private _testResultsService: ITestResultsService;
-    private commandManager: ICommandManager;
-    private workspaceService: IWorkspaceService;
-    private _outputChannel: OutputChannel;
+    private readonly testCollectionStorage: ITestCollectionStorageService;
+    private readonly _testResultsService: ITestResultsService;
+    private readonly commandManager: ICommandManager;
+    private readonly workspaceService: IWorkspaceService;
+    private readonly _outputChannel: OutputChannel;
     protected tests?: Tests;
     private _status: TestStatus = TestStatus.Unknown;
     private testDiscoveryCancellationTokenSource?: CancellationTokenSource;
     private testRunnerCancellationTokenSource?: CancellationTokenSource;
     private _installer!: IInstaller;
-    private testsStatusUpdaterService: ITestsStatusUpdaterService;
+    private readonly testsStatusUpdaterService: ITestsStatusUpdaterService;
     private discoverTestsPromise?: Promise<Tests>;
-    private _onDidStatusChange = new EventEmitter<WorkspaceTestStatus>();
+    private readonly _onDidStatusChange = new EventEmitter<WorkspaceTestStatus>();
     private get installer(): IInstaller {
         if (!this._installer) {
             this._installer = this.serviceContainer.get<IInstaller>(IInstaller);
@@ -77,7 +79,7 @@ export abstract class BaseTestManager implements ITestManager {
     }
     constructor(
         public readonly testProvider: TestProvider,
-        private product: Product,
+        private readonly product: Product,
         public readonly workspaceFolder: Uri,
         protected rootDirectory: string,
         protected serviceContainer: IServiceContainer
@@ -168,13 +170,16 @@ export abstract class BaseTestManager implements ITestManager {
         return discoveryService
             .discoverTests(discoveryOptions)
             .then(tests => {
+                const wkspace = this.workspaceService.getWorkspaceFolder(Uri.file(this.rootDirectory))!.uri;
+                const existingTests = this.testCollectionStorage.getTests(wkspace)!;
                 if (clearTestStatus) {
                     this.resetTestResults();
+                } else if (existingTests) {
+                    copyTestResults(existingTests, tests);
+                    this._testResultsService.updateResults(tests);
                 }
-                const wkspace = this.workspaceService.getWorkspaceFolder(Uri.file(this.rootDirectory))!.uri;
-                // When storing tests, the data will be merged with existing test information.
                 this.testCollectionStorage.storeTests(wkspace, tests);
-                this.tests = tests = this.testCollectionStorage.getTests(wkspace)!;
+                this.tests = tests;
                 this.updateStatus(TestStatus.Idle);
                 this.discoverTestsPromise = undefined;
 
@@ -203,7 +208,7 @@ export abstract class BaseTestManager implements ITestManager {
                 }
                 if (isNotInstalledError(reason as Error) && !quietMode) {
                     this.installer.promptToInstall(this.product, this.workspaceFolder)
-                        .catch(ex => console.error('Python Extension: isNotInstalledError', ex));
+                        .catch(ex => traceError('isNotInstalledError', ex));
                 }
 
                 this.tests = undefined;
