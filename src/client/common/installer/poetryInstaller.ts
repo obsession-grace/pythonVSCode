@@ -52,7 +52,7 @@ export class PoetryInstaller extends ModuleInstaller implements IModuleInstaller
             const processService = await this.processFactory.create(workfolder);
             const execPath = this.configurationService.getSettings(workfolder).poetryPath;
             const result = await processService.exec(execPath, ['list'], { cwd: workfolder.fsPath });
-            return result && (result.stderr || '').trim().length === 0;
+            return result && ((result.stderr || '').trim().length === 0);
         } catch (error) {
             traceError(`${poetryFile} exists but Poetry not found`, error);
             return false;
