@@ -4,27 +4,15 @@
 'use strict';
 
 import * as assert from 'assert';
-import { instance, mock } from 'ts-mockito';
-import { Uri } from 'vscode';
-import { IWorkspaceService } from '../../../../client/common/application/types';
-import { WorkspaceService } from '../../../../client/common/application/workspace';
-import { TestCollectionStorageService } from '../../../../client/unittests/common/services/storageService';
-import { TestResultsService } from '../../../../client/unittests/common/services/testResultsService';
-import { FlattenedTestFunction, FlattenedTestSuite, ITestCollectionStorageService, ITestResultsService, TestFile, TestFolder, TestFunction, Tests, TestStatus, TestSuite, TestType } from '../../../../client/unittests/common/types';
+import { copyTestResults } from '../../../../client/unittests/common/testUtils';
+import { FlattenedTestFunction, FlattenedTestSuite, TestFile, TestFolder, TestFunction, Tests, TestStatus, TestSuite, TestType } from '../../../../client/unittests/common/types';
 import { createMockTestDataItem } from '../testUtils.unit.test';
 
 // tslint:disable:no-any max-func-body-length
 suite('Unit Tests - Storage Service', () => {
-    let storageService: ITestCollectionStorageService;
-    let resultsService: ITestResultsService;
-    let workspaceService: IWorkspaceService;
-    const workspaceUri = Uri.file(__dirname);
     let testData1: Tests;
     let testData2: Tests;
     setup(() => {
-        resultsService = mock(TestResultsService);
-        workspaceService = mock(WorkspaceService);
-        storageService = new TestCollectionStorageService([], instance(workspaceService));
         setupTestData1();
         setupTestData2();
     });
@@ -126,8 +114,7 @@ suite('Unit Tests - Storage Service', () => {
         assert.notDeepEqual(testData1.testFunctions[1].testFunction, testData2.testFunctions[1].testFunction);
         assert.notDeepEqual(testData1.testFunctions[2].testFunction, testData2.testFunctions[2].testFunction);
 
-        storageService.storeTests(workspaceUri, testData1);
-        storageService.storeTests(workspaceUri, testData2);
+        copyTestResults(testData1, testData2);
 
         // Function 1 is in a different suite now, hence should not get updated.
         assert.notDeepEqual(testData1.testFunctions[0].testFunction, testData2.testFunctions[0].testFunction);
