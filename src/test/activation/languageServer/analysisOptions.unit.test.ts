@@ -4,7 +4,8 @@
 'use strict';
 
 import { expect } from 'chai';
-import { instance, mock, verify, when } from 'ts-mockito';
+import * as path from 'path';
+import { anything, instance, mock, verify, when } from 'ts-mockito';
 import * as typemoq from 'typemoq';
 import { ConfigurationChangeEvent, Uri } from 'vscode';
 import { LanguageServerAnalysisOptions } from '../../../client/activation/languageServer/analysisOptions';
@@ -12,11 +13,12 @@ import { LanguageServerFolderService } from '../../../client/activation/language
 import { ILanguageServerFolderService } from '../../../client/activation/types';
 import { IWorkspaceService } from '../../../client/common/application/types';
 import { WorkspaceService } from '../../../client/common/application/workspace';
+import { PythonSettings } from '../../../client/common/configSettings';
 import { ConfigurationService } from '../../../client/common/configuration/service';
 import { PathUtils } from '../../../client/common/platform/pathUtils';
-import { IConfigurationService, IDisposable, IExtensionContext, IOutputChannel, IPathUtils, IPythonExtensionBanner } from '../../../client/common/types';
+import { IConfigurationService, IDisposable, IExtensionContext, IOutputChannel, IPathUtils, IPythonExtensionBanner, IPythonSettings } from '../../../client/common/types';
 import { EnvironmentVariablesProvider } from '../../../client/common/variables/environmentVariablesProvider';
-import { IEnvironmentVariablesProvider } from '../../../client/common/variables/types';
+import { EnvironmentVariables, IEnvironmentVariablesProvider } from '../../../client/common/variables/types';
 import { IInterpreterService } from '../../../client/interpreter/contracts';
 import { InterpreterService } from '../../../client/interpreter/interpreterService';
 import { ProposeLanguageServerBanner } from '../../../client/languageServices/proposeLanguageServerBanner';
@@ -44,11 +46,15 @@ suite('Language Server - Analysis Options', () => {
         public async notifyIfValuesHaveChanged(oldArray: string[], newArray: string[]): Promise<void> {
             return super.notifyIfValuesHaveChanged(oldArray, newArray);
         }
+        public getSearchPaths(pythonPath: string, interpreterData?: InterpreterData): Promise<string[]> {
+            return super.getSearchPaths(pythonPath, interpreterData);
+        }
     }
     let analysisOptions: TestClass;
     let context: typemoq.IMock<IExtensionContext>;
     let envVarsProvider: IEnvironmentVariablesProvider;
     let configurationService: IConfigurationService;
+    let pythonSettings: IPythonSettings;
     let workspace: IWorkspaceService;
     let surveyBanner: IPythonExtensionBanner;
     let interpreterService: IInterpreterService;
@@ -60,6 +66,7 @@ suite('Language Server - Analysis Options', () => {
         envVarsProvider = mock(EnvironmentVariablesProvider);
         configurationService = mock(ConfigurationService);
         workspace = mock(WorkspaceService);
+        pythonSettings = mock(PythonSettings);
         surveyBanner = mock(ProposeLanguageServerBanner);
         interpreterService = mock(InterpreterService);
         outputChannel = typemoq.Mock.ofType<IOutputChannel>().object;
@@ -198,5 +205,54 @@ suite('Language Server - Analysis Options', () => {
         await sleep(10);
 
         expect(settingsChangedInvokedCount).to.be.equal(1);
+    });
+    [true, false].forEach(hasInterpreterSearchPaths => {
+        [true, false].forEach(hasAutocompleteExtraPaths => {
+            [true, false].forEach(hasPYTHONPATHInEnvVars => {
+                const hasInterpreterSearchPathsTitle = hasInterpreterSearchPaths ? 'Has Interpreter SearchPaths' : 'No Interpreter SearchPaths';
+                const hasAutocompleteExtraPathsTitle = hasAutocompleteExtraPaths ? 'Has Autocomplete ExtraPaths' : 'No Autocomplete ExtraPaths';
+                const hasPYTHONPATHInEnvVarsTitle = hasPYTHONPATHInEnvVars ? 'Has PYTHONPATH in envVars' : 'No PYTHONPATH in envVars';
+                const titleSuffix = [hasInterpreterSearchPathsTitle, hasAutocompleteExtraPathsTitle, hasPYTHONPATHInEnvVarsTitle].join(', ');
+
+                test(`Get search paths ${titleSuffix}`, async () => {
+                    const interpreterData: InterpreterData = {
+                        dataVersion: 0,
+                        hash: '',
+                        path: '',
+                        searchPaths: hasInterpreterSearchPaths ? ['one', 'two', 'three'].join(path.delimiter) : '',
+                        version: ''
+                    };
+                    const extraPaths = hasAutocompleteExtraPaths ? ['extra1', 'extra2'] : [];
+                    pythonSettings = mock(PythonSettings);
+                    const envVariables: EnvironmentVariables = {};
+                    if (hasPYTHONPATHInEnvVars) {
+                        envVariables['PYTHONPATH'] = ['some python path1', 'some python path 2'].join(path.delimiter);
+                    }
+
+                    when(pathUtils.delimiter).thenReturn(path.delimiter);
+                    when(configurationService.getSettings(anything())).thenReturn(instance(pythonSettings));
+                    when(pythonSettings.autoComplete).thenReturn({ extraPaths } as any);
+                    when(envVarsProvider.getEnvironmentVariables(anything())).thenResolve(envVariables);
+
+                    const expectedPaths: string[] = [];
+                    if (hasInterpreterSearchPaths) {
+                        expectedPaths.push(...interpreterData.searchPaths.split(path.delimiter));
+                    } else {
+                        expectedPaths.push('.');
+                    }
+                    if (hasAutocompleteExtraPaths) {
+                        expectedPaths.push(...extraPaths);
+                    }
+                    if (hasPYTHONPATHInEnvVars) {
+                        expectedPaths.push(...envVariables['PYTHONPATH']!.split(path.delimiter));
+                    }
+                    expectedPaths.push('Hello World');
+
+                    const paths = await analysisOptions.getSearchPaths('Hello World', interpreterData);
+
+                    expect(paths).to.deep.equal(expectedPaths);
+                });
+            });
+        });
     });
 });
