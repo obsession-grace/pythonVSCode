@@ -78,8 +78,8 @@ export class UnitTestManagementService implements IUnitTestManagementService, Di
         this.registerHandlers();
         this.registerCommands();
 
-        // register provider...
-        const testViewProvider = this.serviceContainer.get<ITestTreeViewProvider>(ITestTreeViewProvider);
+        // tslint:disable-next-line:no-any
+        const testViewProvider = this.serviceContainer.get<ITestTreeViewProvider<any>>(ITestTreeViewProvider);
         const disposable = window.registerTreeDataProvider('python_tests', testViewProvider);
         disposablesRegistry.push(disposable);
 

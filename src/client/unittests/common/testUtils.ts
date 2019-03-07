@@ -145,7 +145,7 @@ export class TestsHelper implements ITestsHelper {
         tests.testFolders = [];
         const folderMap = new Map<string, TestFolder>();
         folders.sort();
-
+        const resource = Uri.file(workspaceFolder);
         folders.forEach(dir => {
             dir.split(path.sep).reduce((parentPath, currentName, index, values) => {
                 let newPath = currentName;
@@ -155,7 +155,7 @@ export class TestsHelper implements ITestsHelper {
                     newPath = path.join(parentPath, currentName);
                 }
                 if (!folderMap.has(newPath)) {
-                    const testFolder: TestFolder = { name: newPath, testFiles: [], folders: [], nameToRun: newPath, time: 0 };
+                    const testFolder: TestFolder = { resource, name: newPath, testFiles: [], folders: [], nameToRun: newPath, time: 0 };
                     folderMap.set(newPath, testFolder);
                     if (parentFolder) {
                         parentFolder!.folders.push(testFolder);

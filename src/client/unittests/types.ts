@@ -7,7 +7,7 @@
 import {
     DiagnosticSeverity, Disposable, DocumentSymbolProvider,
     Event, Location, ProviderResult, TextDocument,
-    TreeDataProvider, Uri
+    TreeDataProvider, TreeItem, Uri
 } from 'vscode';
 import { Product, Resource } from '../common/types';
 import { CommandSource } from './common/constants';
@@ -160,10 +160,11 @@ export type WorkspaceTestStatus = { workspace: Uri; status: TestStatus };
 export type TestDataItem = TestFolder | TestFile | TestSuite | TestFunction;
 
 export const ITestTreeViewProvider = Symbol('ITestTreeViewProvider');
-export interface ITestTreeViewProvider extends TreeDataProvider<TestDataItem> {
-    onDidChangeTreeData: Event<TestDataItem | undefined>;
-    getTreeItem(element: TestDataItem): Promise<TestTreeItem>;
-    getChildren(element?: TestDataItem): ProviderResult<TestDataItem[]>;
+export interface ITestTreeViewProvider<T> extends TreeDataProvider<T> {
+    onDidChangeTreeData: Event<T | undefined>;
+    getTreeItem(element: T): Promise<TreeItem>;
+    getChildren(element?: T): ProviderResult<T[]>;
+    refresh(resource: Uri): void;
 }
 
 export const ITestDataItemResource = Symbol('ITestDataItemResource');

@@ -106,7 +106,8 @@ export function registerTypes(serviceManager: IServiceManager) {
 
     serviceManager.addSingleton<IUnitTestDiagnosticService>(IUnitTestDiagnosticService, UnitTestDiagnosticService);
     serviceManager.addSingleton<ITestMessageService>(ITestMessageService, TestMessageService, PYTEST_PROVIDER);
-    serviceManager.addSingleton<ITestTreeViewProvider>(ITestTreeViewProvider, TestTreeViewProvider);
+    // tslint:disable-next-line:no-any
+    serviceManager.addSingleton<ITestTreeViewProvider<any>>(ITestTreeViewProvider, TestTreeViewProvider);
     serviceManager.addSingleton<ITestDataItemResource>(ITestDataItemResource, TestTreeViewProvider);
     serviceManager.addSingleton<ITestExplorerCommandHandler>(ITestExplorerCommandHandler, TestExplorerCommandHandler);
 

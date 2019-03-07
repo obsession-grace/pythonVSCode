@@ -33,6 +33,7 @@ export type TestRunOptions = {
 export type UnitTestParserOptions = TestDiscoveryOptions & { startDirectory: string };
 
 export type TestFolder = TestResult & {
+    resource: Uri;
     name: string;
     testFiles: TestFile[];
     nameToRun: string;
@@ -45,6 +46,7 @@ export enum TestType {
     testFunction = 'testFunction'
 }
 export type TestFile = TestResult & {
+    resource: Uri;
     name: string;
     fullPath: string;
     functions: TestFunction[];
@@ -55,6 +57,7 @@ export type TestFile = TestResult & {
 };
 
 export type TestSuite = TestResult & {
+    resource: Uri;
     name: string;
     functions: TestFunction[];
     suites: TestSuite[];
@@ -65,6 +68,7 @@ export type TestSuite = TestResult & {
 };
 
 export type TestFunction = TestResult & {
+    resource: Uri;
     name: string;
     nameToRun: string;
 };
