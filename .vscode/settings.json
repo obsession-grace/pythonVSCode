@@ -25,13 +25,15 @@
     "files.associations": {
         "testConfig.json": "jsonc"
     },
-    "python.linting.enabled": false,
+    "python.linting.enabled": true,
+    "python.linting.pylintEnabled": false,
+    "python.linting.flake8Enabled": true,
     "python.unitTest.promptToConfigure": false,
     "python.workspaceSymbols.enabled": false,
-    "python.formatting.provider": "none",
+    "python.formatting.provider": "black",
     "python.terminal.activateEnvironment": false,
     "python.enableDevTools": true,
-    "python.jediEnabled": true,
+    "python.jediEnabled": false,
     "cucumberautocomplete.steps": ["src/smokeTest/steps/**/*.ts", "src/pysmoke/steps/**/*.py"],
     "cucumberautocomplete.stepsx": ["src/pysmoke/steps/**/*.py"],
     "cucumberautocomplete.syncfeaturesx": "src/pysmoke/features/*feature",
