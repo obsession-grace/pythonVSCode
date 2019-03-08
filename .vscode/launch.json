@@ -18,7 +18,8 @@
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
-            "cwd": "${workspaceFolder}/src/pysmoke"
+            "xcwd": "${workspaceFolder}/src/pysmoke",
+            "debugStdLib": true
         },
         {
             "name": "Extension",

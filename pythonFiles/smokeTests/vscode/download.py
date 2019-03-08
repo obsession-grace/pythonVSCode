@@ -6,9 +6,7 @@ import shutil
 import sys
 import tempfile
 from enum import Enum
-from progress.bar import Bar
-from progress.spinner import Spinner
-from subprocess import run, PIPE
+from ..utils.tools import run_command, download_file, unzip_file, ensure_directory
 
 
 class Platform(Enum):
@@ -17,7 +15,7 @@ class Platform(Enum):
     Linux = 3
 
 
-def get_platform() -> Platform:
+def _get_platform() -> Platform:
     platforms = {
         "linux1": Platform.Linux,
         "linux2": Platform.Linux,
@@ -30,8 +28,8 @@ def get_platform() -> Platform:
     return platforms[sys.platform]
 
 
-def get_download_platform() -> str:
-    platform_type = get_platform()
+def _get_download_platform() -> str:
+    platform_type = _get_platform()
     if platform_type == Platform.Linux:
         return "linux-x64"
     if platform_type == Platform.OSX:
@@ -40,19 +38,19 @@ def get_download_platform() -> str:
         return "win32-archive"
 
 
-def get_latest_version(channel: str = "stable") -> str:
+def _get_latest_version(channel: str = "stable") -> str:
     """
     Gets the latest version of VS Code
         :param channel:str='stable': stable/insider channel.
                                      Defaults to stable.
     """
-    download_platform = get_download_platform()
+    download_platform = _get_download_platform()
     url = f"https://update.code.visualstudio.com/api/releases/{channel}/{download_platform}"  # noqa
     versions = requests.get(url)
     return versions.json()[0]
 
 
-def get_download_url(
+def _get_download_url(
     version: str, download_platform: str, channel: str = "stable"
 ) -> str:
     """
@@ -64,35 +62,9 @@ def get_download_url(
     return f"https://vscode-update.azurewebsites.net/{version}/{download_platform}/{channel}"  # noqa
 
 
-def run_command(command, cwd=None, silent=False, progress_message=None):
-    """Run the specified command in a subprocess shell."""
-    executable = shutil.which(command[0])
-    command[0] = executable
-    stdout = PIPE if silent else None
-    cmd = run(command, cwd=cwd, stdout=stdout, shell=False)
-    cmd.check_returncode()
-    # if progress_message:
-    #     progress = Spinner(progress_message)
-    # while True:
-    #     try:
-    #         exit_code = proc.wait(1)
-    #     except Exception:
-    #         if progress:
-    #             progress.next()
-    #         continue
-
-    #     print(exit_code)
-    #     if exit_code == 0:
-    #         return
-    #     if exit_code is not None:
-    #         raise SystemError(
-    #             "Command exited with a non-zero exit code," + command
-    #         )  # noqa
-
-
-def get_electron_version(channel: str = "stable"):
+def _get_electron_version(channel: str = "stable"):
     if channel == "stable":
-        version = get_latest_version()
+        version = _get_latest_version()
         # Assume that VSC tags based on major and minor numbers.
         # E.g. 1.32 and not 1.32.1
         version_parts = version.split(".")
@@ -118,19 +90,12 @@ def download_chrome_driver(download_path: str, channel: str = "stable"):
         :param download_path:str:
     """
     download_path = os.path.abspath(download_path)
-    electron_version = get_electron_version(channel)
+    ensure_directory(download_path)
+    electron_version = _get_electron_version(channel)
     js_file = os.path.join(os.getcwd(), "wow", "chrome_downloader.js")
     run_command(
         ["node", js_file, electron_version, download_path],
         progress_message="Downloading chrome driver",
-    )
-
-
-def unzip_file(zip_file: str, destination: str):
-    run_command(
-        ["unzip", zip_file, "-d", destination],
-        silent=True,
-        progress_message="Extracting zip file",
     )
 
 
@@ -143,37 +108,12 @@ def download_vscode(download_path: str, channel: str = "stable"):
     """
     download_path = os.path.abspath(download_path)
     shutil.rmtree(download_path, ignore_errors=True)
+    ensure_directory(download_path)
 
-    download_platform = get_download_platform()
-    version = get_latest_version(channel)
-    url = get_download_url(version, download_platform, channel)
+    download_platform = _get_download_platform()
+    version = _get_latest_version(channel)
+    url = _get_download_url(version, download_platform, channel)
 
-    progress = Bar(f"Downloading VS Code {channel}", max=100)
-    response = requests.get(url, stream=True)
-    total = response.headers.get("content-length")
     zip_file = os.path.join(tempfile.mkdtemp(), "vscode.zip")
-
-    with open(zip_file, "wb") as fs:
-        if total is None:
-            fs.write(response.content)
-        else:
-            downloaded = 0
-            total = int(total)
-            chunk_size = 1024 * 1024
-            percent = 0
-            for data in response.iter_content(chunk_size=chunk_size):
-                downloaded += len(data)
-                fs.write(data)
-                change_in_percent = int(downloaded * 100 / total) - percent
-                percent = int(downloaded * 100 / total)
-                for i in range(change_in_percent):
-                    progress.next()
-    progress.finish()
-
+    download_file(url, zip_file, f"Downloading VS Code {channel}")
     unzip_file(zip_file, download_path)
-    download_chrome_driver(download_path)
-
-
-# print(get_electron_version())
-# download_chrome_driver()
-# download(os.getcwd() + "/vsc")
