@@ -6,7 +6,7 @@ import * as constants from '../../common/constants';
 import { noop } from '../../common/utils/misc';
 import { IServiceContainer } from '../../ioc/types';
 import { CommandSource } from '../common/constants';
-import { FlattenedTestFunction, ITestCollectionStorageService, TestFile, TestFunction, Tests, TestStatus, TestsToRun } from '../common/types';
+import { FlattenedTestFunction, ITestCollectionStorageService, TestFile, TestFunction, Tests, TestStatus } from '../common/types';
 import { ITestDisplay } from '../types';
 
 @injectable()
@@ -239,15 +239,13 @@ function onItemSelected(cmdSource: CommandSource, wkspace: Uri, selection: TestI
             break;
         }
         case Type.RunMethod: {
-            cmd = constants.Commands.navigateToTestFunction;
-            // tslint:disable-next-line:prefer-type-cast no-object-literal-type-assertion
+            cmd = constants.Commands.Tests_Run;
             args.push(selection.fn!.testFunction);
             break;
         }
         case Type.DebugMethod: {
             cmd = constants.Commands.Tests_Debug;
-            // tslint:disable-next-line:prefer-type-cast no-object-literal-type-assertion
-            args.push({ testFunction: [selection.fn!.testFunction] } as TestsToRun);
+            args.push(selection.fn!.testFunction);
             args.push(true);
             break;
         }
