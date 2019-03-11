@@ -470,7 +470,7 @@ function copyResultsForFolders(source: TestFolder[], target: TestFolder[]): void
 }
 function copyResultsForFiles(source: TestFile[], target: TestFile[]): void {
     source.forEach(sourceFile => {
-        const targetFile = target.find(file => file.name === sourceFile.name && file.nameToRun === sourceFile.nameToRun);
+        const targetFile = target.find(file => file.name === sourceFile.name);
         if (!targetFile) {
             return;
         }
