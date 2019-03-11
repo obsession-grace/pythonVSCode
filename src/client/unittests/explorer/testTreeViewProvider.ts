@@ -9,15 +9,15 @@ import { IWorkspaceService } from '../../common/application/types';
 import { IDisposable, IDisposableRegistry } from '../../common/types';
 import { getChildren, getParent } from '../common/testUtils';
 import { ITestCollectionStorageService, TestStatus } from '../common/types';
-import { ITestDataItemResource, ITestTreeViewProvider, IUnitTestManagementService, TestDataItem, WorkspaceTestStatus } from '../types';
-import { createTreeViewItemFrom, TestWorkspaceFolder, TestWorkspaceFolderTreeItem } from './testTreeViewItem';
+import { ITestDataItemResource, ITestTreeViewProvider, IUnitTestManagementService, TestDataItem, TestWorkspaceFolder, WorkspaceTestStatus } from '../types';
+import { TestTreeItem } from './testTreeViewItem';
 
 @injectable()
-export class TestTreeViewProvider implements ITestTreeViewProvider<TestWorkspaceFolder | TestDataItem>, ITestDataItemResource, IDisposable {
-    public readonly onDidChangeTreeData: Event<TestWorkspaceFolder | TestDataItem | undefined>;
+export class TestTreeViewProvider implements ITestTreeViewProvider, ITestDataItemResource, IDisposable {
+    public readonly onDidChangeTreeData: Event<TestDataItem | undefined>;
     public readonly testsAreBeingDiscovered: Map<string, boolean>;
 
-    private _onDidChangeTreeData = new EventEmitter<TestWorkspaceFolder | TestDataItem | undefined>();
+    private _onDidChangeTreeData = new EventEmitter<TestDataItem | undefined>();
     private disposables: IDisposable[] = [];
 
     constructor(
@@ -46,7 +46,7 @@ export class TestTreeViewProvider implements ITestTreeViewProvider<TestWorkspace
      * @param testData Test data item to map to a Uri
      * @returns A Uri representing the workspace that the test data item exists within
      */
-    public getResource(testData: Readonly<TestWorkspaceFolder | TestDataItem>): Uri {
+    public getResource(testData: Readonly<TestDataItem>): Uri {
         return testData.resource;
     }
 
@@ -65,12 +65,8 @@ export class TestTreeViewProvider implements ITestTreeViewProvider<TestWorkspace
      * @param element The element for which [TreeItem](#TreeItem) representation is asked for.
      * @return [TreeItem](#TreeItem) representation of the element
      */
-    public async getTreeItem(element: TestWorkspaceFolder | TestDataItem): Promise<TreeItem> {
-        if (element instanceof TestWorkspaceFolder) {
-            return new TestWorkspaceFolderTreeItem(element.resource, element, element.workspaceFolder.name);
-        }
-        const parent = await this.getParent!(element);
-        return createTreeViewItemFrom(element.resource, element, parent);
+    public async getTreeItem(element: TestDataItem): Promise<TreeItem> {
+        return new TestTreeItem(element.resource, element);
     }
 
     /**
@@ -79,23 +75,30 @@ export class TestTreeViewProvider implements ITestTreeViewProvider<TestWorkspace
      * @param element The element from which the provider gets children. Can be `undefined`.
      * @return Children of `element` or root if no element is passed.
      */
-    public getChildren(element?: TestWorkspaceFolder | TestDataItem): TestWorkspaceFolder[] | TestDataItem[] {
-        if (!element && Array.isArray(this.workspace.workspaceFolders) && this.workspace.workspaceFolders.length > 0) {
-            return this.workspace.workspaceFolders
-                .filter(workspaceFolder => this.testStore.getTests(workspaceFolder.uri))
-                .map(workspaceFolder => new TestWorkspaceFolder(workspaceFolder));
-        }
-        if (element instanceof TestWorkspaceFolder) {
-            const tests = this.testStore.getTests(element.workspaceFolder.uri);
-            return tests ? tests.rootTestFolders : [];
-        } else {
-            const tests = this.testStore.getTests(element.resource);
-            if (element === undefined) {
-                return tests && tests.testFolders ? tests.rootTestFolders : [];
+    public getChildren(element?: TestDataItem): TestDataItem[] {
+        if (element) {
+            if (element instanceof TestWorkspaceFolder) {
+                const tests = this.testStore.getTests(element.workspaceFolder.uri);
+                return tests ? tests.rootTestFolders : [];
             }
-
-            return getChildren(element);
+            return getChildren(element!);
         }
+
+        if (!Array.isArray(this.workspace.workspaceFolders) || this.workspace.workspaceFolders.length === 0) {
+            return [];
+        }
+
+        // If we are in a single workspace
+        if (this.workspace.workspaceFolders.length === 1) {
+            const tests = this.testStore.getTests(this.workspace.workspaceFolders[0].uri);
+            return tests ? tests.rootTestFolders : [];
+        }
+
+        // If we are in a mult-root workspace, then nest the test data within a
+        // virtual node, represending the workspace folder.
+        return this.workspace.workspaceFolders
+            .filter(workspaceFolder => this.testStore.getTests(workspaceFolder.uri))
+            .map(workspaceFolder => new TestWorkspaceFolder(workspaceFolder));
     }
 
     /**
@@ -107,12 +110,12 @@ export class TestTreeViewProvider implements ITestTreeViewProvider<TestWorkspace
      * @param element The element for which the parent has to be returned.
      * @return Parent of `element`.
      */
-    public async getParent?(element: TestWorkspaceFolder | TestDataItem): Promise<TestWorkspaceFolder | TestDataItem> {
+    public async getParent(element: TestDataItem): Promise<TestDataItem | undefined> {
         if (element instanceof TestWorkspaceFolder) {
             return;
         }
         const tests = this.testStore.getTests(element.resource);
-        return tests ? getParent(tests, element)! : undefined;
+        return tests ? getParent(tests, element) : undefined;
     }
 
     /**

@@ -34,8 +34,11 @@ import {
 import {
     ITestDisplay, ITestResultDisplay, ITestTreeViewProvider,
     IUnitTestConfigurationService, IUnitTestManagementService,
+    TestWorkspaceFolder,
     WorkspaceTestStatus
 } from './types';
+
+// tslint:disable:no-any
 
 @injectable()
 export class UnitTestManagementService implements IUnitTestManagementService, Disposable {
@@ -78,8 +81,7 @@ export class UnitTestManagementService implements IUnitTestManagementService, Di
         this.registerHandlers();
         this.registerCommands();
 
-        // tslint:disable-next-line:no-any
-        const testViewProvider = this.serviceContainer.get<ITestTreeViewProvider<any>>(ITestTreeViewProvider);
+        const testViewProvider = this.serviceContainer.get<ITestTreeViewProvider>(ITestTreeViewProvider);
         const disposable = window.registerTreeDataProvider('python_tests', testViewProvider);
         disposablesRegistry.push(disposable);
 
@@ -354,7 +356,10 @@ export class UnitTestManagementService implements IUnitTestManagementService, Di
         const commandManager = this.serviceContainer.get<ICommandManager>(ICommandManager);
 
         const disposables = [
-            commandManager.registerCommand(constants.Commands.Tests_Discover, (_, cmdSource: CommandSource = CommandSource.commandPalette, resource?: Uri) => {
+            commandManager.registerCommand(constants.Commands.Tests_Discover, (treeNode: TestWorkspaceFolder | any, cmdSource: CommandSource = CommandSource.commandPalette, resource?: Uri) => {
+                if (treeNode && treeNode instanceof TestWorkspaceFolder) {
+                    resource = treeNode.resource;
+                }
                 // Ignore the exceptions returned.
                 // This command will be invoked from other places of the extension.
                 this.discoverTests(cmdSource, resource, true, true, false, true)
@@ -367,8 +372,18 @@ export class UnitTestManagementService implements IUnitTestManagementService, Di
                     .ignoreErrors();
             }),
             commandManager.registerCommand(constants.Commands.Tests_Run_Failed, (_, cmdSource: CommandSource = CommandSource.commandPalette, resource: Uri) => this.runTestsImpl(cmdSource, resource, undefined, true)),
-            commandManager.registerCommand(constants.Commands.Tests_Run, (_, cmdSource: CommandSource = CommandSource.commandPalette, file: Uri, testToRun?: TestsToRun) => this.runTestsImpl(cmdSource, file, testToRun)),
-            commandManager.registerCommand(constants.Commands.Tests_Debug, (_, cmdSource: CommandSource = CommandSource.commandPalette, file: Uri, testToRun: TestsToRun) => this.runTestsImpl(cmdSource, file, testToRun, false, true)),
+            commandManager.registerCommand(constants.Commands.Tests_Run, (treeNode: TestWorkspaceFolder | any, cmdSource: CommandSource = CommandSource.commandPalette, resource?: Uri, testToRun?: TestsToRun) => {
+                if (treeNode && treeNode instanceof TestWorkspaceFolder) {
+                    resource = treeNode.resource;
+                }
+                return this.runTestsImpl(cmdSource, resource, testToRun);
+            }),
+            commandManager.registerCommand(constants.Commands.Tests_Debug, (treeNode: TestWorkspaceFolder | any, cmdSource: CommandSource = CommandSource.commandPalette, resource: Uri, testToRun: TestsToRun) => {
+                if (treeNode && treeNode instanceof TestWorkspaceFolder) {
+                    resource = treeNode.resource;
+                }
+                return this.runTestsImpl(cmdSource, resource, testToRun, false, true);
+            }),
             commandManager.registerCommand(constants.Commands.Tests_View_UI, () => this.displayUI(CommandSource.commandPalette)),
             commandManager.registerCommand(constants.Commands.Tests_Picker_UI, (_, cmdSource: CommandSource = CommandSource.commandPalette, file: Uri, testFunctions: TestFunction[]) => this.displayPickerUI(cmdSource, file, testFunctions)),
             commandManager.registerCommand(constants.Commands.Tests_Picker_UI_Debug, (_, cmdSource: CommandSource = CommandSource.commandPalette, file: Uri, testFunctions: TestFunction[]) => this.displayPickerUI(cmdSource, file, testFunctions, true)),

@@ -5,37 +5,14 @@
 
 // tslint:disable:max-classes-per-file
 
-import { ThemeIcon, TreeItem, TreeItemCollapsibleState, Uri, WorkspaceFolder } from 'vscode';
+import { ThemeIcon, TreeItem, TreeItemCollapsibleState, Uri } from 'vscode';
 import { Commands } from '../../common/constants';
 import { getIcon } from '../../common/utils/icons';
 import { noop } from '../../common/utils/misc';
 import { Icons } from '../common/constants';
 import { getTestType } from '../common/testUtils';
-import { TestFile, TestStatus, TestType } from '../common/types';
+import { TestStatus, TestType, TestResult } from '../common/types';
 import { TestDataItem } from '../types';
-
-export class TestWorkspaceFolder {
-    constructor(public readonly workspaceFolder: WorkspaceFolder) { }
-    public get resource(): Uri {
-        return this.workspaceFolder.uri;
-    }
-}
-
-export class TestWorkspaceFolderTreeItem extends TreeItem {
-    constructor(
-        public readonly resource: Uri,
-        public readonly data: Readonly<TestWorkspaceFolder>,
-        label: string
-    ) {
-        super(label, TreeItemCollapsibleState.Collapsed);
-    }
-    public get contextValue(): string {
-        return 'workspaceFolder';
-    }
-    public get iconPath(): string | Uri | { light: string | Uri; dark: string | Uri } | ThemeIcon {
-        return ThemeIcon.Folder;
-    }
-}
 
 /**
  * Class that represents a visual node on the
@@ -47,21 +24,23 @@ export class TestTreeItem extends TreeItem {
 
     constructor(
         public readonly resource: Uri,
-        public readonly data: Readonly<TestDataItem>,
-        private readonly parentData: TestWorkspaceFolder | TestDataItem
+        public readonly data: Readonly<TestDataItem>
     ) {
-        super(data.name, TreeItemCollapsibleState.Collapsed);
+        super(data.name, TestTreeItem.getCollapsibleState(data));
         this.testType = getTestType(this.data);
         this.setCommand();
-        if (this.testType === TestType.testFile) {
-            this.resourceUri = Uri.file((this.data as TestFile).fullPath);
-        }
+    }
+    private static getCollapsibleState(data: TestDataItem): TreeItemCollapsibleState {
+        return getTestType(data) === TestType.testFunction ? TreeItemCollapsibleState.None : TreeItemCollapsibleState.Collapsed;
     }
     public get contextValue(): string {
         return this.testType;
     }
 
     public get iconPath(): string | Uri | { light: string | Uri; dark: string | Uri } | ThemeIcon {
+        if (this.testType === TestType.testWorkspaceFolder) {
+            return ThemeIcon.Folder;
+        }
         if (!this.data) {
             return '';
         }
@@ -83,41 +62,26 @@ export class TestTreeItem extends TreeItem {
                 return getIcon(Icons.unknown);
             }
             default: {
-                switch (this.testType) {
-                    case TestType.testFile: {
-                        return ThemeIcon.File;
-                    }
-                    case TestType.testFolder: {
-                        return ThemeIcon.Folder;
-                    }
-                    default: {
-                        return getIcon(Icons.unknown);
-                    }
-                }
+                return getIcon(Icons.unknown);
             }
         }
     }
-    /**
-     * Parent is an extension to the TreeItem, to make it trivial to discover the node's parent.
-     */
-    public get parent(): TestWorkspaceFolder | TestDataItem {
-        return this.parentData;
-    }
 
     public get tooltip(): string {
-        if (!this.data) {
+        if (!this.data || this.testType === TestType.testWorkspaceFolder) {
             return '';
         }
+        const result = this.data as TestResult;
         if (this.testType !== TestType.testFunction) {
-            return `${this.data.functionsFailed} failed, ${this.data.functionsPassed} passed in ${this.data.time} seconds`;
+            return `${result.functionsFailed} failed, ${result.functionsPassed} passed in ${result.time} seconds`;
         }
         switch (this.data.status) {
             case TestStatus.Error:
             case TestStatus.Fail: {
-                return `Failed in ${this.data.time} seconds`;
+                return `Failed in ${result.time} seconds`;
             }
             case TestStatus.Pass: {
-                return `Passed in ${this.data.time} seconds`;
+                return `Passed in ${result.time} seconds`;
             }
             case TestStatus.Discovering:
             case TestStatus.Running: {
@@ -155,15 +119,4 @@ export class TestTreeItem extends TreeItem {
             }
         }
     }
-}
-
-/**
- * Create a TreView node from a given TestDataItem without having to specify the exact test item type.
- *
- * @param resource The workspace resource that this test item exists within.
- * @param testData The data item being represented in this tree view node.
- * @param parent The parent (or undefined, if the item is a root folder) of the test item.
- */
-export function createTreeViewItemFrom(resource: Uri, testData: Readonly<TestDataItem>, parent?: TestWorkspaceFolder | TestDataItem): TreeItem {
-    return new TestTreeItem(resource, testData, parent!);
 }

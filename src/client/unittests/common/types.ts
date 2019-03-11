@@ -43,7 +43,8 @@ export enum TestType {
     testFile = 'testFile',
     testFolder = 'testFolder',
     testSuite = 'testSuite',
-    testFunction = 'testFunction'
+    testFunction = 'testFunction',
+    testWorkspaceFolder = 'testWorkspaceFolder'
 }
 export type TestFile = TestResult & {
     resource: Uri;

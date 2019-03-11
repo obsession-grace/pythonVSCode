@@ -5,7 +5,7 @@ import { IApplicationShell, ICommandManager } from '../../common/application/typ
 import * as constants from '../../common/constants';
 import { IUnitTestSettings, Product } from '../../common/types';
 import { IServiceContainer } from '../../ioc/types';
-import { TestDataItem } from '../types';
+import { TestDataItem, TestWorkspaceFolder } from '../types';
 import { CommandSource } from './constants';
 import { TestFlatteningVisitor } from './testVisitors/flatteningVisitor';
 import {
@@ -198,8 +198,7 @@ export class TestsHelper implements ITestsHelper {
         }
 
         // Just return this as a test file.
-        // tslint:disable-next-line:no-object-literal-type-assertion
-        return <TestsToRun>{ testFile: [{ name: name, nameToRun: name, functions: [], suites: [], xmlName: name, fullPath: '', time: 0 }] };
+        return { testFile: [{ resource: Uri.file(rootDirectory), name: name, nameToRun: name, functions: [], suites: [], xmlName: name, fullPath: '', time: 0 }] };
     }
     public displayTestErrorMessage(message: string) {
         this.appShell.showErrorMessage(message, constants.Button_Text_Tests_View_Output).then(action => {
@@ -246,6 +245,9 @@ export class TestsHelper implements ITestsHelper {
 }
 
 export function getTestType(test: TestDataItem): TestType {
+    if (test instanceof TestWorkspaceFolder) {
+        return TestType.testWorkspaceFolder;
+    }
     if (getTestFile(test)) {
         return TestType.testFile;
     }
