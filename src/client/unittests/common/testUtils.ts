@@ -287,7 +287,7 @@ export function getTestFunction(test: TestDataItem): TestFunction | undefined {
     if (!test) {
         return;
     }
-    if (getTestFile(test) || getTestFolder(test) || getTestSuite(test)) {
+    if (test instanceof TestWorkspaceFolder || getTestFile(test) || getTestFolder(test) || getTestSuite(test)) {
         return;
     }
     return test as TestFunction;
