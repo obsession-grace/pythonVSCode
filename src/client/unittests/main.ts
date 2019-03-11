@@ -116,7 +116,7 @@ export class UnitTestManagementService implements IUnitTestManagementService, Di
             await configurationService.displayTestFrameworkError(wkspace);
         }
     }
-    public async configurationChangeHandler(e: ConfigurationChangeEvent) {
+    public async configurationChangeHandler(eventArgs: ConfigurationChangeEvent) {
         // If there's one workspace, then stop the tests and restart,
         // else let the user do this manually.
         if (!this.workspaceService.hasWorkspaceFolders || this.workspaceService.workspaceFolders!.length > 1) {
@@ -125,7 +125,7 @@ export class UnitTestManagementService implements IUnitTestManagementService, Di
         if (!Array.isArray(this.workspaceService.workspaceFolders)) {
             return;
         }
-        const workspaceFolderUri = this.workspaceService.workspaceFolders.find(w => e.affectsConfiguration('python.unitTest', w.uri));
+        const workspaceFolderUri = this.workspaceService.workspaceFolders.find(w => eventArgs.affectsConfiguration('python.unitTest', w.uri));
         if (!workspaceFolderUri) {
             return;
         }
