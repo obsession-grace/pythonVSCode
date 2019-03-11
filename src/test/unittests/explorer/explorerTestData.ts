@@ -8,8 +8,10 @@
  */
 
 import { join, parse as path_parse } from 'path';
+import * as tsmockito from 'ts-mockito';
 import * as typemoq from 'typemoq';
 import { Uri, WorkspaceFolder } from 'vscode';
+import { CommandManager } from '../../../client/common/application/commandManager';
 import {
     IApplicationShell, ICommandManager, IWorkspaceService
 } from '../../../client/common/application/types';
@@ -230,7 +232,8 @@ export function createMockTestExplorer(
     testStore?: ITestCollectionStorageService,
     testsData?: Tests,
     unitTestMgmtService?: IUnitTestManagementService,
-    workspaceService?: IWorkspaceService
+    workspaceService?: IWorkspaceService,
+    commandManager?: ICommandManager
 ): TestTreeViewProvider {
 
     if (!testStore) {
@@ -244,11 +247,14 @@ export function createMockTestExplorer(
     if (!workspaceService) {
         workspaceService = createMockWorkspaceService().object;
     }
+    if (!commandManager) {
+        commandManager = tsmockito.instance(tsmockito.mock(CommandManager));
+    }
 
     const dispRegMoq = typemoq.Mock.ofType<IDisposableRegistry>();
     dispRegMoq.setup(d => d.push(typemoq.It.isAny()));
 
     return new TestTreeViewProvider(
-        testStore, unitTestMgmtService, workspaceService, dispRegMoq.object
+        testStore, unitTestMgmtService, workspaceService, commandManager, dispRegMoq.object
     );
 }

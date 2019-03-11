@@ -5,10 +5,12 @@
 
 import { inject, injectable } from 'inversify';
 import { Event, EventEmitter, TreeItem, Uri } from 'vscode';
-import { IWorkspaceService } from '../../common/application/types';
+import { ICommandManager, IWorkspaceService } from '../../common/application/types';
+import { Commands } from '../../common/constants';
 import { IDisposable, IDisposableRegistry } from '../../common/types';
 import { sendTelemetryEvent } from '../../telemetry';
 import { EventName } from '../../telemetry/constants';
+import { CommandSource } from '../common/constants';
 import { getChildren, getParent } from '../common/testUtils';
 import { ITestCollectionStorageService, TestStatus } from '../common/types';
 import { ITestDataItemResource, ITestTreeViewProvider, IUnitTestManagementService, TestDataItem, TestWorkspaceFolder, WorkspaceTestStatus } from '../types';
@@ -26,6 +28,7 @@ export class TestTreeViewProvider implements ITestTreeViewProvider, ITestDataIte
         @inject(ITestCollectionStorageService) private testStore: ITestCollectionStorageService,
         @inject(IUnitTestManagementService) private testService: IUnitTestManagementService,
         @inject(IWorkspaceService) private readonly workspace: IWorkspaceService,
+        @inject(ICommandManager) private readonly commandManager: ICommandManager,
         @inject(IDisposableRegistry) disposableRegistry: IDisposableRegistry
     ) {
         this.onDidChangeTreeData = this._onDidChangeTreeData.event;
@@ -77,10 +80,14 @@ export class TestTreeViewProvider implements ITestTreeViewProvider, ITestDataIte
      * @param element The element from which the provider gets children. Can be `undefined`.
      * @return Children of `element` or root if no element is passed.
      */
-    public getChildren(element?: TestDataItem): TestDataItem[] {
+    public async getChildren(element?: TestDataItem): Promise<TestDataItem[]> {
         if (element) {
             if (element instanceof TestWorkspaceFolder) {
-                const tests = this.testStore.getTests(element.workspaceFolder.uri);
+                let tests = this.testStore.getTests(element.workspaceFolder.uri);
+                if (!tests) {
+                    await this.commandManager.executeCommand(Commands.Tests_Discover, element, CommandSource.testExplorer);
+                    tests = this.testStore.getTests(element.workspaceFolder.uri);
+                }
                 return tests ? tests.rootTestFolders : [];
             }
             return getChildren(element!);
@@ -101,7 +108,6 @@ export class TestTreeViewProvider implements ITestTreeViewProvider, ITestDataIte
         // If we are in a mult-root workspace, then nest the test data within a
         // virtual node, represending the workspace folder.
         return this.workspace.workspaceFolders
-            .filter(workspaceFolder => this.testStore.getTests(workspaceFolder.uri))
             .map(workspaceFolder => new TestWorkspaceFolder(workspaceFolder));
     }
 

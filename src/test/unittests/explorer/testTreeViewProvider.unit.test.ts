@@ -57,7 +57,7 @@ suite('Unit Tests Test Explorer TestTreeViewProvider', () => {
     test('Create the initial view and ensure it provides a default view', async () => {
         const testTreeProvider = createMockTestTreeProvider();
         expect(testTreeProvider).is.not.equal(undefined, 'Could not create a mock test explorer, check the parameters of the test setup.');
-        const treeRoot = testTreeProvider.getChildren();
+        const treeRoot = await testTreeProvider.getChildren();
         expect(treeRoot.length).to.be.greaterThan(0, 'No children returned from default view of the TreeViewProvider.');
     });
 
@@ -314,20 +314,20 @@ suite('Unit Tests Test Explorer TestTreeViewProvider', () => {
         // build up the view item tree
         testTreeProvider.refresh(testResource);
 
-        let children = testTreeProvider.getChildren(testFunction);
+        let children = await testTreeProvider.getChildren(testFunction);
         expect(children.length).to.be.equal(0, 'A function should never have children.');
 
-        children = testTreeProvider.getChildren(testSuite);
+        children = await testTreeProvider.getChildren(testSuite);
         expect(children.length).to.be.equal(1, 'Suite a single function should only return one child.');
         children.forEach((child: TestDataItem) => {
             expect(child.name).oneOf(['test_fn']);
             expect(getTestType(child)).to.be.equal(TestType.testFunction);
         });
 
-        children = testTreeProvider.getChildren(outerTestFunction);
+        children = await testTreeProvider.getChildren(outerTestFunction);
         expect(children.length).to.be.equal(0, 'A function should never have children.');
 
-        children = testTreeProvider.getChildren(testFile);
+        children = await testTreeProvider.getChildren(testFile);
         expect(children.length).to.be.equal(2, 'A file with one suite and one function should have a total of 2 children.');
         children.forEach((child: TestDataItem) => {
             expect(child.name).oneOf(['test_suite', 'test_outer_fn']);

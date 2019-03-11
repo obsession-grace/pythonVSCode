@@ -367,7 +367,7 @@ export class UnitTestManagementService implements IUnitTestManagementService, Di
                 }
                 // Ignore the exceptions returned.
                 // This command will be invoked from other places of the extension.
-                this.discoverTests(cmdSource, resource, true, true, false, true)
+                return this.discoverTests(cmdSource, resource, true, true, false, true)
                     .ignoreErrors();
             }),
             commandManager.registerCommand(constants.Commands.Tests_Configure, (_, cmdSource: CommandSource = CommandSource.commandPalette, resource?: Uri) => {
