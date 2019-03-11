@@ -363,6 +363,7 @@ export class UnitTestManagementService implements IUnitTestManagementService, Di
             commandManager.registerCommand(constants.Commands.Tests_Discover, (treeNode: TestWorkspaceFolder | any, cmdSource: CommandSource = CommandSource.commandPalette, resource?: Uri) => {
                 if (treeNode && treeNode instanceof TestWorkspaceFolder) {
                     resource = treeNode.resource;
+                    cmdSource = CommandSource.testExplorer;
                 }
                 // Ignore the exceptions returned.
                 // This command will be invoked from other places of the extension.
@@ -379,12 +380,14 @@ export class UnitTestManagementService implements IUnitTestManagementService, Di
             commandManager.registerCommand(constants.Commands.Tests_Run, (treeNode: TestWorkspaceFolder | any, cmdSource: CommandSource = CommandSource.commandPalette, resource?: Uri, testToRun?: TestsToRun) => {
                 if (treeNode && treeNode instanceof TestWorkspaceFolder) {
                     resource = treeNode.resource;
+                    cmdSource = CommandSource.testExplorer;
                 }
                 return this.runTestsImpl(cmdSource, resource, testToRun);
             }),
             commandManager.registerCommand(constants.Commands.Tests_Debug, (treeNode: TestWorkspaceFolder | any, cmdSource: CommandSource = CommandSource.commandPalette, resource: Uri, testToRun: TestsToRun) => {
                 if (treeNode && treeNode instanceof TestWorkspaceFolder) {
                     resource = treeNode.resource;
+                    cmdSource = CommandSource.testExplorer;
                 }
                 return this.runTestsImpl(cmdSource, resource, testToRun, false, true);
             }),

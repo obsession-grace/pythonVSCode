@@ -7,6 +7,8 @@ import { inject, injectable } from 'inversify';
 import { Event, EventEmitter, TreeItem, Uri } from 'vscode';
 import { IWorkspaceService } from '../../common/application/types';
 import { IDisposable, IDisposableRegistry } from '../../common/types';
+import { sendTelemetryEvent } from '../../telemetry';
+import { EventName } from '../../telemetry/constants';
 import { getChildren, getParent } from '../common/testUtils';
 import { ITestCollectionStorageService, TestStatus } from '../common/types';
 import { ITestDataItemResource, ITestTreeViewProvider, IUnitTestManagementService, TestDataItem, TestWorkspaceFolder, WorkspaceTestStatus } from '../types';
@@ -87,6 +89,8 @@ export class TestTreeViewProvider implements ITestTreeViewProvider, ITestDataIte
         if (!Array.isArray(this.workspace.workspaceFolders) || this.workspace.workspaceFolders.length === 0) {
             return [];
         }
+
+        sendTelemetryEvent(EventName.UNITTEST_EXPLORER_WORK_SPACE_COUNT, undefined, { count: this.workspace.workspaceFolders.length });
 
         // If we are in a single workspace
         if (this.workspace.workspaceFolders.length === 1) {
