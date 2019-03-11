@@ -171,6 +171,10 @@ export class UnitTestManagementService implements IUnitTestManagementService, Di
         if (!this.workspaceService.hasWorkspaceFolders) {
             return;
         }
+        // Default to discovering tests in first folder if none specified.
+        if (!resource) {
+            resource = this.workspaceService.workspaceFolders![0].uri;
+        }
         const configurationService = this.serviceContainer.get<IConfigurationService>(IConfigurationService);
         const settings = configurationService.getSettings(resource);
         if (!settings.unitTest.nosetestsEnabled && !settings.unitTest.pyTestEnabled && !settings.unitTest.unittestEnabled) {
