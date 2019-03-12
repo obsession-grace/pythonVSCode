@@ -10,9 +10,6 @@ import { TestFunction, TestsToRun } from '../../unittests/common/types';
 import { TestDataItem, TestWorkspaceFolder } from '../../unittests/types';
 import { Commands } from '../constants';
 
-// export type CommandsWithoutArgs = 'python.debugger.replaceExperimental' | 'python.setInterpreter' |
-//     'python.runLinting' | typeof Commands.Enable_SourceMap_Support;
-
 export type CommandsWithoutArgs = keyof ICommandNameWithoutArgumentTypeMapping;
 
 /**
