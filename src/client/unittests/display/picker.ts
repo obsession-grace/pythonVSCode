@@ -1,7 +1,7 @@
 import { inject, injectable } from 'inversify';
 import * as path from 'path';
-import { commands, QuickPickItem, Uri } from 'vscode';
-import { IApplicationShell } from '../../common/application/types';
+import { QuickPickItem, Uri } from 'vscode';
+import { IApplicationShell, ICommandManager } from '../../common/application/types';
 import * as constants from '../../common/constants';
 import { noop } from '../../common/utils/misc';
 import { IServiceContainer } from '../../ioc/types';
@@ -13,21 +13,22 @@ import { ITestDisplay } from '../types';
 export class TestDisplay implements ITestDisplay {
     private readonly testCollectionStorage: ITestCollectionStorageService;
     private readonly appShell: IApplicationShell;
-    constructor(@inject(IServiceContainer) serviceRegistry: IServiceContainer) {
+    constructor(@inject(IServiceContainer) serviceRegistry: IServiceContainer,
+    @inject(ICommandManager) private readonly commandManager: ICommandManager) {
         this.testCollectionStorage = serviceRegistry.get<ITestCollectionStorageService>(ITestCollectionStorageService);
         this.appShell = serviceRegistry.get<IApplicationShell>(IApplicationShell);
     }
     public displayStopTestUI(workspace: Uri, message: string) {
         this.appShell.showQuickPick([message]).then(item => {
             if (item === message) {
-                commands.executeCommand(constants.Commands.Tests_Stop, undefined, workspace);
+                this.commandManager.executeCommand(constants.Commands.Tests_Stop, undefined, workspace);
             }
         });
     }
     public displayTestUI(cmdSource: CommandSource, wkspace: Uri) {
         const tests = this.testCollectionStorage.getTests(wkspace);
         this.appShell.showQuickPick(buildItems(tests), { matchOnDescription: true, matchOnDetail: true })
-            .then(item => item ? onItemSelected(cmdSource, wkspace, item, false) : noop());
+            .then(item => item ? onItemSelected(this.commandManager, cmdSource, wkspace, item, false) : noop());
     }
     public selectTestFunction(rootDirectory: string, tests: Tests): Promise<FlattenedTestFunction> {
         return new Promise<FlattenedTestFunction>((resolve, reject) => {
@@ -68,11 +69,11 @@ export class TestDisplay implements ITestDisplay {
 
         this.appShell.showQuickPick(buildItemsForFunctions(rootDirectory, flattenedFunctions, undefined, undefined, debug),
             { matchOnDescription: true, matchOnDetail: true })
-            .then(testItem => testItem ? onItemSelected(cmdSource, wkspace, testItem, debug) : noop());
+            .then(testItem => testItem ? onItemSelected(this.commandManager, cmdSource, wkspace, testItem, debug) : noop());
     }
 }
 
-enum Type {
+export enum Type {
     RunAll = 0,
     ReDiscover = 1,
     RunFailed = 2,
@@ -207,7 +208,7 @@ function buildItemsForTestFiles(rootDirectory: string, testFiles: TestFile[]): T
     });
     return fileItems;
 }
-function onItemSelected(cmdSource: CommandSource, wkspace: Uri, selection: TestItem, debug?: boolean) {
+export function onItemSelected(commandManager: ICommandManager, cmdSource: CommandSource, wkspace: Uri, selection: TestItem, debug?: boolean) {
     if (!selection || typeof selection.type !== 'number') {
         return;
     }
@@ -239,7 +240,7 @@ function onItemSelected(cmdSource: CommandSource, wkspace: Uri, selection: TestI
             break;
         }
         case Type.RunMethod: {
-            cmd = constants.Commands.Tests_Run;
+            cmd = constants.Commands.navigateToTestFunction;
             args.push(selection.fn!.testFunction);
             break;
         }
@@ -258,5 +259,5 @@ function onItemSelected(cmdSource: CommandSource, wkspace: Uri, selection: TestI
         }
     }
 
-    commands.executeCommand(cmd, ...args);
+    commandManager.executeCommand(cmd, ...args);
 }
