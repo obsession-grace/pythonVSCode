@@ -48,6 +48,7 @@ import {
 import * as vsls from 'vsls/vscode';
 
 import { IAsyncDisposable, Resource } from '../types';
+import { ICommandNameArgumentTypeMapping } from './commands';
 
 // tslint:disable:no-any unified-signatures
 
@@ -380,7 +381,7 @@ export interface ICommandManager {
      * @return A thenable that resolves to the returned value of the given command. `undefined` when
      * the command handler function doesn't return anything.
      */
-    executeCommand<T>(command: string, ...rest: any[]): Thenable<T | undefined>;
+    executeCommand<T, E extends keyof ICommandNameArgumentTypeMapping, U extends ICommandNameArgumentTypeMapping[E]>(command: E, ...rest: U): Thenable<T | undefined>;
 
     /**
      * Retrieve the list of all available commands. Commands starting an underscore are
@@ -881,6 +882,6 @@ export interface ILiveShareApi {
 export const ILiveShareTestingApi = Symbol('ILiveShareTestingApi');
 export interface ILiveShareTestingApi extends ILiveShareApi {
     isSessionStarted: boolean;
-    forceRole(role: vsls.Role): void;
+    forceRole(role: vsls.Role);
     startSession(): Promise<void>;
 }

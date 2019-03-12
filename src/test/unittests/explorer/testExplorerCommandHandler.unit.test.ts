@@ -57,7 +57,7 @@ suite('Unit Tests - Test Explorer Command Handler', () => {
         disposable2.verify(d => d.dispose(), typemoq.Times.once());
         disposable3.verify(d => d.dispose(), typemoq.Times.once());
     });
-    async function testOpeningTestNode(data: TestFile | TestSuite | TestFunction, expectedCommand: string) {
+    async function testOpeningTestNode(data: TestFile | TestSuite | TestFunction, expectedCommand: 'navigateToTestFunction' | 'navigateToTestSuite' | 'navigateToTestFile') {
         const resource = Uri.file(__filename);
         when(testResourceMapper.getResource(data)).thenReturn(resource);
 
