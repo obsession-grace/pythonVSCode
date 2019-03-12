@@ -882,6 +882,6 @@ export interface ILiveShareApi {
 export const ILiveShareTestingApi = Symbol('ILiveShareTestingApi');
 export interface ILiveShareTestingApi extends ILiveShareApi {
     isSessionStarted: boolean;
-    forceRole(role: vsls.Role);
+    forceRole(role: vsls.Role): void;
     startSession(): Promise<void>;
 }
