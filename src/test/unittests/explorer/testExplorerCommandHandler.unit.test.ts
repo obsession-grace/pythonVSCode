@@ -63,7 +63,7 @@ suite('Unit Tests - Test Explorer Command Handler', () => {
 
         commandHandler.register();
 
-        const handler = capture(cmdManager.registerCommand).last()[1];
+        const handler = capture(cmdManager.registerCommand as any).last()[1] as any as Function;
         await handler.bind(commandHandler)(data);
 
         verify(cmdManager.executeCommand(expectedCommand, resource, data, true)).once();
@@ -88,8 +88,8 @@ suite('Unit Tests - Test Explorer Command Handler', () => {
 
         commandHandler.register();
 
-        const capturedCommand = capture(cmdManager.registerCommand);
-        const handler = runType === 'run' ? capturedCommand.first()[1] : capturedCommand.second()[1];
+        const capturedCommand = capture(cmdManager.registerCommand as any);
+        const handler = (runType === 'run' ? capturedCommand.first()[1] : capturedCommand.second()[1]) as any as Function;
         await handler.bind(commandHandler)(data);
 
         const cmd = runType === 'run' ? Commands.Tests_Run : Commands.Tests_Debug;

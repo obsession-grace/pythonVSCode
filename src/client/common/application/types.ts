@@ -349,7 +349,7 @@ export interface ICommandManager {
      * @param thisArg The `this` context used when invoking the handler function.
      * @return Disposable which unregisters this command on disposal.
      */
-    registerCommand(command: string, callback: (...args: any[]) => any, thisArg?: any): Disposable;
+    registerCommand<E extends keyof ICommandNameArgumentTypeMapping, U extends ICommandNameArgumentTypeMapping[E]>(command: E, callback: (...args: U) => any, thisArg?: any): Disposable;
 
     /**
      * Registers a text editor command that can be invoked via a keyboard shortcut,

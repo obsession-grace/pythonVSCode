@@ -240,7 +240,7 @@ export function onItemSelected(commandManager: ICommandManager, cmdSource: Comma
             return commandManager.executeCommand(constants.Commands.Tests_Debug, undefined, cmdSource, wkspace, testsToRun);
         }
         case Type.Configure: {
-            return commandManager.executeCommand(constants.Commands.Tests_Configure, undefined, cmdSource);
+            return commandManager.executeCommand(constants.Commands.Tests_Configure, undefined, cmdSource, wkspace);
         }
         default: {
             return;

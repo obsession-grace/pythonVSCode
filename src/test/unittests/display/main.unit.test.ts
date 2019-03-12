@@ -338,7 +338,7 @@ suite('Unit Tests - TestResultDisplay', () => {
             .returns(() => Promise.resolve(UnitTests.configureTests()))
             .verifiable(typeMoq.Times.once());
 
-        cmdManager.setup(c => c.executeCommand(typeMoq.It.isValue(Commands.Tests_Configure)))
+        cmdManager.setup(c => c.executeCommand(typeMoq.It.isValue(Commands.Tests_Configure) as any))
             .verifiable(typeMoq.Times.once());
         def.resolve(undefined as any);
         await sleep(1);
