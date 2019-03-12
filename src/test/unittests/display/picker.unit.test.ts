@@ -9,11 +9,12 @@ import { CommandManager } from '../../../client/common/application/commandManage
 import { Commands } from '../../../client/common/constants';
 import { getNamesAndValues } from '../../../client/common/utils/enum';
 import { CommandSource } from '../../../client/unittests/common/constants';
+import { TestsToRun } from '../../../client/unittests/common/types';
 import { onItemSelected, Type } from '../../../client/unittests/display/picker';
 
 // tslint:disable:no-any
 
-suite('xUnit Tests - Picker (execution of commands)', () => {
+suite('Unit Tests - Picker (execution of commands)', () => {
     getNamesAndValues<Type>(Type).forEach(item => {
         getNamesAndValues<CommandSource>(Type).forEach(commandSource => {
             [true, false].forEach(debug => {
@@ -25,8 +26,6 @@ suite('xUnit Tests - Picker (execution of commands)', () => {
                     const selection = { type: item.value, fn: { testFunction } };
                     onItemSelected(instance(commandManager), commandSource.value, workspaceUri, selection as any, debug);
 
-                    let cmd = '';
-                    const commandArgs: any[] = [undefined, commandSource.value, workspaceUri];
                     switch (selection.type) {
                         case Type.Null: {
                             verify(commandManager.executeCommand(anything())).never();
@@ -38,46 +37,44 @@ suite('xUnit Tests - Picker (execution of commands)', () => {
                             return;
                         }
                         case Type.RunAll: {
-                            cmd = Commands.Tests_Run;
-                            break;
+                            verify(commandManager.executeCommand(Commands.Tests_Run, undefined, commandSource.value, workspaceUri)).once();
+                            return;
                         }
                         case Type.ReDiscover: {
-                            cmd = Commands.Tests_Discover;
-                            break;
+                            verify(commandManager.executeCommand(Commands.Tests_Discover, undefined, commandSource.value, workspaceUri)).once();
+                            return;
                         }
                         case Type.ViewTestOutput: {
-                            cmd = Commands.Tests_ViewOutput;
-                            break;
+                            verify(commandManager.executeCommand(Commands.Tests_ViewOutput, undefined, commandSource.value)).once();
+                            return;
                         }
                         case Type.RunFailed: {
-                            cmd = Commands.Tests_Run_Failed;
-                            break;
+                            verify(commandManager.executeCommand(Commands.Tests_Run_Failed, undefined, commandSource.value, workspaceUri)).once();
+                            return;
                         }
                         case Type.SelectAndRunMethod: {
-                            cmd = debug ? Commands.Tests_Select_And_Debug_Method : Commands.Tests_Select_And_Run_Method;
-                            break;
+                            const cmd = debug ? Commands.Tests_Select_And_Debug_Method : Commands.Tests_Select_And_Run_Method;
+                            verify(commandManager.executeCommand(cmd, undefined, commandSource.value, workspaceUri)).once();
+                            return;
                         }
                         case Type.RunMethod: {
-                            cmd = Commands.navigateToTestFunction;
-                            commandArgs.push(selection.fn!.testFunction);
-                            break;
+                            const testsToRun: TestsToRun = { testFunction: ['something' as any] };
+                            verify(commandManager.executeCommand(Commands.Tests_Run, undefined, commandSource.value, workspaceUri, testsToRun)).never();
+                            return;
                         }
                         case Type.DebugMethod: {
-                            cmd = Commands.Tests_Debug;
-                            commandArgs.push(selection.fn!.testFunction);
-                            commandArgs.push(true);
-                            break;
+                            const testsToRun: TestsToRun = { testFunction: ['something' as any] };
+                            verify(commandManager.executeCommand(Commands.Tests_Debug, undefined, commandSource.value, workspaceUri, testsToRun)).never();
+                            return;
                         }
                         case Type.Configure: {
-                            cmd = Commands.Tests_Configure;
-                            break;
+                            verify(commandManager.executeCommand(Commands.Tests_Configure, undefined, commandSource.value, workspaceUri)).once();
+                            return;
                         }
                         default: {
                             return;
                         }
                     }
-
-                    verify(commandManager.executeCommand(cmd, ...commandArgs)).once();
                 });
             });
         });

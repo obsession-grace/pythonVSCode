@@ -3,7 +3,6 @@
 
 import { inject, injectable } from 'inversify';
 import { Disposable, WorkspaceConfiguration } from 'vscode';
-import { CommandsWithoutArgs } from './application/commands';
 import {
     IApplicationShell, ICommandManager, IWorkspaceService
 } from './application/types';
@@ -55,7 +54,7 @@ export class FeatureDeprecationManager implements IFeatureDeprecationManager {
     public registerDeprecation(deprecatedInfo: DeprecatedFeatureInfo): void {
         if (Array.isArray(deprecatedInfo.commands)) {
             deprecatedInfo.commands.forEach(cmd => {
-                this.disposables.push(this.cmdMgr.registerCommand(cmd as CommandsWithoutArgs, () => this.notifyDeprecation(deprecatedInfo), this));
+                this.disposables.push(this.cmdMgr.registerCommand(cmd, () => this.notifyDeprecation(deprecatedInfo), this));
             });
         }
         if (deprecatedInfo.setting) {
