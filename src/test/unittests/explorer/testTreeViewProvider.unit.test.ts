@@ -67,6 +67,7 @@ suite('Unit Tests Test Explorer TestTreeViewProvider', () => {
         const testStore = mock(TestCollectionStorageService);
         const workspaceFolder = { uri: Uri.file(''), name: 'root', index: 0 };
         when(workspaceService.getWorkspaceFolder(testResource)).thenReturn(workspaceFolder);
+        when(workspaceService.onDidChangeWorkspaceFolders).thenReturn(noop as any);
         when(testStore.getTests(testResource)).thenReturn(testsData);
         when(testStore.onDidChange).thenReturn(noop as any);
         const changeItem = testsData.testFolders[1].testFiles[0].functions[0];
@@ -92,6 +93,7 @@ suite('Unit Tests Test Explorer TestTreeViewProvider', () => {
         const testStore = mock(TestCollectionStorageService);
         const workspaceFolder = { uri: Uri.file(''), name: 'root', index: 0 };
         when(workspaceService.getWorkspaceFolder(testResource)).thenReturn(workspaceFolder);
+        when(workspaceService.onDidChangeWorkspaceFolders).thenReturn(noop as any);
         when(testStore.getTests(testResource)).thenReturn(testsData);
         when(testStore.onDidChange).thenReturn(noop as any);
         const testView = createMockTestTreeProvider(instance(testStore), testsData, undefined, instance(workspaceService));

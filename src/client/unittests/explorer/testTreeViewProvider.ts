@@ -37,6 +37,7 @@ export class TestTreeViewProvider implements ITestTreeViewProvider, ITestDataIte
         this.testsAreBeingDiscovered = new Map<string, boolean>();
         this.disposables.push(this.testService.onDidStatusChange(this.onTestStatusChanged, this));
         this.testStore.onDidChange(e => this._onDidChangeTreeData.fire(e.data), this, this.disposables);
+        this.workspace.onDidChangeWorkspaceFolders(() => this._onDidChangeTreeData.fire(), this, this.disposables);
 
         if (Array.isArray(workspace.workspaceFolders) && workspace.workspaceFolders.length > 0) {
             this.refresh(workspace.workspaceFolders[0].uri);

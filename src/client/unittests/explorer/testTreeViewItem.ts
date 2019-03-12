@@ -11,7 +11,7 @@ import { getIcon } from '../../common/utils/icons';
 import { noop } from '../../common/utils/misc';
 import { Icons } from '../common/constants';
 import { getTestType } from '../common/testUtils';
-import { TestStatus, TestType, TestResult } from '../common/types';
+import { TestResult, TestStatus, TestType } from '../common/types';
 import { TestDataItem } from '../types';
 
 /**
