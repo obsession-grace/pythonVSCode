@@ -216,7 +216,7 @@ export function onItemSelected(commandManager: ICommandManager, cmdSource: Comma
             return;
         }
         case Type.RunAll: {
-            return commandManager.executeCommand(constants.Commands.Tests_Run, undefined, cmdSource, wkspace);
+            return commandManager.executeCommand(constants.Commands.Tests_Run, undefined, cmdSource, wkspace, undefined);
         }
         case Type.ReDiscover: {
             return commandManager.executeCommand(constants.Commands.Tests_Discover, undefined, cmdSource, wkspace);

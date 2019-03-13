@@ -37,7 +37,7 @@ suite('Unit Tests - Picker (execution of commands)', () => {
                             return;
                         }
                         case Type.RunAll: {
-                            verify(commandManager.executeCommand(Commands.Tests_Run, undefined, commandSource.value, workspaceUri)).once();
+                            verify(commandManager.executeCommand(Commands.Tests_Run, undefined, commandSource.value, workspaceUri, undefined)).once();
                             return;
                         }
                         case Type.ReDiscover: {
