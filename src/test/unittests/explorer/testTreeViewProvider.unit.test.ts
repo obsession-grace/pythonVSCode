@@ -592,22 +592,23 @@ suite('Unit Tests Test Explorer TestTreeViewProvider', () => {
             [func2, func3],
             [func5]
         ]);
-    test('Get children will discover only once', async () => {
-        const commandManager = mock(CommandManager);
-        const testStore = mock(TestCollectionStorageService);
-        const testWorkspaceFolder = new TestWorkspaceFolder({ uri: Uri.file(__filename), name: '', index: 0 });
-        when(testStore.getTests(testWorkspaceFolder.workspaceFolder.uri)).thenReturn();
-        when(testStore.onDidChange).thenReturn(noop as any);
+        test('Get children will discover only once', async () => {
+            const commandManager = mock(CommandManager);
+            const testStore = mock(TestCollectionStorageService);
+            const testWorkspaceFolder = new TestWorkspaceFolder({ uri: Uri.file(__filename), name: '', index: 0 });
+            when(testStore.getTests(testWorkspaceFolder.workspaceFolder.uri)).thenReturn();
+            when(testStore.onDidChange).thenReturn(noop as any);
 
-        const testTreeProvider = createMockTestTreeProvider(instance(testStore), undefined, undefined, undefined, instance(commandManager));
+            const testTreeProvider = createMockTestTreeProvider(instance(testStore), undefined, undefined, undefined, instance(commandManager));
 
-        let tests = await testTreeProvider.getChildren(testWorkspaceFolder);
+            let tests = await testTreeProvider.getChildren(testWorkspaceFolder);
 
-        expect(tests).to.be.lengthOf(0);
-        verify(commandManager.executeCommand(Commands.Tests_Discover, testWorkspaceFolder, CommandSource.testExplorer)).once();
+            expect(tests).to.be.lengthOf(0);
+            verify(commandManager.executeCommand(Commands.Tests_Discover, testWorkspaceFolder, CommandSource.testExplorer)).once();
 
-        tests = await testTreeProvider.getChildren(testWorkspaceFolder);
-        expect(tests).to.be.lengthOf(0);
-        verify(commandManager.executeCommand(Commands.Tests_Discover, testWorkspaceFolder, CommandSource.testExplorer)).once();
+            tests = await testTreeProvider.getChildren(testWorkspaceFolder);
+            expect(tests).to.be.lengthOf(0);
+            verify(commandManager.executeCommand(Commands.Tests_Discover, testWorkspaceFolder, CommandSource.testExplorer)).once();
+        });
     });
 });
