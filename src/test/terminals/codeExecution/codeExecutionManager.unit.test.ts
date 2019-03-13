@@ -12,7 +12,7 @@ import { IServiceContainer } from '../../../client/ioc/types';
 import { CodeExecutionManager } from '../../../client/terminals/codeExecution/codeExecutionManager';
 import { ICodeExecutionHelper, ICodeExecutionManager, ICodeExecutionService } from '../../../client/terminals/types';
 
-// tslint:disable:no-multiline-string no-trailing-whitespace max-func-body-length
+// tslint:disable:no-multiline-string no-trailing-whitespace max-func-body-length no-any
 suite('Terminal - Code Execution Manager', () => {
     let executionManager: ICodeExecutionManager;
     let workspace: TypeMoq.IMock<IWorkspaceService>;
@@ -59,9 +59,7 @@ suite('Terminal - Code Execution Manager', () => {
 
     test('Ensure executeFileInterTerminal will do nothing if no file is avialble', async () => {
         let commandHandler: undefined | (() => Promise<void>);
-        // tslint:disable-next-line:no-any
         commandManager.setup(c => c.registerCommand as any).returns(() => {
-            // tslint:disable-next-line:no-any
             return (command: string, callback: (...args: any[]) => any, _thisArg?: any) => {
                 if (command === Commands.Exec_In_Terminal) {
                     commandHandler = callback;
@@ -82,9 +80,7 @@ suite('Terminal - Code Execution Manager', () => {
 
     test('Ensure executeFileInterTerminal will use provided file', async () => {
         let commandHandler: undefined | ((file: Uri) => Promise<void>);
-        // tslint:disable-next-line:no-any
         commandManager.setup(c => c.registerCommand as any).returns(() => {
-            // tslint:disable-next-line:no-any
             return (command: string, callback: (...args: any[]) => any, _thisArg?: any) => {
                 if (command === Commands.Exec_In_Terminal) {
                     commandHandler = callback;
@@ -110,9 +106,7 @@ suite('Terminal - Code Execution Manager', () => {
 
     test('Ensure executeFileInterTerminal will use active file', async () => {
         let commandHandler: undefined | ((file: Uri) => Promise<void>);
-        // tslint:disable-next-line:no-any
         commandManager.setup(c => c.registerCommand as any).returns(() => {
-            // tslint:disable-next-line:no-any
             return (command: string, callback: (...args: any[]) => any, _thisArg?: any) => {
                 if (command === Commands.Exec_In_Terminal) {
                     commandHandler = callback;
@@ -137,9 +131,7 @@ suite('Terminal - Code Execution Manager', () => {
 
     async function testExecutionOfSelectionWithoutAnyActiveDocument(commandId: string, executionSericeId: string) {
         let commandHandler: undefined | (() => Promise<void>);
-        // tslint:disable-next-line:no-any
         commandManager.setup(c => c.registerCommand as any).returns(() => {
-            // tslint:disable-next-line:no-any
             return (command: string, callback: (...args: any[]) => any, _thisArg?: any) => {
                 if (command === commandId) {
                     commandHandler = callback;
@@ -171,9 +163,7 @@ suite('Terminal - Code Execution Manager', () => {
 
     async function testExecutionOfSlectionWithoutAnythingSelected(commandId: string, executionServiceId: string) {
         let commandHandler: undefined | (() => Promise<void>);
-        // tslint:disable-next-line:no-any
         commandManager.setup(c => c.registerCommand as any).returns(() => {
-            // tslint:disable-next-line:no-any
             return (command: string, callback: (...args: any[]) => any, _thisArg?: any) => {
                 if (command === commandId) {
                     commandHandler = callback;
@@ -190,7 +180,6 @@ suite('Terminal - Code Execution Manager', () => {
         helper.setup(h => h.getSelectedTextToExecute).returns(() => () => Promise.resolve(''));
         const executionService = TypeMoq.Mock.ofType<ICodeExecutionService>();
         serviceContainer.setup(s => s.get(TypeMoq.It.isValue(ICodeExecutionService), TypeMoq.It.isValue(executionServiceId))).returns(() => executionService.object);
-        // tslint:disable-next-line:no-any
         documentManager.setup(d => d.activeTextEditor).returns(() => { return {} as any; });
 
         await commandHandler!();
@@ -207,9 +196,7 @@ suite('Terminal - Code Execution Manager', () => {
 
     async function testExecutionOfSelectionIsSentToTerminal(commandId: string, executionServiceId: string) {
         let commandHandler: undefined | (() => Promise<void>);
-        // tslint:disable-next-line:no-any
         commandManager.setup(c => c.registerCommand as any).returns(() => {
-            // tslint:disable-next-line:no-any
             return (command: string, callback: (...args: any[]) => any, _thisArg?: any) => {
                 if (command === commandId) {
                     commandHandler = callback;
