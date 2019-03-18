@@ -604,11 +604,11 @@ suite('Unit Tests Test Explorer TestTreeViewProvider', () => {
             let tests = await testTreeProvider.getChildren(testWorkspaceFolder);
 
             expect(tests).to.be.lengthOf(0);
-            verify(commandManager.executeCommand(Commands.Tests_Discover, testWorkspaceFolder, CommandSource.testExplorer)).once();
+            verify(commandManager.executeCommand(Commands.Tests_Discover, testWorkspaceFolder, CommandSource.testExplorer, undefined)).once();
 
             tests = await testTreeProvider.getChildren(testWorkspaceFolder);
             expect(tests).to.be.lengthOf(0);
-            verify(commandManager.executeCommand(Commands.Tests_Discover, testWorkspaceFolder, CommandSource.testExplorer)).once();
+            verify(commandManager.executeCommand(Commands.Tests_Discover, testWorkspaceFolder, CommandSource.testExplorer, undefined)).once();
         });
     });
 });
