@@ -26,7 +26,7 @@ import { sleep } from '../../core';
 
 // tslint:disable:no-unnecessary-override no-any chai-vague-errors no-unused-expression max-func-body-length
 
-suite('Language Server - Analysis Options', () => {
+suite('xLanguage Server - Analysis Options', () => {
     class TestClass extends LanguageServerAnalysisOptions {
         public getExcludedFiles(): string[] {
             return super.getExcludedFiles();
@@ -206,53 +206,83 @@ suite('Language Server - Analysis Options', () => {
 
         expect(settingsChangedInvokedCount).to.be.equal(1);
     });
-    [true, false].forEach(hasInterpreterSearchPaths => {
-        [true, false].forEach(hasAutocompleteExtraPaths => {
-            [true, false].forEach(hasPYTHONPATHInEnvVars => {
-                const hasInterpreterSearchPathsTitle = hasInterpreterSearchPaths ? 'Has Interpreter SearchPaths' : 'No Interpreter SearchPaths';
-                const hasAutocompleteExtraPathsTitle = hasAutocompleteExtraPaths ? 'Has Autocomplete ExtraPaths' : 'No Autocomplete ExtraPaths';
-                const hasPYTHONPATHInEnvVarsTitle = hasPYTHONPATHInEnvVars ? 'Has PYTHONPATH in envVars' : 'No PYTHONPATH in envVars';
-                const titleSuffix = [hasInterpreterSearchPathsTitle, hasAutocompleteExtraPathsTitle, hasPYTHONPATHInEnvVarsTitle].join(', ');
+    [
+        { hasInterpreterSearchPaths: true, hasAutocompleteExtraPaths: true },
+        { hasInterpreterSearchPaths: true, hasAutocompleteExtraPaths: false },
+        { hasInterpreterSearchPaths: false, hasAutocompleteExtraPaths: true },
+        { hasInterpreterSearchPaths: false, hasAutocompleteExtraPaths: false }
+    ].forEach(item => {
+        const hasInterpreterSearchPaths = item.hasInterpreterSearchPaths;
+        const hasAutocompleteExtraPaths = item.hasAutocompleteExtraPaths;
+        const hasInterpreterSearchPathsTitle = hasInterpreterSearchPaths ? 'Has Interpreter SearchPaths' : 'No Interpreter SearchPaths';
+        const hasAutocompleteExtraPathsTitle = hasAutocompleteExtraPaths ? 'Has Autocomplete ExtraPaths' : 'No Autocomplete ExtraPaths';
+        const titleSuffix = [hasInterpreterSearchPathsTitle, hasAutocompleteExtraPathsTitle].join(', ');
 
-                test(`Get search paths ${titleSuffix}`, async () => {
-                    const interpreterData: InterpreterData = {
-                        dataVersion: 0,
-                        hash: '',
-                        path: '',
-                        searchPaths: hasInterpreterSearchPaths ? ['one', 'two', 'three'].join(path.delimiter) : '',
-                        version: ''
-                    };
-                    const extraPaths = hasAutocompleteExtraPaths ? ['extra1', 'extra2'] : [];
-                    pythonSettings = mock(PythonSettings);
-                    const envVariables: EnvironmentVariables = {};
-                    if (hasPYTHONPATHInEnvVars) {
-                        envVariables['PYTHONPATH'] = ['some python path1', 'some python path 2'].join(path.delimiter);
-                    }
+        test(`Get search paths ${titleSuffix} & Has PYTHONPATH in envVars`, async () => {
+            const interpreterData: InterpreterData = {
+                dataVersion: 0,
+                hash: '',
+                path: '',
+                searchPaths: hasInterpreterSearchPaths ? ['one', 'two', 'three'].join(path.delimiter) : '',
+                version: ''
+            };
+            const extraPaths = hasAutocompleteExtraPaths ? ['extra1', 'extra2'] : [];
+            pythonSettings = mock(PythonSettings);
+            const envVariables: EnvironmentVariables = {};
+            envVariables['PYTHONPATH'] = ['some python path1', 'some python path 2'].join(path.delimiter);
 
-                    when(pathUtils.delimiter).thenReturn(path.delimiter);
-                    when(configurationService.getSettings(anything())).thenReturn(instance(pythonSettings));
-                    when(pythonSettings.autoComplete).thenReturn({ extraPaths } as any);
-                    when(envVarsProvider.getEnvironmentVariables(anything())).thenResolve(envVariables);
+            when(pathUtils.delimiter).thenReturn(path.delimiter);
+            when(configurationService.getSettings(anything())).thenReturn(instance(pythonSettings));
+            when(pythonSettings.autoComplete).thenReturn({ extraPaths } as any);
+            when(envVarsProvider.getEnvironmentVariables(anything())).thenResolve(envVariables);
 
-                    const expectedPaths: string[] = [];
-                    if (hasInterpreterSearchPaths) {
-                        expectedPaths.push(...interpreterData.searchPaths.split(path.delimiter));
-                    } else {
-                        expectedPaths.push('.');
-                    }
-                    if (hasAutocompleteExtraPaths) {
-                        expectedPaths.push(...extraPaths);
-                    }
-                    if (hasPYTHONPATHInEnvVars) {
-                        expectedPaths.push(...envVariables['PYTHONPATH']!.split(path.delimiter));
-                    }
-                    expectedPaths.push('Hello World');
+            const expectedPaths: string[] = [];
+            if (hasInterpreterSearchPaths) {
+                expectedPaths.push(...interpreterData.searchPaths.split(path.delimiter));
+            } else {
+                expectedPaths.push('.');
+            }
+            if (hasAutocompleteExtraPaths) {
+                expectedPaths.push(...extraPaths);
+            }
+            expectedPaths.push(...envVariables['PYTHONPATH']!.split(path.delimiter));
+            expectedPaths.push('Hello World');
 
-                    const paths = await analysisOptions.getSearchPaths('Hello World', interpreterData);
+            const paths = await analysisOptions.getSearchPaths('Hello World', interpreterData);
 
-                    expect(paths).to.deep.equal(expectedPaths);
-                });
-            });
+            expect(paths).to.deep.equal(expectedPaths);
+        });
+        test(`Get search paths ${titleSuffix} & No PYTHONPATH in envVars`, async () => {
+            const interpreterData: InterpreterData = {
+                dataVersion: 0,
+                hash: '',
+                path: '',
+                searchPaths: hasInterpreterSearchPaths ? ['one', 'two', 'three'].join(path.delimiter) : '',
+                version: ''
+            };
+            const extraPaths = hasAutocompleteExtraPaths ? ['extra1', 'extra2'] : [];
+            pythonSettings = mock(PythonSettings);
+            const envVariables: EnvironmentVariables = {};
+
+            when(pathUtils.delimiter).thenReturn(path.delimiter);
+            when(configurationService.getSettings(anything())).thenReturn(instance(pythonSettings));
+            when(pythonSettings.autoComplete).thenReturn({ extraPaths } as any);
+            when(envVarsProvider.getEnvironmentVariables(anything())).thenResolve(envVariables);
+
+            const expectedPaths: string[] = [];
+            if (hasInterpreterSearchPaths) {
+                expectedPaths.push(...interpreterData.searchPaths.split(path.delimiter));
+            } else {
+                expectedPaths.push('.');
+            }
+            if (hasAutocompleteExtraPaths) {
+                expectedPaths.push(...extraPaths);
+            }
+            expectedPaths.push('Hello World');
+
+            const paths = await analysisOptions.getSearchPaths('Hello World', interpreterData);
+
+            expect(paths).to.deep.equal(expectedPaths);
         });
     });
 });
