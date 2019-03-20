@@ -5,9 +5,9 @@ Assuming you have created a virtual environment (for Python 3.7),
 installed the `requirements.txt` dependencies, and activated the virtual environment:
 
 ```shell
-$ python smokeTests download
-$ python smokeTests install
-$ python smokeTests test
+$ python uitests download
+$ python uitests install
+$ python uitests test
 ```
 
 ## Overview
@@ -87,16 +87,14 @@ Here are the steps involved in running the tests:
     * `insiders`        Loaction where insiders version of VSC is downloaded and stored.
     * `user`            Loaction where user information related to VSC is stored.
     * `workspace folder`Workspace folder opened in VSC (this is where files used for smoke tests will be stored).
-* `smokeTests/tests/bootstrap`  This is where the source for the bootstrap extension is stored.
-* `smokeTests/tests/features`   Location where all `BDD features` are stored.
-* `smokeTests/tests/steps`      Location where all `BDD steps` are defined.
-* `smokeTests/tests/js`         Location with helper `js` files (download chrome driver and generate html reports).
-* `smokeTests/tests/vscode`     Contains all modules related to `vscode` (driving the UI, downloading, starting, etc).
+* `uitests/tests/bootstrap`  This is where the source for the bootstrap extension is stored.
+* `uitests/tests/features`   Location where all `BDD features` are stored.
+* `uitests/tests/steps`      Location where all `BDD steps` are defined.
+* `uitests/tests/js`         Location with helper `js` files (download chrome driver and generate html reports).
+* `uitests/tests/vscode`     Contains all modules related to `vscode` (driving the UI, downloading, starting, etc).
 * `environment.py`              `enviroyment` file for `Behave`.
 
 
 ## Miscellaneous
 * Use the debug configuration `Behave Smoke Tests` for debugging.
-* In order to pass custom arguments to `Behave`, refer to the `CLI` (pass `behave` specific args after `--` in `python smokeTests test`).
-
-
+* In order to pass custom arguments to `Behave`, refer to the `CLI` (pass `behave` specific args after `--` in `python uitests test`).

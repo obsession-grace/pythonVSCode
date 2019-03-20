@@ -173,7 +173,7 @@
             "name": "Behave Smoke Tests",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/smokeTests/__main__.py",
+            "program": "${workspaceFolder}/uitests/__main__.py",
             "args": [
                 "test"
             ],

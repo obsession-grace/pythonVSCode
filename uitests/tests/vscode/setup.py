@@ -26,7 +26,7 @@ class Context:
 
 def start(options):
     tools.empty_directory(options.workspace_folder)
-    settings = {"python.pythonPath": sys.executable}
+    settings = {"python.pythonPath": options.python_path}
     setup_user_settings(options.user_dir, user_settings=settings)
     app_context = start_vscode(options)
     extension.activate_python_extension(app_context)

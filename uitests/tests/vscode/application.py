@@ -7,6 +7,7 @@ import os
 import shutil
 import tempfile
 import traceback
+import sys
 
 from selenium import webdriver
 
@@ -27,6 +28,9 @@ class Options:
     screenshots_dir: str
     embed_screenshots: bool
     output: str
+    python_path: str
+    python_type: str
+    python_version: str
 
 
 def get_options(
@@ -35,6 +39,9 @@ def get_options(
     embed_screenshots=True,
     output="file",
     channel="stable",
+    python_path=sys.executable,
+    python_type=None,
+    python_version=f"{sys.version_info[0]}.{sys.version_info[1]}",
 ):
     destination = os.path.abspath(destination)
     options = Options(
@@ -47,6 +54,9 @@ def get_options(
         os.path.join(destination, "screenshots"),
         embed_screenshots,
         output,
+        python_path,
+        python_type,
+        python_version,
     )
     os.makedirs(options.extensions_dir, exist_ok=True)
     os.makedirs(options.user_dir, exist_ok=True)

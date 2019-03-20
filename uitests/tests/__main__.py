@@ -5,11 +5,11 @@
 """PVSC Smoke Tests.
 
 Usage:
-  smokeTest download [options]
-  smokeTest install [options]
-  smokeTest launch [options]
-  smokeTest test [options] [--] [<behave-options> ...]
-  smokeTest (-h | --help)
+  uitests download [options]
+  uitests install [options]
+  uitests launch [options]
+  uitests test [options] --python-path=PATH [--] [<behave-options> ...]
+  uitests (-h | --help)
 
 Options:
   -h --help             Show this screen.
@@ -20,6 +20,7 @@ Options:
   --out=OUTPUT          Output for test results (console or file) [default: file].
   --embed-screenshots   Whether to embed screenshots (applicable only when using --out=file).
   --log=LEVEL           Log Level [default: INFO].
+  --config=PATH         Path to the config file [default: uitests/tests/config.json]
 
 """
 import logging
@@ -27,6 +28,7 @@ import os
 import os.path
 import time
 import pathlib
+import json
 
 from behave import __main__
 from docopt import docopt
@@ -93,7 +95,7 @@ def test(
             f"vsix={vsix}",
             "--define",
             f"output={out}",
-            os.path.abspath("smokeTests/tests"),
+            os.path.abspath("uitests/tests"),
         ]
         + behave_options
     )
@@ -104,7 +106,13 @@ def test(
 
 if __name__ == "__main__":
     arguments = docopt(__doc__, version="1.0")
+    with open(os.path.abspath(arguments.get("--config")), "r") as file:
+        config_options = json.load(file)
     behave_options = arguments.get("<behave-options>")
+    arguments = dict(
+        (str(key), arguments.get(key) or config_options.get(key))
+        for key in set(config_options) | set(arguments)
+    )
     options = {
         key[2:]: value for (key, value) in arguments.items() if key.startswith("--")
     }
