@@ -7,10 +7,10 @@ import tests
 
 
 @behave.given('the command "{command}" is selected')
-def given_command_selected(context, command: str):
+def given_command_selected(context, command):
     tests.vscode.quick_open.select_command(context, command)
 
 
 @behave.when('I select the command "{command}"')
-def when_select_command(context, command: str):
+def when_select_command(context, command):
     tests.vscode.quick_open.select_command(context, command)

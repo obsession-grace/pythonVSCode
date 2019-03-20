@@ -38,7 +38,6 @@ def start_vscode(options):
     application.setup_environment(options)
     driver = application.launch_extension(options)
     context = Context(options, driver)
-    # context = {"options": options, "driver": driver}
     # Wait for sometime, until some messages appear.
     time.sleep(2)
 
@@ -66,15 +65,22 @@ def reset_workspace(context):
     quick_open.select_command(context, "View: Close Panel")
     quick_open.select_command(context, "Notifications: Clear All Notifications")
 
+    workspace_folder = context.options.workspace_folder
+    if getattr(context, "workspace_repo", None) is None:
+        tools.empty_directory(workspace_folder)
+    else:
+        logging.info(f"Resetting workspace folder")
+        tools.run_command(["git", "reset", "--hard"], cwd=workspace_folder, silent=True)
+        tools.run_command(["git", "clean", "-fd"], cwd=workspace_folder, silent=True)
+
+    settings_json = os.path.join(workspace_folder, ".vscode", "settings.json")
+    _ensure_setttings_json(settings_json)
+
 
 def setup_workspace(source_repo, target, temp_folder):
-    logging.info(f"Setting up workspace folder as {target}")
     logging.info(f"Setting up workspace folder from {source_repo}")
     tools.empty_directory(target)
-    source_folder = os.path.join(temp_folder, os.path.basename(source_repo))
-    logging.info(f"Cloning repo into {source_folder}")
-    _download_repo(source_repo, source_folder)
-    tools.copy_recursive(source_folder, target)
+    tools.run_command(["git", "clone", source_repo, "."], cwd=target, silent=True)
     settings_json = os.path.join(target, ".vscode", "settings.json")
     _ensure_setttings_json(settings_json)
 
@@ -87,12 +93,6 @@ def setup_user_settings(user_folder, **kwargs):
     user_settings = kwargs.get("user_settings", None)
     if user_settings is not None:
         _update_settings(settings_json, user_settings)
-
-
-def _download_repo(source_repo, target):
-    if os.path.exists(target):
-        return
-    tools.run_command(["git", "clone", source_repo, target])
 
 
 def _ensure_setttings_json(settings_json):

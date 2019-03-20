@@ -97,6 +97,7 @@ def test(
         ]
         + behave_options
     )
+    # Change directory for behave to work correctly.
     os.chdir(pathlib.Path(__file__).parent)
     __main__.main(args)
 

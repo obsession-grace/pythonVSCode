@@ -18,7 +18,7 @@ def after_all(context):
 
 
 def before_feature(context, feature):
-    repo = [tag for tag in feature.tags if tag.startswith("https://")]
+    repo = [tag for tag in feature.tags if tag.startswith("https://github.com/")]
     tests.tools.empty_directory(context.options.workspace_folder)
     if repo:
         context.workspace_repo = repo[0]
@@ -31,14 +31,13 @@ def before_feature(context, feature):
 
 def before_scenario(context, feature):
     context.options = tests.vscode.application.get_options(**context.config.userdata)
-    tests.tools.empty_directory(context.options.workspace_folder)
-    tests.vscode.setup.reset_workspace(context)
 
 
 def after_scenario(context, feature):
     if feature.exception is not None:
         tests.vscode.application.capture_screen(context)
     tests.vscode.notifications.clear(context)
+    tests.vscode.setup.reset_workspace(context)
 
 
 def after_step(context, step):
