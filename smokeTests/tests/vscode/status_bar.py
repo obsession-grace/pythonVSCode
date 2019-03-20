@@ -28,8 +28,4 @@ def wait_for_python_statusbar(context, parts: List[str] = []):
                 return [element]
         return []
 
-    item = core.wait_for_elements(context.driver, selector, find)
-    if item is None:
-        breakpoint()
-    return item[0]
-    # return core.wait_for_elements(context.driver, selector, find)[0]
+    return core.wait_for_elements(context.driver, selector, find)[0]

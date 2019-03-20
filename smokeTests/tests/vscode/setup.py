@@ -3,8 +3,10 @@
 
 
 import json
+import logging
 import os
 import os.path
+import pathlib
 import sys
 import time
 
@@ -27,12 +29,12 @@ def start(options):
     settings = {"python.pythonPath": sys.executable}
     setup_user_settings(options.user_dir, user_settings=settings)
     app_context = start_vscode(options)
-    extension.load_python_extension(app_context)
+    extension.activate_python_extension(app_context)
     return app_context
 
 
 def start_vscode(options):
-    print("Starting application")
+    logging.info("Starting application")
     application.setup_environment(options)
     driver = application.launch_extension(options)
     context = Context(options, driver)
@@ -49,14 +51,14 @@ def start_vscode(options):
     quick_open.select_command(context, "View: Revert and Close Editor")
     quick_open.select_command(context, "View: Revert and Close Editor")
     quick_open.select_command(context, "View: Revert and Close Editor")
-    clear_code(context)
+    reset_workspace(context)
     # Do this last, some popups open a few seconds after opening VSC.
     quick_open.select_command(context, "Notifications: Clear All Notifications")
 
     return context
 
 
-def clear_code(context):
+def reset_workspace(context):
     quick_open.select_command(context, "View: Revert and Close Editor")
     quick_open.select_command(context, "Terminal: Kill the Active Terminal Instance")
     quick_open.select_command(context, "Debug: Remove All Breakpoints")
@@ -66,22 +68,22 @@ def clear_code(context):
 
 
 def setup_workspace(source_repo, target, temp_folder):
-    print(f"Setting up workspace folder as {target}")
-    print(f"Setting up workspace folder from {source_repo}")
+    logging.info(f"Setting up workspace folder as {target}")
+    logging.info(f"Setting up workspace folder from {source_repo}")
     tools.empty_directory(target)
     source_folder = os.path.join(temp_folder, os.path.basename(source_repo))
-    print(f"Closing repo into {source_folder}")
+    logging.info(f"Cloning repo into {source_folder}")
     _download_repo(source_repo, source_folder)
     tools.copy_recursive(source_folder, target)
     settings_json = os.path.join(target, ".vscode", "settings.json")
-    _setup_setttings_json(settings_json)
+    _ensure_setttings_json(settings_json)
 
 
 def setup_user_settings(user_folder, **kwargs):
     folder = os.path.join(user_folder, "User")
     os.makedirs(folder, exist_ok=True)
     settings_json = os.path.join(folder, "settings.json")
-    _setup_setttings_json(settings_json)
+    _ensure_setttings_json(settings_json)
     user_settings = kwargs.get("user_settings", None)
     if user_settings is not None:
         _update_settings(settings_json, user_settings)
@@ -93,7 +95,8 @@ def _download_repo(source_repo, target):
     tools.run_command(["git", "clone", source_repo, target])
 
 
-def _setup_setttings_json(settings_json):
+def _ensure_setttings_json(settings_json):
+    os.makedirs(pathlib.Path(settings_json).parent, exist_ok=True)
     if os.path.exists(settings_json):
         return
     with open(settings_json, "w") as file:

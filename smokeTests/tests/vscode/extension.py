@@ -5,7 +5,7 @@
 from . import documents, notifications, quick_open, status_bar
 
 
-def load_python_extension(context):
+def activate_python_extension(context):
     documents.create_new_untitled_file(context, "Python")
     last_error = None
     for _ in range(5):

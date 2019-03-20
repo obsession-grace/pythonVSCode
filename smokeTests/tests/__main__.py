@@ -5,10 +5,10 @@
 """PVSC Smoke Tests.
 
 Usage:
-  smokeTest download [--destination=PATH] [--channel=CHANNEL]
-  smokeTest install [--destination=PATH] [--vsix=VSIX] [--channel=CHANNEL]
-  smokeTest launch [--destination=PATH] [--vsix=VSIX] [--channel=CHANNEL]
-  smokeTest test [--embed-screenshots] [--out=OUTPUT] [--destination=PATH] [--vsix=VSIX] [--channel=CHANNEL] [--] [<behave-options> ...]
+  smokeTest download [options]
+  smokeTest install [options]
+  smokeTest launch [options]
+  smokeTest test [options] [--] [<behave-options> ...]
   smokeTest (-h | --help)
 
 Options:
@@ -17,14 +17,16 @@ Options:
   --destination=PATH    Path for smoke tests [default: .vscode-test].
   --channel=CHANNEL     Defines the channel for VSC (stable or insiders) [default: stable].
   --vsix=VSIX           Path to VSIX [default: ms-python-insiders.vsix].
-  --out=OUTPUT          Output for results (console or file) [default: file].
+  --out=OUTPUT          Output for test results (console or file) [default: file].
   --embed-screenshots   Whether to embed screenshots (applicable only when using --out=file).
+  --log=LEVEL           Log Level [default: INFO].
 
 """
+import logging
 import os
 import os.path
-import sys
 import time
+import pathlib
 
 from behave import __main__
 from docopt import docopt
@@ -62,8 +64,6 @@ def test(
 ):
     """Start the smoke tests"""
     destination = os.path.abspath(destination)
-    print("destination")
-    print(destination)
     vsix = os.path.abspath(vsix)
     report_args = [
         "-f",
@@ -97,16 +97,7 @@ def test(
         ]
         + behave_options
     )
-    import sys
-
-    # import os
-    import pathlib
-
-    print(os.getcwd())
     os.chdir(pathlib.Path(__file__).parent)
-    print(os.getcwd())
-    print('args')
-    print(args)
     __main__.main(args)
 
 
@@ -116,6 +107,13 @@ if __name__ == "__main__":
     options = {
         key[2:]: value for (key, value) in arguments.items() if key.startswith("--")
     }
+    log = arguments.get("--log")
+    log_level = getattr(logging, log.upper())
+    if log_level == logging.INFO:
+        logging.basicConfig(level=log_level, format="%(message)s")
+    else:
+        logging.basicConfig(level=log_level)
+
     options.setdefault("behave_options", behave_options)
     if arguments.get("download"):
         download(**options)

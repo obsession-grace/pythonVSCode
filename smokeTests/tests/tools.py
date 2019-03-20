@@ -2,6 +2,7 @@
 # Licensed under the MIT License.
 
 
+import logging
 import os
 import os.path
 import shutil
@@ -17,7 +18,7 @@ def run_command(command, cwd=None, silent=False, progress_message=None, env=None
     - Display a progress message."""
 
     if progress_message is not None:
-        print(progress_message)
+        logging.info(progress_message)
     executable = shutil.which(command[0])
     command[0] = executable
     stdout = subprocess.PIPE if silent else None

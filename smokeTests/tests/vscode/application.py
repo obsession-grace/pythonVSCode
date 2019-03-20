@@ -36,10 +36,7 @@ def get_options(
     output="file",
     channel="stable",
 ):
-    print("vscode_directory")
-    print(destination)
-    print("vscode_directory")
-    vscode_directory = os.path.abspath(destination)
+    destination = os.path.abspath(destination)
     options = Options(
         os.path.join(destination, channel),
         os.path.join(destination, "user"),
@@ -61,7 +58,6 @@ def get_options(
 
 def setup_environment(dirs):
     os.environ["PATH"] += os.pathsep + dirs.executable_dir
-    print(os.environ["PATH"])
 
 
 def uninstall_extension(options):
@@ -78,7 +74,6 @@ def install_extension(options):
         f"--extensions-dir={options.extensions_dir}",
         f"--install-extension={options.extension_path}",
     ]
-    print(options)
     tools.run_command(command, progress_message="Installing Python Extension", env=env)
 
     bootstrap_extension = bootstrap.main.get_extension_path()

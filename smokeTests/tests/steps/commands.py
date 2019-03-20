@@ -8,7 +8,7 @@ import tests
 
 @behave.given('the command "{command}" is selected')
 def given_command_selected(context, command: str):
-    tests.wow.vscode.quick_open.select_command(context, command)
+    tests.vscode.quick_open.select_command(context, command)
 
 
 @behave.when('I select the command "{command}"')
