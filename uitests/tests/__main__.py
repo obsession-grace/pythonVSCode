@@ -8,7 +8,7 @@ Usage:
   uitests download [options]
   uitests install [options]
   uitests launch [options]
-  uitests test [options] --python-path=PATH [--] [<behave-options> ...]
+  uitests test [options] [--] [<behave-options> ...]
   uitests (-h | --help)
 
 Options:
@@ -23,12 +23,12 @@ Options:
   --config=PATH         Path to the config file [default: uitests/tests/config.json]
 
 """
+import json
 import logging
 import os
 import os.path
-import time
 import pathlib
-import json
+import time
 
 from behave import __main__
 from docopt import docopt
@@ -122,11 +122,12 @@ if __name__ == "__main__":
         logging.basicConfig(level=log_level, format="%(message)s")
     else:
         logging.basicConfig(level=log_level)
-
     options.setdefault("behave_options", behave_options)
     if arguments.get("download"):
         download(**options)
     if arguments.get("install"):
         install(**options)
+    if arguments.get("launch"):
+        launch(**options)
     if arguments.get("test"):
         test(**options)
