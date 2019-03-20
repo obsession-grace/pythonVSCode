@@ -21,9 +21,11 @@ def run_command(command, cwd=None, silent=False, progress_message=None, env=None
         logging.info(progress_message)
     executable = shutil.which(command[0])
     command[0] = executable
-    stdout = subprocess.PIPE if silent else None
 
-    proc = subprocess.run(command, cwd=cwd, stdout=stdout, shell=False, env=env)
+    out = subprocess.PIPE if silent else None
+    proc = subprocess.run(
+        command, cwd=cwd, shell=False, env=env, stdout=out, stderr=out
+    )
     proc.check_returncode()
     # Note, we'll need some output to tell CI servers that process is still active.
     # if progress_message:

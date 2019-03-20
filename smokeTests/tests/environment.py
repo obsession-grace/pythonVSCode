@@ -43,4 +43,3 @@ def after_scenario(context, feature):
 def after_step(context, step):
     if step.exception is not None:
         tests.vscode.application.capture_screen(context)
-    print("Hello")

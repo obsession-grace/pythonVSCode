@@ -10,12 +10,12 @@ import tests
 
 
 @behave.when("I wait for {seconds:n} seconds")
-def sleep(context, seconds):
+def when_sleep(context, seconds):
     time.sleep(seconds)
 
 
 @behave.then("wait for {seconds:n} seconds")
-def sleep(context, seconds):
+def then_sleep(context, seconds):
     time.sleep(seconds)
 
 

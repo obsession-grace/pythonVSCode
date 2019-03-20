@@ -69,7 +69,7 @@ def reset_workspace(context):
     if getattr(context, "workspace_repo", None) is None:
         tools.empty_directory(workspace_folder)
     else:
-        logging.info(f"Resetting workspace folder")
+        logging.debug(f"Resetting workspace folder")
         tools.run_command(["git", "reset", "--hard"], cwd=workspace_folder, silent=True)
         tools.run_command(["git", "clean", "-fd"], cwd=workspace_folder, silent=True)
 
@@ -78,7 +78,7 @@ def reset_workspace(context):
 
 
 def setup_workspace(source_repo, target, temp_folder):
-    logging.info(f"Setting up workspace folder from {source_repo}")
+    logging.debug(f"Setting up workspace folder from {source_repo}")
     tools.empty_directory(target)
     tools.run_command(["git", "clone", source_repo, "."], cwd=target, silent=True)
     settings_json = os.path.join(target, ".vscode", "settings.json")
