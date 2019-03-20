@@ -81,7 +81,7 @@ suite('Unit Tests - pytest - discovery with mocked process output', () => {
     async function injectTestDiscoveryOutput(output: string) {
         const procService = await ioc.serviceContainer.get<IProcessServiceFactory>(IProcessServiceFactory).create() as MockProcessService;
         procService.onExec((_file, args, _options, callback) => {
-            if (args.indexOf('discover') >= 0 && args.indexOf('pytests') >= 0) {
+            if (args.indexOf('discover') >= 0 && args.indexOf('pytest') >= 0) {
                 callback({
                     stdout: output
                 });
