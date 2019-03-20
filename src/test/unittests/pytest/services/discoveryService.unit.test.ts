@@ -102,7 +102,7 @@ suite('Unit Tests - PyTest - Discovery', () => {
         };
 
         const filteredArgs = options.args;
-        const expectedArgs = ['--collect-only', '-s', ...filteredArgs];
+        const expectedArgs = ['-s', ...filteredArgs];
         when(argsService.filterArguments(deepEqual(options.args), TestFilter.discovery)).thenReturn(filteredArgs);
 
         const args = discoveryService.buildTestCollectionArgs(options);
@@ -121,7 +121,7 @@ suite('Unit Tests - PyTest - Discovery', () => {
         };
 
         const filteredArgs = options.args;
-        const expectedArgs = ['--collect-only', '-s', ...filteredArgs];
+        const expectedArgs = ['-s', ...filteredArgs];
         when(argsService.filterArguments(deepEqual(options.args), TestFilter.discovery)).thenReturn(filteredArgs);
 
         const args = discoveryService.buildTestCollectionArgs(options);
@@ -140,7 +140,7 @@ suite('Unit Tests - PyTest - Discovery', () => {
         };
 
         const filteredArgs = options.args;
-        const expectedArgs = ['--collect-only', '-s', '--cache-clear', ...filteredArgs];
+        const expectedArgs = ['-s', '--cache-clear', ...filteredArgs];
         when(argsService.filterArguments(deepEqual(options.args), TestFilter.discovery)).thenReturn(filteredArgs);
 
         const args = discoveryService.buildTestCollectionArgs(options);

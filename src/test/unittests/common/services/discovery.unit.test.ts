@@ -27,7 +27,7 @@ suite('Unit Tests - Common Discovery', () => {
         parser = mock(TestDiscoveredTestParser);
         discovery = new TestsDiscoveryService(instance(executionFactory), instance(parser));
     });
-    test('Use parser to parser results', async () => {
+    test('Use parser to parse results', async () => {
         const options: TestDiscoveryOptions = {
             args: [], cwd: __dirname, workspaceFolder: Uri.file(__dirname),
             ignoreCache: false, token: new CancellationTokenSource().token,

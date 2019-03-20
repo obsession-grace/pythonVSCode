@@ -271,12 +271,6 @@ function createParameterizedTestFunction(root: TestFolder, item: TestContainer):
     return {
         asSuite: suite, name: item.name, nameToRun: item.id, time: 0
     };
-    // const fn: TestFunction = {
-    //     name: item.name, nameToRun: item.id, resource: root.resource,
-    //     time: 0, subtestParent: subtestParent
-    // };
-    // suite.functions.push(fn);
-    // return subtestParent;
 }
 function createTestFunction(root: TestFolder, item: TestItem): TestFunction {
     return {

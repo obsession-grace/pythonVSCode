@@ -48,7 +48,6 @@ export class TestDiscoveryService implements ITestDiscoveryService {
         if (args.indexOf('-s') === -1) {
             args.splice(0, 0, '-s');
         }
-        args.splice(0, 0, '--collect-only');
         return args;
     }
     protected async discoverTestsInTestDirectory(options: TestDiscoveryOptions): Promise<Tests> {
