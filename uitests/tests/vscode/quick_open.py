@@ -16,18 +16,18 @@ QUICK_OPEN_ENTRY_SELECTOR = 'div[aria-label="Quick Picker"] .monaco-tree-rows.sh
 QUICK_OPEN_ENTRY_LABEL_SELECTOR = 'div[aria-label="Quick Picker"] .monaco-tree-rows.show-twisties .monaco-tree-row .quick-open-entry .label-name'  # noqa
 
 
-def select_command(context, command: str, **kwargs):
+def select_command(context, command, **kwargs):
     element = _open(context, command, **kwargs)
     core.dispatch_keys(context.driver, Keys.ENTER, element=element)
 
 
-def select_value(context, value: str, **kwargs):
+def select_value(context, value, **kwargs):
     element = _wait_until_opened(context, 5)
     core.dispatch_keys(context.driver, value, element=element)
     core.dispatch_keys(context.driver, Keys.ENTER, element=element)
 
 
-def wait_until_selected(context, value: str, **kwargs):
+def wait_until_selected(context, value, **kwargs):
     def find(eles):
         try:
             return [eles[0]] if eles[0].text == value else []
@@ -39,7 +39,7 @@ def wait_until_selected(context, value: str, **kwargs):
     )
 
 
-def _open(context, value: str, **kwargs):
+def _open(context, value, **kwargs):
     retry = kwargs.get("retry", 5)
     # This is a hack, we cannot send key strokes to the electron app using selenium.
     # So, lets bring up the `Go to line` input window

@@ -9,7 +9,7 @@ def clear(context, **kwargs):
     quick_open.select_command(context, "Notifications: Clear All Notifications")
 
 
-def wait_for_message(context, value: str, **kwargs):
+def wait_for_message(context, value, **kwargs):
     selector = ".notifications-toasts.visible .notifications-list-container .notification-list-item-message"
 
     def find(elements):
@@ -18,7 +18,7 @@ def wait_for_message(context, value: str, **kwargs):
     return core.wait_for_elements(context.driver, selector, find)
 
 
-def wait_for_message_containing(context, value: str, **kwargs):
+def wait_for_message_containing(context, value, **kwargs):
     selector = ".notifications-toasts.visible .notifications-list-container .notification-list-item-message"
 
     def find(elements):

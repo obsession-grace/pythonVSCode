@@ -38,7 +38,7 @@ def _try_and_find(
         raise SystemError(msg)
 
 
-def dispatch_keys(driver, keys: str, element=None):
+def dispatch_keys(driver, keys, element=None):
     element = driver.switch_to.active_element if element is None else element
     element.send_keys(keys)
 
@@ -76,6 +76,7 @@ def wait_for_elements(driver, css_selector, predicate=lambda elements: [], **kwa
         raise exceptions.NoSuchElementException(
             "Predicate returned False in wait_for_elements"
         )
+
     return _try_and_find(find, **kwargs)
 
 

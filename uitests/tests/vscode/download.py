@@ -35,13 +35,13 @@ def _get_latest_version(channel="stable"):
 
 
 def _get_download_url(
-    version: str, download_platform: str, channel: str = "stable"
+    version, download_platform, channel = "stable"
 ) -> str:
     """Get the download url for vs code."""
     return f"https://vscode-update.azurewebsites.net/{version}/{download_platform}/{channel}"  # noqa
 
 
-def _get_electron_version(channel: str = "stable"):
+def _get_electron_version(channel = "stable"):
     if channel == "stable":
         version = _get_latest_version()
         # Assume that VSC tags based on major and minor numbers.
@@ -60,7 +60,7 @@ def _get_electron_version(channel: str = "stable"):
         return match.groups()[0]
 
 
-def download_chrome_driver(download_path: str, channel: str = "stable"):
+def download_chrome_driver(download_path, channel = "stable"):
     """Download chrome driver corresponding to the version of electron.
     Basically check version of chrome released with the version of Electron."""
 
@@ -76,7 +76,7 @@ def download_chrome_driver(download_path: str, channel: str = "stable"):
     )
 
 
-def download_vscode(download_path: str, channel: str = "stable"):
+def download_vscode(download_path, channel = "stable"):
     """Download VS Code"""
 
     download_path = os.path.abspath(download_path)

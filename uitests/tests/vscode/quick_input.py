@@ -10,7 +10,7 @@ QUICK_OPEN_GENERIC = f".quick-input-widget"
 QUICK_OPEN_GENERIC_INPUT = f"{QUICK_OPEN_GENERIC} .quick-input-box input"
 
 
-def select_value(context, value: str, **kwargs):
+def select_value(context, value, **kwargs):
     element = _wait_until_opened(context, 5, is_command=False)
     core.dispatch_keys(context.driver, value, element=element)
     core.dispatch_keys(context.driver, Keys.ENTER, element=element)

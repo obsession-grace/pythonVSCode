@@ -2,19 +2,16 @@
 # Licensed under the MIT License.
 
 
-import json
 import logging
 import os
 import os.path
-import pathlib
-import sys
 import time
 
 from selenium import webdriver
 
 from dataclasses import dataclass
 
-from . import application, extension, quick_open
+from . import application, extension, quick_open, settings
 from .. import tools
 
 
@@ -26,8 +23,8 @@ class Context:
 
 def start(options):
     tools.empty_directory(options.workspace_folder)
-    settings = {"python.pythonPath": options.python_path}
-    setup_user_settings(options.user_dir, user_settings=settings)
+    user_settings = {"python.pythonPath": options.python_path}
+    setup_user_settings(options.user_dir, user_settings=user_settings)
     app_context = start_vscode(options)
     extension.activate_python_extension(app_context)
     return app_context
@@ -74,7 +71,7 @@ def reset_workspace(context):
         tools.run_command(["git", "clean", "-fd"], cwd=workspace_folder, silent=True)
 
     settings_json = os.path.join(workspace_folder, ".vscode", "settings.json")
-    _ensure_setttings_json(settings_json)
+    settings.update_settings(settings_json)
 
 
 def setup_workspace(source_repo, target, temp_folder):
@@ -82,33 +79,13 @@ def setup_workspace(source_repo, target, temp_folder):
     tools.empty_directory(target)
     tools.run_command(["git", "clone", source_repo, "."], cwd=target, silent=True)
     settings_json = os.path.join(target, ".vscode", "settings.json")
-    _ensure_setttings_json(settings_json)
+    settings.update_settings(settings_json)
 
 
 def setup_user_settings(user_folder, **kwargs):
     folder = os.path.join(user_folder, "User")
     os.makedirs(folder, exist_ok=True)
     settings_json = os.path.join(folder, "settings.json")
-    _ensure_setttings_json(settings_json)
     user_settings = kwargs.get("user_settings", None)
     if user_settings is not None:
-        _update_settings(settings_json, user_settings)
-
-
-def _ensure_setttings_json(settings_json):
-    os.makedirs(pathlib.Path(settings_json).parent, exist_ok=True)
-    if os.path.exists(settings_json):
-        return
-    with open(settings_json, "w") as file:
-        file.write("{}")
-
-
-def _update_settings(settings_json, settings):
-    existing_settings = {}
-    if os.path.exists(settings_json):
-        with open(settings_json, "r") as file:
-            existing_settings = json.loads(file.read())
-
-    with open(settings_json, "w") as file:
-        existing_settings.update(settings)
-        json.dump(existing_settings, file, indent=4)
+        settings.update_settings(settings_json, user_settings)

@@ -47,7 +47,7 @@ def run_command(command, cwd=None, silent=False, progress_message=None, env=None
     #         )  # noqa
 
 
-def unzip_file(zip_file: str, destination: str):
+def unzip_file(zip_file, destination):
     """Unzip a file"""
 
     # For now now using zipfile module,
@@ -59,7 +59,7 @@ def unzip_file(zip_file: str, destination: str):
     )
 
 
-def download_file(url: str, download_file: str, progress_message="Downloading"):  # noqa
+def download_file(url, download_file, progress_message="Downloading"):  # noqa
     """Download a file and optionally displays a progress indicator"""
 
     download_file = os.path.abspath(download_file)
@@ -94,7 +94,7 @@ def download_file(url: str, download_file: str, progress_message="Downloading"):
         progress_bar.finish()
 
 
-def empty_directory(dir: str):
+def empty_directory(dir):
     for root, dirs, files in os.walk(dir):
         for f in files:
             os.unlink(os.path.join(root, f))
@@ -102,7 +102,7 @@ def empty_directory(dir: str):
             shutil.rmtree(os.path.join(root, d))
 
 
-def copy_recursive(source_dir: str, target_dir: str):
+def copy_recursive(source_dir, target_dir):
     for src_dir, dirs, files in os.walk(source_dir):
         dst_dir = src_dir.replace(source_dir, target_dir)
         if not os.path.exists(dst_dir):
