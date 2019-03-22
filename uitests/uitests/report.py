@@ -22,14 +22,6 @@ class CucumberJSONFormatter(behave.formatter.base.Formatter):
     json_number_types = (int, float)
     json_scalar_types = (str, bool, type(None))
 
-    # @classmethod
-    # def make_table(cls, table):
-    #     table_data = {
-    #         "headings": table.headings,
-    #         "rows": [list(row) for row in table.rows],
-    #     }
-    #     return table_data
-
     def __new__(cls, stream_opener, config):
         if cls.instance is None:
             cls.instance = object.__new__(cls)
