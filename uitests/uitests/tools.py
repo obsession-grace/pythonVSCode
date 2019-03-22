@@ -12,15 +12,14 @@ import progress.bar
 import requests
 
 
-def run_command(command, cwd=None, silent=False, progress_message=None, env=None):
+def run_command(command, *, cwd=None, silent=False, progress_message=None, env=None):
     """Run the specified command in a subprocess shell with the following options:
     - Pipe output from subprocess into current console.
     - Display a progress message."""
 
     if progress_message is not None:
         logging.info(progress_message)
-    executable = shutil.which(command[0])
-    command[0] = executable
+    command[0] = shutil.which(command[0])
 
     out = subprocess.PIPE if silent else None
     proc = subprocess.run(

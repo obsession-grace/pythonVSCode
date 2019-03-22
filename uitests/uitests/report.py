@@ -11,7 +11,6 @@ import json
 
 import behave.formatter.base
 import behave.model_core
-import six
 
 
 class CucumberJSONFormatter(behave.formatter.base.Formatter):
@@ -20,23 +19,46 @@ class CucumberJSONFormatter(behave.formatter.base.Formatter):
     description = "JSON dump of test run"
     dumps_kwargs = {}
 
-    json_number_types = six.integer_types + (float,)
-    json_scalar_types = json_number_types + (six.text_type, bool, type(None))
+    json_number_types = (int, float)
+    json_scalar_types = (str, bool, type(None))
+
+    # @classmethod
+    # def make_table(cls, table):
+    #     table_data = {
+    #         "headings": table.headings,
+    #         "rows": [list(row) for row in table.rows],
+    #     }
+    #     return table_data
 
     def __new__(cls, stream_opener, config):
-        CucumberJSONFormatter.instance = object.__new__(cls)
-        return CucumberJSONFormatter.instance
+        if cls.instance is None:
+            cls.instance = object.__new__(cls)
+        return cls.instance
 
-    def __init__(self, stream_opener, config):
-        super(CucumberJSONFormatter, self).__init__(stream_opener, config)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.stream = self.open()
         self.feature_count = 0
         self.attachments = []
-        self.current_feature = None
-        self.current_feature_data = None
-        self._step_index = 0
-        self.current_background = None
-        self.current_background_data = None
+        self.reset()
+
+    @property
+    def current_feature_element(self):
+        assert self.current_feature_data is not None
+        return self.current_feature_data["elements"][-1]
+
+    @property
+    def current_step(self):
+        step_index = self._step_index
+        if self.current_feature.background is not None:
+            element = self.current_feature_data["elements"][-2]
+            if step_index >= len(self.current_feature.background.steps):
+                step_index -= len(self.current_feature.background.steps)
+                element = self.current_feature_element
+        else:
+            element = self.current_feature_element
+
+        return element["steps"][step_index]
 
     def reset(self):
         self.current_feature = None
@@ -77,7 +99,7 @@ class CucumberJSONFormatter(behave.formatter.base.Formatter):
             "type": "background",
             "keyword": background.keyword,
             "name": background.name,
-            "location": six.text_type(background.location),
+            "location": str(background.location),
             "steps": [],
         }
         self._step_index = 0
@@ -95,7 +117,7 @@ class CucumberJSONFormatter(behave.formatter.base.Formatter):
                 "keyword": scenario.keyword,
                 "name": scenario.name,
                 "tags": self.write_tags(scenario.tags),
-                "location": six.text_type(scenario.location),
+                "location": str(scenario.location),
                 "steps": [],
             }
         )
@@ -103,17 +125,9 @@ class CucumberJSONFormatter(behave.formatter.base.Formatter):
             element["description"] = self.format_description(scenario.description)
         self._step_index = 0
 
-    @classmethod
-    def make_table(cls, table):
-        table_data = {
-            "headings": table.headings,
-            "rows": [list(row) for row in table.rows],
-        }
-        return table_data
-
     def step(self, step):
         self.attachments.clear()
-        s = {
+        step_info = {
             "keyword": step.keyword,
             "step_type": step.step_type,
             "name": step.name,
@@ -123,10 +137,14 @@ class CucumberJSONFormatter(behave.formatter.base.Formatter):
         }
 
         if step.text:
-            s["doc_string"] = {"value": step.text, "line": step.text.line}
+            step_info["doc_string"] = {"value": step.text, "line": step.text.line}
         if step.table:
-            s["rows"] = [{"cells": [heading for heading in step.table.headings]}]
-            s["rows"] += [{"cells": [cell for cell in row.cells]} for row in step.table]
+            step_info["rows"] = [
+                {"cells": [heading for heading in step.table.headings]}
+            ]
+            step_info["rows"] += [
+                {"cells": [cell for cell in row.cells]} for row in step.table
+            ]
 
         if self.current_feature.background is not None:
             element = self.current_feature_data["elements"][-2]
@@ -134,11 +152,11 @@ class CucumberJSONFormatter(behave.formatter.base.Formatter):
                 element = self.current_feature_element
         else:
             element = self.current_feature_element
-        element["steps"].append(s)
+        element["steps"].append(step_info)
 
     def match(self, match):
         if match.location:
-            match_data = {"location": six.text_type(match.location) or ""}
+            match_data = {"location": str(match.location) or ""}
             self.current_step["match"] = match_data
 
     def attach_image(self, base64):
@@ -194,24 +212,6 @@ class CucumberJSONFormatter(behave.formatter.base.Formatter):
             self.current_feature_data["elements"] = []
         self.current_feature_data["elements"].append(element)
         return element
-
-    @property
-    def current_feature_element(self):
-        assert self.current_feature_data is not None
-        return self.current_feature_data["elements"][-1]
-
-    @property
-    def current_step(self):
-        step_index = self._step_index
-        if self.current_feature.background is not None:
-            element = self.current_feature_data["elements"][-2]
-            if step_index >= len(self.current_feature.background.steps):
-                step_index -= len(self.current_feature.background.steps)
-                element = self.current_feature_element
-        else:
-            element = self.current_feature_element
-
-        return element["steps"][step_index]
 
     def update_status_data(self):
         assert self.current_feature

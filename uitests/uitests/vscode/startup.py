@@ -35,7 +35,7 @@ def _start_vscode(options):
     application.setup_environment(options)
     driver = application.launch_extension(options)
     context = Context(options, driver)
-    # Wait for sometime, until some messages appear.
+    # Wait for VSC to startup.
     time.sleep(2)
     return context
 
