@@ -1,4 +1,3 @@
-@https://github.com/DonJayamanne/pyvscSmokeTesting.git @wip
 Feature: Terminal Activation
 
     Scenario: Environment is not actiavted in the Terminal

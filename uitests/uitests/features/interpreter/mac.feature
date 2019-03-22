@@ -1,4 +1,4 @@
-@https://github.com/DonJayamanne/pyvscSmokeTesting.git @mac
+@mac
 Feature: Mac Interpreter
 
     Scenario: Select an invalid interpreter

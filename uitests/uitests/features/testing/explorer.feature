@@ -1,5 +1,5 @@
 # @test
-# @https://github.com/DonJayamanne/pyvscSmokeTesting.git
+# @https://github.com/DonJayamanne/pyvscSmokeTesting.git @wip
 # Feature: Showing off behave (tutorial01)
 
 # Scenario: Run a simple test
