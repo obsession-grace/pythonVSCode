@@ -7,7 +7,7 @@
 Usage:
   uitests download [options]
   uitests install [options]
-  uitests launch [options]
+  uitests launch [options] [--timeout=30]
   uitests test [options] [--] [<behave-options> ...]
   uitests (-h | --help)
 
@@ -59,7 +59,7 @@ def launch(destination, channel, vsix, timeout=30, **kwargs):
     options = vscode.application.get_options(destination, vsix, channel)
     logging.info(f"Launched VSC will exit in {timeout}s")
     vscode.setup.start(options)
-    time.sleep(30)
+    time.sleep(int(timeout))
 
 
 def test(
@@ -100,6 +100,7 @@ def test(
         ]
         + behave_options
     )
+
     # Change directory for behave to work correctly.
     os.chdir(pathlib.Path(__file__).parent)
     __main__.main(args)

@@ -25,36 +25,22 @@ def start(options):
     uitests.tools.empty_directory(options.workspace_folder)
     user_settings = {"python.pythonPath": options.python_path}
     setup_user_settings(options.user_dir, user_settings=user_settings)
-    app_context = start_vscode(options)
+    app_context = _start_vscode(options)
     extension.activate_python_extension(app_context)
     return app_context
 
 
-def start_vscode(options):
+def _start_vscode(options):
     logging.info("Starting application")
     application.setup_environment(options)
     driver = application.launch_extension(options)
     context = Context(options, driver)
     # Wait for sometime, until some messages appear.
     time.sleep(2)
-
-    # VSC open some file
-    # This is due to us not being able to control the cli args passed by the chrome driver.
-    # Files get opened coz chrome driver assumes the executable is chrome,
-    # however it isn't, it is VSC and those args are not recognized by VSC,
-    # hence VSC assumes they are files and opens editors for those.
-    # Just do 3 times, to be sure chrome driver doesn't open other files.
-    quick_open.select_command(context, "View: Revert and Close Editor")
-    quick_open.select_command(context, "View: Revert and Close Editor")
-    quick_open.select_command(context, "View: Revert and Close Editor")
-    reset_workspace(context)
-    # Do this last, some popups open a few seconds after opening VSC.
-    quick_open.select_command(context, "Notifications: Clear All Notifications")
-
     return context
 
 
-def reset_workspace(context):
+def clear_everything(context):
     quick_open.select_command(context, "View: Revert and Close Editor")
     quick_open.select_command(context, "Terminal: Kill the Active Terminal Instance")
     quick_open.select_command(context, "Debug: Remove All Breakpoints")
@@ -62,6 +48,9 @@ def reset_workspace(context):
     quick_open.select_command(context, "View: Close Panel")
     quick_open.select_command(context, "Notifications: Clear All Notifications")
 
+
+def reset_workspace(context):
+    clear_everything(context)
     workspace_folder = context.options.workspace_folder
     if getattr(context, "workspace_repo", None) is None:
         uitests.tools.empty_directory(workspace_folder)

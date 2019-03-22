@@ -170,12 +170,14 @@
             ]
         },
         {
-            "name": "Behave Smoke Tests",
+            "name": "UI Tests (BDD)",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/uitests/__main__.py",
             "args": [
-                "test"
+                "test",
+                "--",
+                "--tags=wip"
             ],
             "debugStdLib": true,
             "console": "none"

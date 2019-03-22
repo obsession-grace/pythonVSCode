@@ -2,11 +2,10 @@
 # Licensed under the MIT License.
 
 
-from . import documents, notifications, quick_open, status_bar
+from . import notifications, quick_open, status_bar
 
 
 def activate_python_extension(context):
-    documents.create_new_untitled_file(context, "Python")
     last_error = None
     for _ in range(5):
         quick_open.select_command(context, "Activate Python Extension")

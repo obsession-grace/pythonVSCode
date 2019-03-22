@@ -1,5 +1,5 @@
 {
-    "--python-path": "/Users/donjayamanne/.vscode-insiders/extensions/pythonVSCode/uitests/venv/bin/python",
-    "--python-type": "venv",
+    "--python-path": "/Library/Frameworks/Python.framework/Versions/3.7/bin/python3",
+    "--python-type": "",
     "--python-version": "3.7"
 }

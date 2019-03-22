@@ -9,6 +9,7 @@ import uitests.vscode
 def before_all(context):
     options = uitests.vscode.application.get_options(**context.config.userdata)
     app_context = uitests.vscode.setup.start(options)
+    uitests.vscode.setup.clear_everything(app_context)
     context.driver = app_context.driver
     context.options = app_context.options
     context.workspace_repo = None

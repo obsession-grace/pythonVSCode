@@ -6,19 +6,17 @@ import json
 import os
 import pathlib
 
-from . import setup
-
 
 def update_workspace_settings(context, settings={}):
     workspace_folder = context.options.workspace_folder
     settings_json = os.path.join(workspace_folder, ".vscode", "settings.json")
-    setup.update_settings(settings_json, settings)
+    update_settings(settings_json, settings)
 
 
 def remove_workspace_setting(context, setting):
     workspace_folder = context.options.workspace_folder
     settings_json = os.path.join(workspace_folder, ".vscode", "settings.json")
-    setup.remove_setting(settings_json, setting)
+    remove_setting(settings_json, setting)
 
 
 def _ensure_setttings_json(settings_json):

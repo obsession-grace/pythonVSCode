@@ -4,20 +4,18 @@
 
 from urllib.parse import quote
 
-from selenium.webdriver.common.keys import Keys
-
 from . import core, quick_input, quick_open
 
 
 def open_file(context, filename):
-    element = quick_open.open(filename)
-    core.dispatch_keys(context.driver, Keys.ENTER, element=element)
-    _wait_for_editor_focus(filename)
+    quick_open.select_command(context, "Go to File...")
+    quick_open.select_value(context, filename)
+    _wait_for_editor_focus(context, filename)
 
 
 def is_file_open(context, filename, **kwargs):
-    _wait_for_active_tab(filename, **kwargs)
-    _wait_for_editor_focus(filename)
+    _wait_for_active_tab(context, filename, **kwargs)
+    _wait_for_editor_focus(context, filename)
 
 
 def create_new_untitled_file(context, language="Python"):

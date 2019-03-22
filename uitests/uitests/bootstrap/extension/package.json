@@ -33,6 +33,10 @@
             {
                 "command": "smoketest.activatePython",
                 "title": "Activate Python Extension"
+            },
+            {
+                "command": "smoketest.runInTerminal",
+                "title": "Smoke: Run Command In Terminal"
             }
         ]
     }
