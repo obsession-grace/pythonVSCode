@@ -168,7 +168,6 @@ suite('Multiroot Environment Variables Provider', () => {
             assert.equal(affectedWorkspace, workspaceUri);
         });
         test(`File system watcher event handlers are added once ${workspaceTitle}`, () => {
-            let affectedWorkspace: Uri | undefined = Uri.file('dummy value');
             const envFile = path.join('a', 'b', 'env.file');
             const fileSystemWatcher = typemoq.Mock.ofType<FileSystemWatcher>();
 
@@ -182,7 +181,6 @@ suite('Multiroot Environment Variables Provider', () => {
                 .setup(fs => fs.onDidDelete(typemoq.It.isAny()))
                 .verifiable(typemoq.Times.once());
             when(workspace.createFileSystemWatcher(envFile)).thenReturn(fileSystemWatcher.object);
-            provider.onDidEnvironmentVariablesChange(uri => affectedWorkspace = uri);
 
             provider.createFileWatcher(envFile);
             provider.createFileWatcher(envFile);
