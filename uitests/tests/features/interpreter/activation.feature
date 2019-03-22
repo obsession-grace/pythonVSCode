@@ -1,5 +1,5 @@
 @https://github.com/DonJayamanne/pyvscSmokeTesting.git @mac
-Feature: Mac Interpreter
+Feature: Terminal Activation
 
     Scenario: Select an invalid interpreter
         When I select the default mac Interpreter
