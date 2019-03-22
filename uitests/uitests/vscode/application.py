@@ -51,7 +51,7 @@ def get_options(
         os.path.join(destination, channel),
         os.path.join(destination, "user"),
         os.path.join(destination, "extensions"),
-        os.path.abspath(vsix),
+        vsix,
         os.path.join(destination, "workspace folder"),
         os.path.join(destination, "temp"),
         os.path.join(destination, "screenshots"),

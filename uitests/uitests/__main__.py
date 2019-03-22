@@ -9,6 +9,7 @@ Usage:
   uitests install [options]
   uitests launch [options] [--timeout=30]
   uitests test [options] [--] [<behave-options> ...]
+  uitests report
   uitests (-h | --help)
 
 Options:
@@ -33,7 +34,7 @@ import time
 from behave import __main__
 from docopt import docopt
 
-from . import vscode
+from . import vscode, tools
 
 
 def download(destination, channel, **kwargs):
@@ -49,17 +50,22 @@ def download(destination, channel, **kwargs):
 def install(destination, channel, vsix, **kwargs):
     """Installs the Python Extension into VS Code in preparation for the smoke tests."""
     vsix = os.path.abspath(vsix)
-    options = vscode.application.get_options(destination, vsix, channel)
+    options = vscode.application.get_options(destination, vsix=vsix, channel=channel)
     vscode.application.install_extension(options)
 
 
 def launch(destination, channel, vsix, timeout=30, **kwargs):
     """Launches VS Code (the same instance used for smoke tests)."""
     vsix = os.path.abspath(vsix)
-    options = vscode.application.get_options(destination, vsix, channel)
+    options = vscode.application.get_options(destination, vsix=vsix, channel=channel)
     logging.info(f"Launched VSC will exit in {timeout}s")
     vscode.startup.start(options)
     time.sleep(int(timeout))
+
+
+def report():
+    """Generates an HTML report and displays it."""
+    tools.run_command(["node", os.path.join("uitests", "uitests", "js", "report.js")])
 
 
 def test(
@@ -133,3 +139,5 @@ if __name__ == "__main__":
         launch(**options)
     if arguments.get("test"):
         test(**options)
+    if arguments.get("report"):
+        report()

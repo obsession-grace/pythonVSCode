@@ -1,19 +1,21 @@
-var reporter = require('cucumber-html-reporter');
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
 
-var options = {
+'use strict';
+
+const reporter = require('cucumber-html-reporter');
+const path = require('path');
+const os = require('os');
+
+const options = {
     theme: 'bootstrap',
-    jsonFile: '/Users/donjayamanne/.vscode-insiders/extensions/pythonVSCode/.vscode-test/reports/report.json',
-    output: '/Users/donjayamanne/.vscode-insiders/extensions/pythonVSCode/.vscode-test/reports/report.html',
+    jsonFile: path.join(process.cwd(), '.vscode-test', 'reports', 'report.json'),
+    output: path.join(process.cwd(), '.vscode-test', 'reports', 'report.html'),
     reportSuiteAsScenarios: true,
     launchReport: true,
     metadata: {
-        "App Version": "0.3.2",
-        "Test Environment": "STAGING",
-        "Browser": "Chrome  54.0.2840.98",
-        "Platform": "Windows 10",
-        "Parallel": "Scenarios",
-        "Executed": "Remote"
+        "Platform": os.platform()
     }
 };
 
-reporter.generate(options);
+reporter.generate(options, () => process.exit(0));

@@ -64,7 +64,6 @@ def download_chrome_driver(download_path, channel="stable"):
     """Download chrome driver corresponding to the version of electron.
     Basically check version of chrome released with the version of Electron."""
 
-    download_path = os.path.abspath(download_path)
     os.makedirs(download_path, exist_ok=True)
     electron_version = _get_electron_version(channel)
     dir = os.path.dirname(os.path.realpath(__file__))
@@ -79,7 +78,6 @@ def download_chrome_driver(download_path, channel="stable"):
 def download_vscode(download_path, channel="stable"):
     """Download VS Code."""
 
-    download_path = os.path.abspath(download_path)
     shutil.rmtree(download_path, ignore_errors=True)
     os.makedirs(download_path, exist_ok=True)
 

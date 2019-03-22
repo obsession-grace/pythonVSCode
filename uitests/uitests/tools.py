@@ -61,7 +61,6 @@ def unzip_file(zip_file, destination):
 def download_file(url, download_file, progress_message="Downloading"):  # noqa
     """Download a file and optionally displays a progress indicator."""
 
-    download_file = os.path.abspath(download_file)
     try:
         os.remove(download_file)
     except FileNotFoundError:
