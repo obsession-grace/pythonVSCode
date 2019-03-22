@@ -11,7 +11,7 @@ from . import (  # noqa
     notifications,
     quick_input,
     quick_open,
-    setup,
+    startup,
     status_bar,
     utils,
 )

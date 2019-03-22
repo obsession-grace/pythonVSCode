@@ -8,8 +8,8 @@ import uitests.vscode
 
 def before_all(context):
     options = uitests.vscode.application.get_options(**context.config.userdata)
-    app_context = uitests.vscode.setup.start(options)
-    uitests.vscode.setup.clear_everything(app_context)
+    app_context = uitests.vscode.startup.start(options)
+    uitests.vscode.startup.clear_everything(app_context)
     context.driver = app_context.driver
     context.options = app_context.options
     context.workspace_repo = None
@@ -24,7 +24,7 @@ def before_feature(context, feature):
     uitests.tools.empty_directory(context.options.workspace_folder)
     if repo:
         context.workspace_repo = repo[0]
-        uitests.vscode.setup.setup_workspace(
+        uitests.vscode.startup.setup_workspace(
             repo[0], context.options.workspace_folder, context.options.temp_folder
         )
     else:
@@ -39,7 +39,7 @@ def after_scenario(context, feature):
     if feature.exception is not None:
         uitests.vscode.application.capture_screen(context)
     uitests.vscode.notifications.clear(context)
-    uitests.vscode.setup.reset_workspace(context)
+    uitests.vscode.startup.reset_workspace(context)
 
 
 def after_step(context, step):

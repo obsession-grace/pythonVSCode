@@ -58,7 +58,7 @@ def launch(destination, channel, vsix, timeout=30, **kwargs):
     vsix = os.path.abspath(vsix)
     options = vscode.application.get_options(destination, vsix, channel)
     logging.info(f"Launched VSC will exit in {timeout}s")
-    vscode.setup.start(options)
+    vscode.startup.start(options)
     time.sleep(int(timeout))
 
 
