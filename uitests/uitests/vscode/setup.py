@@ -9,10 +9,10 @@ import time
 
 from selenium import webdriver
 
+import uitests.tools
 from dataclasses import dataclass
 
 from . import application, extension, quick_open, settings
-from .. import tools
 
 
 @dataclass
@@ -22,7 +22,7 @@ class Context:
 
 
 def start(options):
-    tools.empty_directory(options.workspace_folder)
+    uitests.tools.empty_directory(options.workspace_folder)
     user_settings = {"python.pythonPath": options.python_path}
     setup_user_settings(options.user_dir, user_settings=user_settings)
     app_context = start_vscode(options)
@@ -64,11 +64,15 @@ def reset_workspace(context):
 
     workspace_folder = context.options.workspace_folder
     if getattr(context, "workspace_repo", None) is None:
-        tools.empty_directory(workspace_folder)
+        uitests.tools.empty_directory(workspace_folder)
     else:
         logging.debug(f"Resetting workspace folder")
-        tools.run_command(["git", "reset", "--hard"], cwd=workspace_folder, silent=True)
-        tools.run_command(["git", "clean", "-fd"], cwd=workspace_folder, silent=True)
+        uitests.tools.run_command(
+            ["git", "reset", "--hard"], cwd=workspace_folder, silent=True
+        )
+        uitests.tools.run_command(
+            ["git", "clean", "-fd"], cwd=workspace_folder, silent=True
+        )
 
     settings_json = os.path.join(workspace_folder, ".vscode", "settings.json")
     settings.update_settings(settings_json)
@@ -76,8 +80,10 @@ def reset_workspace(context):
 
 def setup_workspace(source_repo, target, temp_folder):
     logging.debug(f"Setting up workspace folder from {source_repo}")
-    tools.empty_directory(target)
-    tools.run_command(["git", "clone", source_repo, "."], cwd=target, silent=True)
+    uitests.tools.empty_directory(target)
+    uitests.tools.run_command(
+        ["git", "clone", source_repo, "."], cwd=target, silent=True
+    )
     settings_json = os.path.join(target, ".vscode", "settings.json")
     settings.update_settings(settings_json)
 

@@ -20,7 +20,7 @@ Options:
   --out=OUTPUT          Output for test results (console or file) [default: file].
   --embed-screenshots   Whether to embed screenshots (applicable only when using --out=file).
   --log=LEVEL           Log Level [default: INFO].
-  --config=PATH         Path to the config file [default: uitests/tests/config.json]
+  --config=PATH         Path to the config file [default: uitests/uitests/config.json]
 
 """
 import json
@@ -47,16 +47,17 @@ def download(destination, channel, **kwargs):
 
 
 def install(destination, channel, vsix, **kwargs):
-    """Installs the Python Extension into VS Code in preparation for the smoke tests"""
+    """Installs the Python Extension into VS Code in preparation for the smoke tests."""
     vsix = os.path.abspath(vsix)
     options = vscode.application.get_options(destination, vsix, channel)
     vscode.application.install_extension(options)
 
 
 def launch(destination, channel, vsix, timeout=30, **kwargs):
-    """Launches VS Code (the same instance used for smoke tests)"""
+    """Launches VS Code (the same instance used for smoke tests)."""
     vsix = os.path.abspath(vsix)
     options = vscode.application.get_options(destination, vsix, channel)
+    logging.info(f"Launched VSC will exit in {timeout}s")
     vscode.setup.start(options)
     time.sleep(30)
 
@@ -64,12 +65,12 @@ def launch(destination, channel, vsix, timeout=30, **kwargs):
 def test(
     out, destination, channel, vsix, behave_options, embed_screenshots=False, **kwargs
 ):
-    """Start the smoke tests"""
+    """Start the smoke tests."""
     destination = os.path.abspath(destination)
     vsix = os.path.abspath(vsix)
     report_args = [
         "-f",
-        "tests.report:PrettyCucumberJSONFormatter",
+        "uitests.report:PrettyCucumberJSONFormatter",
         "-o",
         os.path.join(destination, "reports", "report.json"),
         "--define",
@@ -95,7 +96,7 @@ def test(
             f"vsix={vsix}",
             "--define",
             f"output={out}",
-            os.path.abspath("uitests/tests"),
+            os.path.abspath("uitests/uitests"),
         ]
         + behave_options
     )

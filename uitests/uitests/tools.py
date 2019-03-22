@@ -48,7 +48,7 @@ def run_command(command, cwd=None, silent=False, progress_message=None, env=None
 
 
 def unzip_file(zip_file, destination):
-    """Unzip a file"""
+    """Unzip a file."""
 
     # For now now using zipfile module,
     # as the unzippig didn't work for executables.
@@ -60,7 +60,7 @@ def unzip_file(zip_file, destination):
 
 
 def download_file(url, download_file, progress_message="Downloading"):  # noqa
-    """Download a file and optionally displays a progress indicator"""
+    """Download a file and optionally displays a progress indicator."""
 
     download_file = os.path.abspath(download_file)
     try:

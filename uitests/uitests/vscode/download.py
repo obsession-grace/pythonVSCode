@@ -11,7 +11,7 @@ import tempfile
 
 import requests
 
-from .. import tools
+import uitests.tools
 
 
 def _get_download_platform():
@@ -35,13 +35,13 @@ def _get_latest_version(channel="stable"):
 
 
 def _get_download_url(
-    version, download_platform, channel = "stable"
+    version, download_platform, channel="stable"
 ) -> str:
     """Get the download url for vs code."""
     return f"https://vscode-update.azurewebsites.net/{version}/{download_platform}/{channel}"  # noqa
 
 
-def _get_electron_version(channel = "stable"):
+def _get_electron_version(channel="stable"):
     if channel == "stable":
         version = _get_latest_version()
         # Assume that VSC tags based on major and minor numbers.
@@ -60,7 +60,7 @@ def _get_electron_version(channel = "stable"):
         return match.groups()[0]
 
 
-def download_chrome_driver(download_path, channel = "stable"):
+def download_chrome_driver(download_path, channel="stable"):
     """Download chrome driver corresponding to the version of electron.
     Basically check version of chrome released with the version of Electron."""
 
@@ -70,14 +70,14 @@ def download_chrome_driver(download_path, channel = "stable"):
     dir = os.path.dirname(os.path.realpath(__file__))
     js_file = os.path.join(dir, "..", "js", "chromeDownloader.js")
     # Use an exising npm package.
-    tools.run_command(
+    uitests.tools.run_command(
         ["node", js_file, electron_version, download_path],
         progress_message="Downloading chrome driver",
     )
 
 
-def download_vscode(download_path, channel = "stable"):
-    """Download VS Code"""
+def download_vscode(download_path, channel="stable"):
+    """Download VS Code."""
 
     download_path = os.path.abspath(download_path)
     shutil.rmtree(download_path, ignore_errors=True)
@@ -88,5 +88,5 @@ def download_vscode(download_path, channel = "stable"):
     url = _get_download_url(version, download_platform, channel)
 
     zip_file = os.path.join(tempfile.mkdtemp(), "vscode.zip")
-    tools.download_file(url, zip_file, f"Downloading VS Code {channel}")
-    tools.unzip_file(zip_file, download_path)
+    uitests.tools.download_file(url, zip_file, f"Downloading VS Code {channel}")
+    uitests.tools.unzip_file(zip_file, download_path)

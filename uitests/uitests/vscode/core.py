@@ -15,6 +15,7 @@ def _try_and_find(
     timeout=None,
     **kwargs,
 ):
+    """Try and find a DOM element in VSC based on a predicate within a given time period."""
     if timeout is not None:
         retry_count = (timeout * 1000) / retry_interval
     else:
@@ -39,11 +40,14 @@ def _try_and_find(
 
 
 def dispatch_keys(driver, keys, element=None):
+    """Sends key stokes to a DOM element."""
     element = driver.switch_to.active_element if element is None else element
     element.send_keys(keys)
 
 
 def wait_for_element(driver, css_selector, predicate=lambda ele: True, **kwargs):
+    """Wait till a DOM element in VSC is found."""
+
     def find():
 
         element = driver.find_element_by_css_selector(css_selector)
@@ -61,6 +65,8 @@ def wait_for_element(driver, css_selector, predicate=lambda ele: True, **kwargs)
 
 
 def wait_for_elements(driver, css_selector, predicate=lambda elements: [], **kwargs):
+    """Wait till DOM elements in VSC is found."""
+
     def find():
         elements = driver.find_elements_by_css_selector(css_selector)
         filtered = predicate(elements)

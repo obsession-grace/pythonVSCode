@@ -3,4 +3,4 @@
 
 import runpy
 
-runpy.run_module("tests", run_name="__main__", alter_sys=True)
+runpy.run_module("uitests", run_name="__main__", alter_sys=True)

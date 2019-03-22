@@ -33,12 +33,14 @@ def scroll_to_top(context, self):
 
 
 def _wait_for_active_tab(context, filename, is_dirty=False):
+    """Wait till a tab is active with the given file name."""
     dirty_class = ".dirty" if is_dirty else ""
     selector = f'.tabs-container div.tab.active{dirty_class}[aria-selected="true"][aria-label="{filename}, tab"]'
     core.wait_for_element(context.driver, selector)
 
 
 def _wait_for_active_editor(context, filename, is_dirty=False):
+    """Wait till an editor with the given file name is active."""
     selector = (
         f'.editor-instance .monaco-editor[data-uri$="{quote(filename)}"] textarea'
     )
@@ -46,5 +48,6 @@ def _wait_for_active_editor(context, filename, is_dirty=False):
 
 
 def _wait_for_editor_focus(context, filename, is_dirty=False, **kwargs):
+    """Wait till an editor with the given file name receives focus."""
     _wait_for_active_tab(context, filename, is_dirty, **kwargs)
     _wait_for_active_editor(context, filename, is_dirty, **kwargs)

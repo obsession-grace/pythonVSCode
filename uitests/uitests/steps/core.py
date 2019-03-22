@@ -6,7 +6,7 @@ import time
 
 import behave
 
-import tests
+import uitests.vscode.application
 
 
 @behave.when("I wait for {seconds:n} seconds")
@@ -26,4 +26,4 @@ def log_message(context, message):
 
 @behave.then("take a screenshot")
 def capture_screen(context):
-    tests.vscode.application.capture_screen(context)
+    uitests.vscode.application.capture_screen(context)
