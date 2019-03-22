@@ -1,3 +1,4 @@
+@terminal
 Feature: Terminal Activation
 
     Scenario: Environment is not actiavted in the Terminal
