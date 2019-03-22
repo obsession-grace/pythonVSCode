@@ -100,15 +100,3 @@ def empty_directory(dir):
             os.unlink(os.path.join(root, f))
         for d in dirs:
             shutil.rmtree(os.path.join(root, d))
-
-
-def copy_recursive(source_dir, target_dir):
-    for src_dir, dirs, files in os.walk(source_dir):
-        dst_dir = src_dir.replace(source_dir, target_dir)
-        if not os.path.exists(dst_dir):
-            os.mkdir(dst_dir)
-        for file_ in files:
-            src_file = os.path.join(src_dir, file_)
-            dst_file = os.path.join(dst_dir, file_)
-            if not os.path.exists(dst_file):
-                shutil.copy(src_file, dst_dir)
