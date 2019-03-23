@@ -14,6 +14,8 @@ from dataclasses import dataclass
 
 from . import application, extension, quick_open, settings
 
+CONTEXT = {"driver": None}
+
 
 @dataclass
 class Context:
@@ -26,6 +28,7 @@ def start(options):
     user_settings = {"python.pythonPath": options.python_path}
     setup_user_settings(options.user_dir, user_settings=user_settings)
     app_context = _start_vscode(options)
+    CONTEXT["driver"] = app_context.driver
     extension.activate_python_extension(app_context)
     return app_context
 
@@ -38,6 +41,15 @@ def _start_vscode(options):
     # Wait for VSC to startup.
     time.sleep(2)
     return context
+
+
+def reload(context):
+    application.exit(context)
+    app_context = start(context.options)
+    context.driver = app_context.driver
+    CONTEXT["driver"] = context.driver
+    clear_everything(app_context)
+    return app_context
 
 
 def clear_everything(context):

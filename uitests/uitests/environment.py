@@ -4,6 +4,7 @@
 
 import uitests.tools
 import uitests.vscode
+import uitests.vscode.startup
 import behave
 import parse
 
@@ -26,10 +27,12 @@ def before_all(context):
 
 
 def after_all(context):
+    context.driver = uitests.vscode.startup.CONTEXT["driver"]
     uitests.vscode.application.exit(context)
 
 
 def before_feature(context, feature):
+    context.driver = uitests.vscode.startup.CONTEXT["driver"]
     repo = [tag for tag in feature.tags if tag.startswith("https://github.com/")]
     uitests.tools.empty_directory(context.options.workspace_folder)
     if repo:
@@ -42,6 +45,7 @@ def before_feature(context, feature):
 
 
 def before_scenario(context, feature):
+    context.driver = uitests.vscode.startup.CONTEXT["driver"]
     # We want this open so it can get captured in screenshots.
     uitests.vscode.quick_open.select_command(context, "View: Show Explorer")
     context.options = uitests.vscode.application.get_options(**context.config.userdata)

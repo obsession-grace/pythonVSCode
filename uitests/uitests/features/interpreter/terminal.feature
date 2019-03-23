@@ -1,11 +1,11 @@
 @terminal @wip
 Feature: Terminal Activation
-    # @mac
-    # Scenario: Select an invalid interpreter
-    #     When I reload VSC
-    #     And I select the default mac Interpreter
-    #     Then a message with the text "You have selected the macOS system install of Python, which is not recommended for use with the Python extension. Some functionality will be limited, please select a different interpreter." is displayed
-    #     And take a screenshot
+    @mac
+    Scenario: Select an invalid interpreter
+        When I reload VSC
+        And I select the default mac Interpreter
+        Then a message with the text "You have selected the macOS system install of Python, which is not recommended for use with the Python extension. Some functionality will be limited, please select a different interpreter." is displayed
+        And take a screenshot
 
     Scenario: Environment is not activated in the Terminal
         Given a file named "run_in_terminal.py" is created with the following contents

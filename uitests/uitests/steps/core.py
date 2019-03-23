@@ -18,10 +18,7 @@ def when_sleep(context, seconds):
 
 @behave.when("I reload VSC")
 def when_reload(context):
-    uitests.vscode.application.exit(context)
-    app_context = uitests.vscode.startup.start(context.options)
-    context.driver = app_context.driver
-    uitests.vscode.startup.clear_everything(app_context)
+    uitests.vscode.startup.reload(context)
 
 
 @behave.then("wait for {seconds:n} seconds")

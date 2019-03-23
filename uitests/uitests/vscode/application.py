@@ -3,6 +3,8 @@
 
 
 import base64
+import contextlib
+import io
 import os
 import shutil
 import sys
@@ -132,22 +134,21 @@ def launch_extension(options):
 
 
 def exit(context):
-    try:
-        quick_open.select_command(context, "Close Window")
-    except Exception:
-        pass
-    try:
-        context.driver.close()
-    except Exception:
-        pass
-    try:
-        context.driver.quit()
-    except Exception:
-        pass
-
-
-def reload(self):
-    raise NotImplementedError()
+    # Ignore all messages written to console.
+    with contextlib.redirect_stdout(io.StringIO()):
+        with contextlib.redirect_stderr(io.StringIO()):
+            try:
+                quick_open.select_command(context, "Close Window")
+            except Exception:
+                pass
+            try:
+                context.driver.close()
+            except Exception:
+                pass
+            try:
+                context.driver.quit()
+            except Exception:
+                pass
 
 
 def capture_screen(context):
