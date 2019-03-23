@@ -136,6 +136,14 @@ def exit(context):
         quick_open.select_command(context, "Close Window")
     except Exception:
         pass
+    try:
+        context.driver.close()
+    except Exception:
+        pass
+    try:
+        context.driver.quit()
+    except Exception:
+        pass
 
 
 def reload(self):

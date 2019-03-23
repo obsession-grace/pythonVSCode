@@ -4,6 +4,16 @@
 
 import uitests.tools
 import uitests.vscode
+import behave
+import parse
+
+
+@parse.with_pattern(r"\d+")
+def parse_number(text):
+    return int(text)
+
+
+behave.register_type(Number=parse_number)
 
 
 def before_all(context):
@@ -32,12 +42,12 @@ def before_feature(context, feature):
 
 
 def before_scenario(context, feature):
+    # We want this open so it can get captured in screenshots.
+    uitests.vscode.quick_open.select_command(context, "View: Show Explorer")
     context.options = uitests.vscode.application.get_options(**context.config.userdata)
 
 
 def after_scenario(context, feature):
-    if feature.exception is not None:
-        uitests.vscode.application.capture_screen(context)
     uitests.vscode.notifications.clear(context)
     uitests.vscode.startup.reset_workspace(context)
 

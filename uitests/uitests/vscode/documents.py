@@ -25,9 +25,13 @@ def create_new_untitled_file(context, language="Python"):
     quick_input.select_value(context, language)
 
 
-def scroll_to_top(context, self):
+def scroll_to_top(context):
+    go_to_line(context, 1)
+
+
+def go_to_line(context, line_number):
     quick_open.select_command(context, "Go to Line...")
-    quick_open.select_value(context, "1")
+    quick_open.select_value(context, str(line_number))
 
 
 def _wait_for_active_tab(context, filename, is_dirty=False):
