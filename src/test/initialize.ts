@@ -1,5 +1,7 @@
 // tslint:disable:no-string-literal
-
+import * as reporter from './reporter';
+// tslint:disable-next-line: no-console
+console.log(reporter);
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { IExtensionApi } from '../client/api';

@@ -12,7 +12,8 @@ import * as path from 'path';
 import {
     IS_CI_SERVER_TEST_DEBUGGER, MOCHA_REPORTER_JUNIT
 } from './ciConstants';
-import { EXTENSION_ROOT_DIR_FOR_TESTS, IS_MULTI_ROOT_TEST } from './constants';
+// import { EXTENSION_ROOT_DIR_FOR_TESTS, IS_MULTI_ROOT_TEST } from './constants';
+import { IS_MULTI_ROOT_TEST } from './constants';
 import * as testRunner from './testRunner';
 
 process.env.VSC_PYTHON_CI_TEST = '1';
@@ -45,7 +46,7 @@ const options: testRunner.SetupOptions & { retries: number } = {
 // changed by setting env var `MOCHA_FILE` (we do this in our CI).
 if (MOCHA_REPORTER_JUNIT) {
     options.reporter = 'mocha-multi-reporters';
-    const reporterPath = path.join(EXTENSION_ROOT_DIR_FOR_TESTS, 'build', 'ci', 'exitAfterTestsReporter.js');
+    const reporterPath = path.join(__dirname, 'reporter.js');
     options.reporterOptions = {
         reporterEnabled: `spec,mocha-junit-reporter,${reporterPath}`
     };
