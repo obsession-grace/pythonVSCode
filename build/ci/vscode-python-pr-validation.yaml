@@ -61,11 +61,6 @@ jobs:
         VMImageName: 'macos-10.13'
         TestsToRun: 'testSmoke'
         NeedsPythonTestReqs: true
-      'Mac-Py3.7 UI Tests':
-        PythonVersion: '3.7'
-        VMImageName: 'macos-10.13'
-        TestsToRun: 'UITests'
-        NeedsPythonUITestReqs: true
       'Mac-Py2.7 Unit+Single':
         PythonVersion: '2.7'
         VMImageName: 'macos-10.13'
@@ -97,6 +92,26 @@ jobs:
         TestsToRun: 'testfunctional'
         NeedsPythonTestReqs: true
         NeedsPythonFunctionalReqs: true
+      'Mac-Py3.7 UI Tests':
+        PythonVersion: '3.7'
+        VMImageName: 'macos-10.13'
+        TestsToRun: 'UITests'
+        NeedsPythonUITestReqs: true
+      'Mac-Py2.7 UI Tests':
+        PythonVersion: '2.7'
+        VMImageName: 'macos-10.13'
+        TestsToRun: 'UITests'
+        NeedsPythonUITestReqs: true
+      'Linux-Py2.7 UI Tests':
+        PythonVersion: '2.7'
+        VMImageName: 'ubuntu-16.04'
+        TestsToRun: 'UITests'
+        NeedsPythonUITestReqs: true
+      'Linux-Py3.7 UI Tests':
+        PythonVersion: '3.7'
+        VMImageName: 'ubuntu-16.04'
+        TestsToRun: 'UITests'
+        NeedsPythonUITestReqs: true
 
   pool:
     vmImage: $(VMImageName)
