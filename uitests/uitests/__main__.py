@@ -21,6 +21,7 @@ Options:
   --embed-screenshots           Whether to embed screenshots (applicable only when using --out=file).
   -L, --log=LEVEL               Log Level [default: INFO].
   --config=PATH                 Path to the config file [default: uitests/uitests/config.json]
+  --show                        Whether to display the report or not.
   -T, --timeout=TIMEOUT         Timeout for closing instance of VSC when Launched to validate instance of VSC [default: 30]
 
 """
@@ -66,12 +67,17 @@ def launch(destination, channel, vsix, timeout=30, **kwargs):
     time.sleep(int(timeout))
 
 
-def report(destination, **kwargs):
+def report(destination, show=False, **kwargs):
     """Generates an HTML report and displays it."""
     destination = os.path.abspath(destination)
     report_dir = os.path.join(destination, "reports")
     tools.run_command(
-        ["node", os.path.join("uitests", "uitests", "js", "report.js"), report_dir]
+        [
+            "node",
+            os.path.join("uitests", "uitests", "js", "report.js"),
+            report_dir,
+            str(show),
+        ]
     )
 
 

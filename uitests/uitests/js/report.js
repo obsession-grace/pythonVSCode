@@ -6,14 +6,15 @@
 const reporter = require('cucumber-html-reporter');
 const path = require('path');
 const os = require('os');
-const reportsDir = process.argv.length > 2 ? process.argv[2] : path.join(process.cwd(), '.vscode-test', 'reports')
+const reportsDir = process.argv[2];
+const launchReport = process.argv[3].toUpperCase() === 'TRUE';
 
 const options = {
     theme: 'bootstrap',
     jsonFile: path.join(reportsDir, 'report.json'),
     output: path.join(reportsDir, 'report.html'),
     reportSuiteAsScenarios: true,
-    launchReport: true,
+    launchReport,
     metadata: {
         "Platform": os.platform()
     }
