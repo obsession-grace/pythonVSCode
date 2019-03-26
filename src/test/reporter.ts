@@ -7,7 +7,7 @@
 // This is a hack, however for some reason the process running the tests do not exit.
 // The hack is to force it to die when tests are done, if this doesn't work we've got a bigger problem on our hands.
 
-import { WTF } from './main';
+import { WINR, WTF } from './main';
 // tslint:disable: no-var-requires no-require-imports
 const Mocha = require('mocha');
 const { EVENT_RUN_BEGIN, EVENT_RUN_END } = Mocha.Runner.constants;
@@ -26,10 +26,8 @@ class ExitReporter {
                 function dump() {
                     console.info('wft()');
                     WTF.dump();
-                    console.info('process._getActiveRequests()');
-                    console.info((process as any)._getActiveRequests());
-                    console.info('process._getActiveHandles()');
-                    console.info((process as any)._getActiveHandles());
+                    console.info('WINR()');
+                    WINR();
                 }
                 console.info('Will Exit from custom PVSC Mocha Reporter.');
                 dump();
