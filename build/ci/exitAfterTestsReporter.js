@@ -20,10 +20,20 @@ class ExitReporter {
                 // No idea why it times, out. Once again, this is a hack.
                 // Solution (i.e. hack), lets add a timeout with a delay of 10 seconds,
                 // & if this process doesn't die, lets kill it.
-                setTimeout(() => {
-                    console.info('Exiting from custom PVSC Mocha Reporter.');
-                    process.exit(stats.failures === 0 ? 0 : 1);
-                }, 10000);
+                function die() {
+                    setTimeout(() => {
+                        console.info('Exiting from custom PVSC Mocha Reporter.');
+                        process.exit(stats.failures === 0 ? 0 : 1);
+                    }, 10000);
+                }
+                try {
+                    // Lets just close VSC, hopefully that'll be sufficient (more graceful).
+                    const vscode = require('vscode');
+                    vscode.commands.executeCommand('workbench.action.closeWindow').then(die, die);
+                } catch (ex) {
+                    // Worse case scenario, just kill the process.
+                    die();
+                }
             });
     }
 }
