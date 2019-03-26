@@ -181,10 +181,29 @@ steps:
 
   # Run the UI Tests
   - bash: |
+      npm install -g vsce
+      npm run clean
+      npm run updateBuildNumber -- --buildNumber $BUILD_BUILDID
+      npm run package
+    displayName: 'UI Tests (build VSIX package)'
+    condition: and(succeeded(), contains(variables['TestsToRun'], 'UITests'))
+
+  # Run the UI Tests
+  - bash: |
       python uitests download
+    displayName: 'UI Tests (download)'
+    condition: and(succeeded(), contains(variables['TestsToRun'], 'UITests'))
+
+  # Run the UI Tests
+  - bash: |
       python uitests install
+    displayName: 'UI Tests (install)'
+    condition: and(succeeded(), contains(variables['TestsToRun'], 'UITests'))
+
+  # Run the UI Tests
+  - bash: |
       python uitests test
-    displayName: 'UI Tests'
+    displayName: 'UI Tests (test)'
     condition: and(succeeded(), contains(variables['TestsToRun'], 'UITests'))
 
   # Run the Python unit tests in our codebase. Produces a JUnit-style log file that
