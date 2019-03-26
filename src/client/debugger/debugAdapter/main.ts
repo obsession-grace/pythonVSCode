@@ -286,7 +286,7 @@ class DebugManager implements Disposable {
         if (this.hasShutdown) {
             return;
         }
-        this.hasShutdown = undefined;
+        this.hasShutdown = true;
         logger.verbose('shutdown');
 
         if (!this.terminatedEventSent && !this.restart) {
