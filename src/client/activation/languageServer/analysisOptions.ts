@@ -148,26 +148,6 @@ export class LanguageServerAnalysisOptions implements ILanguageServerAnalysisOpt
             }
         };
     }
-    protected async getSearchPaths(pythonPath: string, interpreterData?: InterpreterData): Promise<string[]> {
-        const searchPaths = interpreterData ? interpreterData.searchPaths.split(this.pathUtils.delimiter) : [];
-        const settings = this.configuration.getSettings(this.resource);
-        if (settings.autoComplete) {
-            const extraPaths = settings.autoComplete.extraPaths;
-            if (extraPaths && extraPaths.length > 0) {
-                searchPaths.push(...extraPaths);
-            }
-        }
-        const vars = await this.envVarsProvider.getEnvironmentVariables(this.resource);
-        if (vars.PYTHONPATH && vars.PYTHONPATH.length > 0) {
-            const paths = vars.PYTHONPATH.split(this.pathUtils.delimiter).filter(item => item.trim().length > 0);
-            searchPaths.push(...paths);
-        }
-        // Make sure paths do not contain multiple slashes so file URIs
-        // in VS Code (Node.js) and in the language server (.NET) match.
-        // Note: for the language server paths separator is always ;
-        searchPaths.push(pythonPath);
-        return searchPaths.map(p => path.normalize(p));
-    }
     protected getExcludedFiles(): string[] {
         const list: string[] = ['**/Lib/**', '**/site-packages/**'];
         this.getVsCodeExcludeSection('search.exclude', list);
