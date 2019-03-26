@@ -18,11 +18,14 @@ class ExitReporter {
                 console.info('Start form custom PVSC Mocha Reporter.');
             })
             .once(EVENT_RUN_END, () => {
+                function dump() {
+                    console.info('process._getActiveRequests()');
+                    console.info(process._getActiveRequests());
+                    console.info('process._getActiveHandles()');
+                    console.info(process._getActiveHandles());
+                }
                 console.info('Will Exit from custom PVSC Mocha Reporter.');
-                console.info('process._getActiveRequests()');
-                console.info(process._getActiveRequests());
-                console.info('process._getActiveHandles()');
-                console.info(process._getActiveHandles());
+                dump();
                 // // NodeJs generally waits for pending timeouts, however the process running Mocha
                 // // (generally this is an instance of VSC), does not exit, hence CI timeouts.
                 // // No idea why it times, out. Once again, this is a hack.
@@ -31,25 +34,16 @@ class ExitReporter {
                 function die() {
                     setTimeout(() => {
                         console.info('Exiting in 5s, from custom PVSC Mocha Reporter.');
-                        console.info('process._getActiveRequests()');
-                        console.info(process._getActiveRequests());
-                        console.info('process._getActiveHandles()');
-                        console.info(process._getActiveHandles());
+                        dump();
                     }, 5000);
                     setTimeout(() => {
                         console.info('Exiting from custom PVSC Mocha Reporter.');
-                        console.info('process._getActiveRequests()');
-                        console.info(process._getActiveRequests());
-                        console.info('process._getActiveHandles()');
-                        console.info(process._getActiveHandles());
+                        dump();
                         process.exit(stats.failures === 0 ? 0 : 1);
                     }, 10000);
                     setTimeout(() => {
                         console.info('Exiting from custom PVSC Mocha Reporter.');
-                        console.info('process._getActiveRequests()');
-                        console.info(process._getActiveRequests());
-                        console.info('process._getActiveHandles()');
-                        console.info(process._getActiveHandles());
+                        dump();
                         process.kill(process.pid, 'SIGTERM')
                     }, 15000);
                 }
