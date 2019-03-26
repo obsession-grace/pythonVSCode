@@ -211,7 +211,7 @@ steps:
   - bash: |
       python uitests report
     displayName: 'UI Tests (Report)'
-    condition: and(contains(variables['TestsToRun'], 'UITests'))
+    condition: contains(variables['TestsToRun'], 'UITests')
 
   - task: CopyFiles@2
     inputs:
