@@ -8,12 +8,15 @@
 // The hack is to force it to die when tests are done, if this doesn't work we've got a bigger problem on our hands.
 
 const Mocha = require('mocha');
-const { EVENT_RUN_END } = Mocha.Runner.constants;
+const { EVENT_RUN_BEGIN, EVENT_RUN_END } = Mocha.Runner.constants;
 
 class ExitReporter {
     constructor(runner) {
         const stats = runner.stats;
         runner
+            .once(EVENT_RUN_BEGIN, () => {
+                console.info('Start form custom PVSC Mocha Reporter.');
+            })
             .once(EVENT_RUN_END, () => {
                 console.info('Will Exit from custom PVSC Mocha Reporter.');
                 // // NodeJs generally waits for pending timeouts, however the process running Mocha
