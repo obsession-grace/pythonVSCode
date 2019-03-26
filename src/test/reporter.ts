@@ -38,36 +38,26 @@ class ExitReporter {
                 // // & if this process doesn't die, lets kill it.
                 function die() {
                     setTimeout(() => {
-                        console.info('Exiting in 5s, from custom PVSC Mocha Reporter.');
-                        dump();
-                    }, 5000);
-                    setTimeout(() => {
                         console.info('Exiting from custom PVSC Mocha Reporter.');
                         dump();
-                        console.info('Bye.');
-                        console.info('Bye.');
-                        console.info('Bye.');
                         console.info('Bye.');
                         process.exit(stats.failures === 0 ? 0 : 1);
-                    }, 10000);
-                    setTimeout(() => {
-                        console.info('Exiting from custom PVSC Mocha Reporter.');
-                        dump();
-                        console.info('Kill.');
-                        console.info('Kill.');
-                        console.info('Kill.');
-                        console.info('Kill.');
+                        console.info('Bye.');
                         process.kill(process.pid, 'SIGTERM');
-                    }, 15000);
+                        console.info('Bye.');
+                        console.info('Bye.');
+                    }, 10000);
                 }
                 die();
                 try {
                     // Lets just close VSC, hopefully that'll be sufficient (more graceful).
                     const vscode = require('vscode');
-                    vscode.commands.executeCommand('workbench.action.closeWindow').then(die, die);
+                    console.log('Close VSC');
+                    vscode.commands.executeCommand('workbench.action.closeWindow');
+                    console.log('Bye from VSC');
                 } catch (ex) {
                     // Worse case scenario, just kill the process.
-                    die();
+                    console.error(ex);
                 }
             });
     }
