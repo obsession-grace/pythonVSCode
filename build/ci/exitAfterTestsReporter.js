@@ -23,7 +23,7 @@ class ExitReporter {
                 setTimeout(() => {
                     console.info('Exiting from custom PVSC Mocha Reporter.');
                     process.exit(stats.failures === 0 ? 0 : 1);
-                }, 10_000);
+                }, 10000);
             });
     }
 }
