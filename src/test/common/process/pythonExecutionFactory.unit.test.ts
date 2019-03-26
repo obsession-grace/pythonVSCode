@@ -52,7 +52,7 @@ async function verifyCreateActivated(factory: PythonExecutionFactory, activation
     return service;
 }
 
-suite('xProcess - PythonExecutionFactory', () => {
+suite('Process - PythonExecutionFactory', () => {
     [
         { resource: undefined, interpreter: undefined },
         { resource: undefined, interpreter: pythonInterpreter },
