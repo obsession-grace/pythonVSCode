@@ -19,6 +19,9 @@ class ExitReporter {
             })
             .once(EVENT_RUN_END, () => {
                 function dump() {
+                    console.info('wft()');
+                    const wtf = require('wtfnode');
+                    wtf.dump();
                     console.info('process._getActiveRequests()');
                     console.info(process._getActiveRequests());
                     console.info('process._getActiveHandles()');
