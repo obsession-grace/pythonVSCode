@@ -14,8 +14,14 @@ def update_workspace_settings(context, settings={}):
 
 
 def remove_workspace_setting(context, setting):
-    workspace_folder = context.options.workspace_folder
-    settings_json = os.path.join(workspace_folder, ".vscode", "settings.json")
+    settings_json = os.path.join(
+        context.options.workspace_folder, ".vscode", "settings.json"
+    )
+    remove_setting(settings_json, setting)
+
+
+def remove_user_setting(context, setting):
+    settings_json = os.path.join(context.options.user_dir, "User", "settings.json")
     remove_setting(settings_json, setting)
 
 
@@ -58,4 +64,4 @@ def get_setting(settings_json, setting):
     with open(settings_json, "r") as file:
         existing_settings = json.loads(file.read())
 
-    return getattr(existing_settings, setting, None)
+    return existing_settings.get(setting)

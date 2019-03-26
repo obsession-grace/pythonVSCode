@@ -7,21 +7,21 @@
 Usage:
   uitests download [options]
   uitests install [options]
-  uitests launch [options] [--timeout=30]
+  uitests launch [options]
   uitests test [options] [--] [<behave-options> ...]
-  uitests report
+  uitests report [options]
   uitests (-h | --help)
 
 Options:
-  -h --help             Show this screen.
-  --version             Show version.
-  --destination=PATH    Path for smoke tests [default: .vscode-test].
-  --channel=CHANNEL     Defines the channel for VSC (stable or insiders) [default: stable].
-  --vsix=VSIX           Path to VSIX [default: ms-python-insiders.vsix].
-  --out=OUTPUT          Output for test results (console or file) [default: file].
-  --embed-screenshots   Whether to embed screenshots (applicable only when using --out=file).
-  --log=LEVEL           Log Level [default: INFO].
-  --config=PATH         Path to the config file [default: uitests/uitests/config.json]
+  -h --help                     Show this screen.
+  -D, --destination=PATH        Path for smoke tests [default: .vscode-test].
+  -C, --channel=CHANNEL         Defines the channel for VSC (stable or insiders) [default: stable].
+  --vsix=VSIX                   Path to VSIX [default: ms-python-insiders.vsix].
+  -O, --out=OUTPUT              Output for test results (console or file) [default: file].
+  --embed-screenshots           Whether to embed screenshots (applicable only when using --out=file).
+  -L, --log=LEVEL               Log Level [default: INFO].
+  --config=PATH                 Path to the config file [default: uitests/uitests/config.json]
+  -T, --timeout=TIMEOUT         Timeout for closing instance of VSC when Launched to validate instance of VSC [default: 30]
 
 """
 import json
@@ -42,6 +42,7 @@ def download(destination, channel, **kwargs):
 
     The channel defines the channel for VSC (stable or insiders).
     """
+    destination = os.path.abspath(destination)
     destination = os.path.join(destination, channel)
     vscode.download.download_vscode(destination, channel)
     vscode.download.download_chrome_driver(destination, channel)
@@ -49,6 +50,7 @@ def download(destination, channel, **kwargs):
 
 def install(destination, channel, vsix, **kwargs):
     """Installs the Python Extension into VS Code in preparation for the smoke tests."""
+    destination = os.path.abspath(destination)
     vsix = os.path.abspath(vsix)
     options = vscode.application.get_options(destination, vsix=vsix, channel=channel)
     vscode.application.install_extension(options)
@@ -56,6 +58,7 @@ def install(destination, channel, vsix, **kwargs):
 
 def launch(destination, channel, vsix, timeout=30, **kwargs):
     """Launches VS Code (the same instance used for smoke tests)."""
+    destination = os.path.abspath(destination)
     vsix = os.path.abspath(vsix)
     options = vscode.application.get_options(destination, vsix=vsix, channel=channel)
     logging.info(f"Launched VSC will exit in {timeout}s")
@@ -63,9 +66,13 @@ def launch(destination, channel, vsix, timeout=30, **kwargs):
     time.sleep(int(timeout))
 
 
-def report():
+def report(destination, **kwargs):
     """Generates an HTML report and displays it."""
-    tools.run_command(["node", os.path.join("uitests", "uitests", "js", "report.js")])
+    destination = os.path.abspath(destination)
+    report_dir = os.path.join(destination, "reports")
+    tools.run_command(
+        ["node", os.path.join("uitests", "uitests", "js", "report.js"), report_dir]
+    )
 
 
 def test(
@@ -140,4 +147,4 @@ if __name__ == "__main__":
     if arguments.get("test"):
         test(**options)
     if arguments.get("report"):
-        report()
+        report(**options)

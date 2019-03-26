@@ -19,9 +19,9 @@ def then_selected_interpreter_has_tooltip(context, name):
         element = uitests.vscode.status_bar.wait_for_python_statusbar(context)
         try:
             assert name in element.get_attribute("title")
+            return
         except (AssertionError, StaleElementReferenceException):
             time.sleep(0.5)
-            pass
     assert name in element.get_attribute("title")
 
 
@@ -30,11 +30,26 @@ def then_selected_interpreter_has_tooltip(context, name):
 )
 def then_selected_interpreter_has_text(context, name):
     start_time = time.time()
-    while time.time() - start_time < 5:
+    while time.time() - start_time < 10:
         element = uitests.vscode.status_bar.wait_for_python_statusbar(context)
         try:
             assert name in element.text
+            return
         except (AssertionError, StaleElementReferenceException):
             time.sleep(0.5)
-            pass
     assert name in element.text
+
+
+@behave.then(
+    'the python interpreter displayed in the the status bar does not contain the value "{name}" in the display name'
+)
+def then_selected_interpreter_does_not_have_text(context, name):
+    start_time = time.time()
+    while time.time() - start_time < 10:
+        element = uitests.vscode.status_bar.wait_for_python_statusbar(context)
+        try:
+            assert name not in element.text
+            return
+        except (AssertionError, StaleElementReferenceException):
+            time.sleep(0.5)
+    assert name not in element.text

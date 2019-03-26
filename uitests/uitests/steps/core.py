@@ -2,6 +2,7 @@
 # Licensed under the MIT License.
 
 import logging
+import sys
 import time
 
 import behave
@@ -9,6 +10,69 @@ import behave
 import uitests.vscode.application
 import uitests.vscode.quick_open
 import uitests.vscode.startup
+
+
+@behave.given("In Windows,{command}")
+def given_on_windows(context, command):
+    if not sys.platform.startswith("win"):
+        return
+    context.execute_steps(f"Given {command.strip()}")
+
+
+@behave.given("In Mac,{command}")
+def given_on_mac(context, command):
+    if not sys.platform.startswith("darwin"):
+        return
+    context.execute_steps(f"Given {command.strip()}")
+
+
+@behave.given("In Linux,{command}")
+def given_on_linux(context, command):
+    if not sys.platform.startswith("linux"):
+        return
+    context.execute_steps(f"When {command.strip()}")
+
+
+@behave.when("In Windows,{command}")
+def when_on_widows(context, command):
+    if not sys.platform.startswith("win"):
+        return
+    context.execute_steps(f"When {command.strip()}")
+
+
+@behave.when("In Mac,{command}")
+def when_on_mac(context, command):
+    if not sys.platform.startswith("darwin"):
+        return
+    context.execute_steps(f"When {command.strip()}")
+
+
+@behave.when("In Linux,{command}")
+def when_on_linux(context, command):
+    if not sys.platform.startswith("linux"):
+        return
+    context.execute_steps(f"When {command.strip()}")
+
+
+@behave.then("In Windows,{command}")
+def then_on_windows(context, command):
+    if not sys.platform.startswith("win"):
+        return
+    context.execute_steps(f"Then {command.strip()}")
+
+
+@behave.then("In Mac,{command}")
+def then_on_mac(context, command):
+    if not sys.platform.startswith("darwin"):
+        return
+    context.execute_steps(f"Then {command.strip()}")
+
+
+@behave.then("In Linux,{command}")
+def then_on_linux(context, command):
+    if not sys.platform.startswith("linux"):
+        return
+    context.execute_steps(f"Then {command.strip()}")
 
 
 @behave.when("I wait for {seconds:n} seconds")

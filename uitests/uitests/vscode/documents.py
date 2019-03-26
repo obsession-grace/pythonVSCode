@@ -1,16 +1,23 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
-
 from urllib.parse import quote
 
 from . import core, quick_input, quick_open
 
 
 def open_file(context, filename):
-    quick_open.select_command(context, "Go to File...")
-    quick_open.select_value(context, filename)
-    _wait_for_editor_focus(context, filename)
+    last_exception = None
+    for _ in range(5):
+        try:
+            quick_open.select_command(context, "Go to File...")
+            quick_open.select_value(context, filename)
+            _wait_for_editor_focus(context, filename)
+            return
+        except TimeoutError as ex:
+            last_exception = ex
+    else:
+        raise last_exception
 
 
 def is_file_open(context, filename, **kwargs):

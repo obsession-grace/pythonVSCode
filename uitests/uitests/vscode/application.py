@@ -6,6 +6,7 @@ import base64
 import contextlib
 import io
 import os
+import os.path
 import shutil
 import sys
 import tempfile
@@ -18,7 +19,7 @@ import uitests.report
 import uitests.tools
 from dataclasses import dataclass
 
-from . import quick_open, utils
+from . import quick_open
 
 
 @dataclass
@@ -35,6 +36,8 @@ class Options:
     python_path: str
     python_type: str
     python_version: str
+    python3_path: str
+    pipenv_path: str
 
 
 def get_options(
@@ -46,6 +49,8 @@ def get_options(
     python_path=sys.executable,
     python_type=None,
     python_version=f"{sys.version_info[0]}.{sys.version_info[1]}",
+    python3_path=sys.executable,
+    pipenv_path=None,
 ):
     """Gets the options used for smoke tests."""
     destination = os.path.abspath(destination)
@@ -62,6 +67,8 @@ def get_options(
         python_path,
         python_type,
         python_version,
+        python3_path,
+        pipenv_path,
     )
     os.makedirs(options.extensions_dir, exist_ok=True)
     os.makedirs(options.user_dir, exist_ok=True)
@@ -86,8 +93,8 @@ def install_extension(options):
     uninstall_extension(options)
     env = {"ELECTRON_RUN_AS_NODE": "1"}
     command = [
-        utils.get_binary_location(options.executable_dir),
-        utils.get_cli_location(options.executable_dir),
+        _get_binary_location(options.executable_dir),
+        _get_cli_location(options.executable_dir),
         f"--user-data-dir={options.user_dir}",
         f"--extensions-dir={options.extensions_dir}",
         f"--install-extension={options.extension_path}",
@@ -98,8 +105,8 @@ def install_extension(options):
 
     bootstrap_extension = uitests.bootstrap.main.get_extension_path()
     command = [
-        utils.get_binary_location(options.executable_dir),
-        utils.get_cli_location(options.executable_dir),
+        _get_binary_location(options.executable_dir),
+        _get_cli_location(options.executable_dir),
         f"--user-data-dir={options.user_dir}",
         f"--extensions-dir={options.extensions_dir}",
         f"--install-extension={bootstrap_extension}",
@@ -128,7 +135,7 @@ def launch_extension(options):
     ]:
         chrome_options.add_argument(arg)
 
-    chrome_options.binary_location = utils.get_binary_location(options.executable_dir)
+    chrome_options.binary_location = _get_binary_location(options.executable_dir)
     driver = webdriver.Chrome(options=chrome_options)
     return driver
 
@@ -180,3 +187,28 @@ def capture_exception(context, info=None):
     html = base64.b64encode(html.encode("utf-8")).decode("utf-8")
 
     uitests.report.PrettyCucumberJSONFormatter.instance.attach_html(html)
+
+
+def _get_binary_location(executable_directory):
+    # TODO: Not completed
+    if sys.platform.startswith("darwin"):
+        return os.path.join(
+            executable_directory,
+            "Visual Studio Code.app",
+            "Contents",
+            "MacOS",
+            "Electron",
+        )
+
+
+def _get_cli_location(executable_directory):
+    if sys.platform.startswith("darwin"):
+        return os.path.join(
+            executable_directory,
+            "Visual Studio Code.app",
+            "Contents",
+            "Resources",
+            "app",
+            "out",
+            "cli.js",
+        )

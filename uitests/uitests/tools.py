@@ -7,6 +7,8 @@ import os
 import os.path
 import shutil
 import subprocess
+import sys
+import time
 
 import progress.bar
 import requests
@@ -98,3 +100,43 @@ def empty_directory(dir):
             os.unlink(os.path.join(root, f))
         for d in dirs:
             shutil.rmtree(os.path.join(root, d))
+
+
+def wait_for_python_env(cwd, path, timeout=30):
+    start_time = time.time()
+    python_exec = _get_python_executable(path)
+    while time.time() - start_time < timeout:
+        try:
+            subprocess.run(
+                [python_exec, "--version"], check=True, stdout=subprocess.PIPE, cwd=cwd
+            ).stdout
+            return
+        except Exception as ex:
+            print(ex)
+            pass
+    raise SystemError(f"Virtual Env not detected after {timeout}s")
+
+
+def wait_for_pipenv(cwd, timeout=30):
+    start_time = time.time()
+    while time.time() - start_time < timeout:
+        try:
+            subprocess.run(
+                ["pipenv", "--py"],
+                check=True,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                cwd=cwd,
+            )
+            return
+        except Exception as ex:
+            print(ex)
+            pass
+    raise SystemError(f"PipEnv not detected after {timeout}s")
+
+
+def _get_python_executable(path):
+    if sys.platform.startswith("win"):
+        return os.path.join(path, "Scripts", "python.exe")
+    else:
+        return os.path.join(path, "bin", "python")

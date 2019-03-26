@@ -21,8 +21,8 @@ def select_command(context, command, **kwargs):
     core.dispatch_keys(context.driver, Keys.ENTER, element=element)
 
 
-def select_value(context, value, **kwargs):
-    element = _wait_until_opened(context, 5)
+def select_value(context, value, retry_count=5, **kwargs):
+    element = _wait_until_opened(context, retry_count, **kwargs)
     core.dispatch_keys(context.driver, value, element=element)
     core.dispatch_keys(context.driver, Keys.ENTER, element=element)
 
@@ -64,7 +64,7 @@ def _open(context, value, **kwargs):
         raise SystemError("Failed to open quick open") from last_ex
 
 
-def _wait_until_opened(context, retry_count=10, is_command=True):
+def _wait_until_opened(context, retry_count=10, is_command=True, **kwargs):
     return core.wait_for_element(
         context.driver, QUICK_OPEN_INPUT, retry_count=retry_count
     )

@@ -24,9 +24,17 @@ class Context:
 
 
 def start(options):
+    logging.info("Starting VS Code")
     uitests.tools.empty_directory(options.workspace_folder)
-    user_settings = {"python.pythonPath": options.python_path}
+    user_settings = {
+        "python.pythonPath": options.python_path,
+        "python.venvFolders": ["envs", ".pyenv", ".direnv", ".local/share/virtualenvs"],
+    }
     setup_user_settings(options.user_dir, user_settings=user_settings)
+    return launch(options)
+
+
+def launch(options):
     app_context = _start_vscode(options)
     CONTEXT["driver"] = app_context.driver
     extension.activate_python_extension(app_context)
@@ -34,7 +42,6 @@ def start(options):
 
 
 def _start_vscode(options):
-    logging.info("Starting application")
     application.setup_environment(options)
     driver = application.launch_extension(options)
     context = Context(options, driver)
@@ -44,8 +51,9 @@ def _start_vscode(options):
 
 
 def reload(context):
+    logging.info("Reloading VS Code")
     application.exit(context)
-    app_context = start(context.options)
+    app_context = launch(context.options)
     context.driver = app_context.driver
     CONTEXT["driver"] = context.driver
     clear_everything(app_context)
@@ -62,7 +70,6 @@ def clear_everything(context):
 
 
 def reset_workspace(context):
-    clear_everything(context)
     workspace_folder = context.options.workspace_folder
     if getattr(context, "workspace_repo", None) is None:
         uitests.tools.empty_directory(workspace_folder)

@@ -36,7 +36,7 @@ def _try_and_find(
             time.sleep(retry_interval / 1000)
     else:
         msg = f"Timeout: {timeout_messge} after {(retry_count * retry_interval) / 1000} seconds."
-        raise SystemError(msg)
+        raise TimeoutError(msg)
 
 
 def dispatch_keys(driver, keys, element=None):

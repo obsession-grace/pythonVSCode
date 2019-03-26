@@ -29,9 +29,9 @@ def then_file_exists(context, name):
     while (time.time() - start_time) < 5:
         try:
             assert os.path.exists(os.path.join(context.options.workspace_folder, name))
+            return
         except Exception:
             time.sleep(0.1)
-            pass
     assert os.path.exists(os.path.join(context.options.workspace_folder, name))
 
 
@@ -49,14 +49,29 @@ def when_go_to_line(context, line_number):
 def file_contains(context, name, value):
     start_time = time.time()
     file_name = os.path.join(context.options.workspace_folder, name)
-    while (time.time() - start_time) < 5:
+    while (time.time() - start_time) < 10:
+        try:
+            with open(file_name, "r") as file:
+                contents = file.read()
+                assert value in contents
+                return
+        except AssertionError:
+            time.sleep(0.1)
+    assert value in contents
+
+
+@behave.then('the file "{name}" does not contain the value "{value}"')
+def file_not_contains(context, name, value):
+    start_time = time.time()
+    file_name = os.path.join(context.options.workspace_folder, name)
+    while (time.time() - start_time) < 10:
         try:
             with open(file_name, "r") as file:
                 contents = file.read()
                 assert value not in contents
+                return
         except AssertionError:
             time.sleep(0.1)
-            pass
     assert value not in contents
 
 
