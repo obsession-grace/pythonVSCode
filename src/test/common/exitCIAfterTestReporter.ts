@@ -7,14 +7,14 @@
 // This is a hack, however for some reason the process running the tests do not exit.
 // The hack is to force it to die when tests are done, if this doesn't work we've got a bigger problem on our hands.
 
+// tslint:disable:no-var-requires no-require-imports no-any no-console
 const log = require('why-is-node-running');
 const wtf = require('wtfnode');
+const moch: Mocha = require('mocha');
+const { EVENT_RUN_BEGIN, EVENT_RUN_END } = mocha.Runner.constants;
 
-const Mocha = require('mocha');
-const { EVENT_RUN_BEGIN, EVENT_RUN_END } = Mocha.Runner.constants;
-
-class ExitReporter {
-    constructor(runner) {
+export class ExitReporter {
+    constructor(runner: any) {
         const stats = runner.stats;
         runner
             .once(EVENT_RUN_BEGIN, () => {
@@ -25,7 +25,7 @@ class ExitReporter {
                 log();
                 wtf();
                 // // NodeJs generally waits for pending timeouts, however the process running Mocha
-                // // (generally this is an instance of VSC), does not exit, hence CI timeouts.
+                // // (generally this is an instance of Vnpm i @types/mochaSC), does not exit, hence CI timeouts.
                 // // No idea why it times, out. Once again, this is a hack.
                 // // Solution (i.e. hack), lets add a timeout with a delay of 10 seconds,
                 // // & if this process doesn't die, lets kill it.
@@ -49,5 +49,3 @@ class ExitReporter {
             });
     }
 }
-
-module.exports = ExitReporter;
