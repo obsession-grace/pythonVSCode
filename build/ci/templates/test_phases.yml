@@ -172,6 +172,21 @@ steps:
     displayName: 'pip install functional requirements'
     condition: and(succeeded(), eq(variables['NeedsPythonFunctionalReqs'], 'true'))
 
+  # Install the requirements for UI Tests.
+  - bash: |
+      python -m pip install -U pip
+      python -m pip install --upgrade -r ./uitests/requirements.txt
+    displayName: 'pip install uitest requirements'
+    condition: and(succeeded(), eq(variables['NeedsPythonUITestReqs'], 'true'))
+
+  # Run the UI Tests
+  - bash: |
+      python uitests download
+      python uitests install
+      python uitests test
+    displayName: 'UI Tests'
+    condition: and(succeeded(), contains(variables['TestsToRun'], 'UITests'))
+
   # Run the Python unit tests in our codebase. Produces a JUnit-style log file that
   # will be uploaded after all tests are complete.
   #
