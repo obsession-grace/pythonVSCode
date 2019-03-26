@@ -126,7 +126,7 @@ def test(
     return __main__.main(args)
 
 
-if __name__ == "__main__":
+def main():
     arguments = docopt(__doc__, version="1.0")
     with open(os.path.abspath(arguments.get("--config")), "r") as file:
         config_options = json.load(file)
@@ -145,13 +145,19 @@ if __name__ == "__main__":
     else:
         logging.basicConfig(level=log_level)
     options.setdefault("behave_options", behave_options)
+    handler = lambda **kwargs: 0  # noqa
     if arguments.get("download"):
-        download(**options)
+        handler = download
     if arguments.get("install"):
-        install(**options)
+        handler = install
     if arguments.get("launch"):
-        launch(**options)
+        handler = launch
     if arguments.get("test"):
-        sys.exit(test(**options))
+        handler = test
     if arguments.get("report"):
-        report(**options)
+        handler = report
+    return handler(**options)
+
+
+if __name__ == "__main__":
+    sys.exit(main())
