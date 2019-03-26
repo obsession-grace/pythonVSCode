@@ -30,12 +30,13 @@ import logging
 import os
 import os.path
 import pathlib
+import sys
 import time
 
 from behave import __main__
 from docopt import docopt
 
-from . import vscode, tools
+from . import tools, vscode
 
 
 def download(destination, channel, **kwargs):
@@ -122,7 +123,7 @@ def test(
 
     # Change directory for behave to work correctly.
     os.chdir(pathlib.Path(__file__).parent)
-    __main__.main(args)
+    return __main__.main(args)
 
 
 if __name__ == "__main__":
@@ -151,6 +152,6 @@ if __name__ == "__main__":
     if arguments.get("launch"):
         launch(**options)
     if arguments.get("test"):
-        test(**options)
+        sys.exit(test(**options))
     if arguments.get("report"):
         report(**options)
