@@ -22,6 +22,6 @@ def wait_for_message_containing(context, value, **kwargs):
     selector = ".notifications-toasts.visible .notifications-list-container .notification-list-item-message"
 
     def find(elements):
-        return [element for element in elements if element.text.index(value) >= 0]
+        return [element for element in elements if value in element.text]
 
     return core.wait_for_elements(context.driver, selector, find)

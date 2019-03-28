@@ -80,13 +80,28 @@ def when_sleep(context, seconds):
     time.sleep(seconds)
 
 
+@behave.when("I wait for 1 second")
+def when_sleep1(context):
+    time.sleep(1)
+
+
 @behave.when("I reload VSC")
 def when_reload(context):
     uitests.vscode.startup.reload(context)
 
 
+@behave.then("reload VSC")
+def then_reload(context):
+    uitests.vscode.startup.reload(context)
+
+
 @behave.then("wait for {seconds:n} seconds")
 def then_sleep(context, seconds):
+    time.sleep(seconds)
+
+
+@behave.then("wait for 1 second")
+def then_sleep1(context, seconds):
     time.sleep(seconds)
 
 

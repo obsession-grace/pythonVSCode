@@ -7,6 +7,15 @@ import time
 from selenium.common import exceptions
 
 
+class ElementVisibleException(exceptions.InvalidElementStateException):
+    """
+    Thrown when an element is present on the DOM,
+    it is not visible when it should not be.
+    """
+
+    pass
+
+
 def _try_and_find(
     fn,
     timeout_messge="Timeout",
@@ -31,6 +40,7 @@ def _try_and_find(
         except (
             exceptions.NoSuchElementException,
             exceptions.StaleElementReferenceException,
+            ElementVisibleException,
         ):
             trial_counter += 1
             time.sleep(retry_interval / 1000)
@@ -49,7 +59,6 @@ def wait_for_element(driver, css_selector, predicate=lambda ele: True, **kwargs)
     """Wait till a DOM element in VSC is found."""
 
     def find():
-
         element = driver.find_element_by_css_selector(css_selector)
         if not element.is_displayed():
             raise exceptions.NoSuchElementException(
@@ -64,7 +73,24 @@ def wait_for_element(driver, css_selector, predicate=lambda ele: True, **kwargs)
     return _try_and_find(find, **kwargs)
 
 
-def wait_for_elements(driver, css_selector, predicate=lambda elements: [], **kwargs):
+def wait_for_element_to_be_hidden(driver, css_selector, **kwargs):
+    """Wait till a DOM element in VSC is found."""
+
+    def find():
+        try:
+            element = driver.find_element_by_css_selector(css_selector)
+        except exceptions.NoSuchElementException:
+            return
+        if not element.is_displayed():
+            return
+        raise ElementVisibleException("Element is visible when it should not be")
+
+    return _try_and_find(find, **kwargs)
+
+
+def wait_for_elements(
+    driver, css_selector, predicate=lambda elements: elements, **kwargs
+):
     """Wait till DOM elements in VSC is found."""
 
     def find():

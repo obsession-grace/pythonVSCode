@@ -1,4 +1,4 @@
-@terminal @wip @pipenv
+@terminal @pipenv
 Feature: Terminal (pipenv)
     Scenario: Interpreter display name contains the name of the current workspace folder and pipenv
         Given the user setting "python.pythonPath" does not exist

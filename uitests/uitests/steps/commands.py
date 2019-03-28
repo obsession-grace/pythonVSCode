@@ -3,6 +3,7 @@
 
 
 import behave
+
 import uitests.vscode.quick_open
 
 
@@ -13,4 +14,9 @@ def given_command_selected(context, command):
 
 @behave.when('I select the command "{command}"')
 def when_select_command(context, command):
+    uitests.vscode.quick_open.select_command(context, command)
+
+
+@behave.then('select the command "{command}"')
+def then_select_command(context, command):
     uitests.vscode.quick_open.select_command(context, command)

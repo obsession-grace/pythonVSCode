@@ -34,5 +34,5 @@
     "python.linting.flake8Args": [
         "--max-line-length=120"
     ],
-    "python.pythonPath": "/Users/donjayamanne/.local/share/virtualenvs/pythonVSCode-5rU-mS3t/bin/python"
+    "python.pythonPath": "/Users/donjayamanne/.pyenv/versions/3.7.2/bin/python"
 }

@@ -24,7 +24,7 @@ class Context:
 
 
 def start(options):
-    logging.info("Starting VS Code")
+    logging.debug("Starting VS Code")
     uitests.tools.empty_directory(options.workspace_folder)
     user_settings = {
         "python.pythonPath": options.python_path,
@@ -51,7 +51,7 @@ def _start_vscode(options):
 
 
 def reload(context):
-    logging.info("Reloading VS Code")
+    logging.debug("Reloading VS Code")
     application.exit(context)
     app_context = launch(context.options)
     context.driver = app_context.driver

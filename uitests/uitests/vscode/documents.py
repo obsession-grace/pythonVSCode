@@ -1,9 +1,13 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
+import re
+import time
 from urllib.parse import quote
 
 from . import core, quick_input, quick_open
+
+LINE_COLUMN_REGEX = re.compile("Ln (?P<line>\d+), Col (?P<col>\d+)")
 
 
 def open_file(context, filename):
@@ -39,6 +43,14 @@ def scroll_to_top(context):
 def go_to_line(context, line_number):
     quick_open.select_command(context, "Go to Line...")
     quick_open.select_value(context, str(line_number))
+
+def get_current_position(context):
+    selector = "a.editor-status-selection"
+    element = core.wait_for_element(context.driver, selector)
+    match = LINE_COLUMN_REGEX.match(element.text)
+    if match is None:
+        raise ValueError(f"Unable to detemrine line & column")
+    return int(match.group("line")), int(match.group("col"))
 
 
 def _wait_for_active_tab(context, filename, is_dirty=False):

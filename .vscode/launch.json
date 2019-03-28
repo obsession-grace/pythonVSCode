@@ -177,6 +177,8 @@
             "args": [
                 "test",
                 "--",
+                "--format",
+                "pretty",
                 "--tags=wip"
             ],
             "debugStdLib": true,

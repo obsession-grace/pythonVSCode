@@ -13,4 +13,6 @@ from . import (  # noqa
     quick_open,
     startup,
     status_bar,
+    testing,
+    debugger,
 )
