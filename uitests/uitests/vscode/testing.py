@@ -85,10 +85,14 @@ def _get_action_item(context, number, tooltip):
 
 def expand_nodes(context):
     time.sleep(0.1)
-    for _ in range(5):
+    start_time = time.time()
+    while time.time() - start_time < 5:
         _expand_nodes(context)
         if get_node_count(context) > 1:
             return
+        time.sleep(0.1)
+    else:
+        raise TimeoutError("Timeout waiting to expand all nodes")
 
 
 def _expand_nodes(context):
