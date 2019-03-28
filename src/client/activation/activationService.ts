@@ -4,86 +4,92 @@
 'use strict';
 
 import { inject, injectable } from 'inversify';
-import {
-    ConfigurationChangeEvent,
-    Disposable, OutputChannel, Uri
-} from 'vscode';
+import { ConfigurationChangeEvent, Disposable, OutputChannel, Uri } from 'vscode';
 import { LSNotSupportedDiagnosticServiceId } from '../application/diagnostics/checks/lsNotSupported';
 import { IDiagnosticsService } from '../application/diagnostics/types';
-import {
-    IApplicationShell, ICommandManager,
-    IWorkspaceService
-} from '../common/application/types';
+import { IApplicationShell, ICommandManager, IWorkspaceService } from '../common/application/types';
 import { STANDARD_OUTPUT_CHANNEL } from '../common/constants';
 import '../common/extensions';
-import {
-    IConfigurationService, IDisposableRegistry,
-    IOutputChannel, IPythonSettings
-} from '../common/types';
+import { IConfigurationService, IDisposableRegistry, IOutputChannel, IPythonSettings, Resource } from '../common/types';
 import { IServiceContainer } from '../ioc/types';
 import { sendTelemetryEvent } from '../telemetry';
 import { EventName } from '../telemetry/constants';
-import {
-    ExtensionActivators, IExtensionActivationService,
-    IExtensionActivator
-} from './types';
+import { IExtensionActivationService, ILanguageServerActivator, LanguageServerActivator } from './types';
 
 const jediEnabledSetting: keyof IPythonSettings = 'jediEnabled';
-type ActivatorInfo = { jedi: boolean; activator: IExtensionActivator };
+const workspacePathNameForGlobalWorkspaces = '';
+type ActivatorInfo = { jedi: boolean; activator: ILanguageServerActivator };
 
 @injectable()
-export class ExtensionActivationService implements IExtensionActivationService, Disposable {
+export class LanguageServerExtensionActivationService implements IExtensionActivationService, Disposable {
+    private lsActivatedWorkspaces = new Map<string, ILanguageServerActivator>();
     private currentActivator?: ActivatorInfo;
+    private jediActivatedOnce: boolean = false;
     private readonly workspaceService: IWorkspaceService;
     private readonly output: OutputChannel;
     private readonly appShell: IApplicationShell;
     private readonly lsNotSupportedDiagnosticService: IDiagnosticsService;
+    private resource!: Resource;
 
     constructor(@inject(IServiceContainer) private serviceContainer: IServiceContainer) {
         this.workspaceService = this.serviceContainer.get<IWorkspaceService>(IWorkspaceService);
         this.output = this.serviceContainer.get<OutputChannel>(IOutputChannel, STANDARD_OUTPUT_CHANNEL);
         this.appShell = this.serviceContainer.get<IApplicationShell>(IApplicationShell);
-        this.lsNotSupportedDiagnosticService = this.serviceContainer.get<IDiagnosticsService>(IDiagnosticsService, LSNotSupportedDiagnosticServiceId);
+        this.lsNotSupportedDiagnosticService = this.serviceContainer.get<IDiagnosticsService>(
+            IDiagnosticsService,
+            LSNotSupportedDiagnosticServiceId
+        );
         const disposables = serviceContainer.get<IDisposableRegistry>(IDisposableRegistry);
         disposables.push(this);
         disposables.push(this.workspaceService.onDidChangeConfiguration(this.onDidChangeConfiguration.bind(this)));
+        disposables.push(this.workspaceService.onDidChangeWorkspaceFolders(this.onWorkspaceFoldersChanged, this));
     }
 
-    public async activate(): Promise<void> {
-        if (this.currentActivator) {
-            return;
-        }
-
+    public async activate(resource: Resource): Promise<void> {
         let jedi = this.useJedi();
         if (!jedi) {
+            if (this.lsActivatedWorkspaces.has(this.getWorkspacePathKey(resource))) {
+                return;
+            }
             const diagnostic = await this.lsNotSupportedDiagnosticService.diagnose(undefined);
             this.lsNotSupportedDiagnosticService.handle(diagnostic).ignoreErrors();
-            if (diagnostic.length){
+            if (diagnostic.length) {
                 sendTelemetryEvent(EventName.PYTHON_LANGUAGE_SERVER_PLATFORM_NOT_SUPPORTED);
                 jedi = true;
             }
+        } else {
+            if (this.jediActivatedOnce) {
+                return;
+            }
+            this.jediActivatedOnce = true;
         }
 
+        this.resource = resource;
         await this.logStartup(jedi);
-
-        let activatorName = jedi ? ExtensionActivators.Jedi : ExtensionActivators.DotNet;
-        let activator = this.serviceContainer.get<IExtensionActivator>(IExtensionActivator, activatorName);
+        let activatorName = jedi ? LanguageServerActivator.Jedi : LanguageServerActivator.DotNet;
+        let activator = this.serviceContainer.get<ILanguageServerActivator>(ILanguageServerActivator, activatorName);
         this.currentActivator = { jedi, activator };
 
         try {
-            await activator.activate();
-            return;
+            await activator.activate(resource);
+            if (!jedi) {
+                this.lsActivatedWorkspaces.set(this.getWorkspacePathKey(resource), activator);
+            }
         } catch (ex) {
             if (jedi) {
                 return;
             }
             //Language server fails, reverting to jedi
+            if (this.jediActivatedOnce) {
+                return;
+            }
+            this.jediActivatedOnce = true;
             jedi = true;
             await this.logStartup(jedi);
-            activatorName = ExtensionActivators.Jedi;
-            activator = this.serviceContainer.get<IExtensionActivator>(IExtensionActivator, activatorName);
+            activatorName = LanguageServerActivator.Jedi;
+            activator = this.serviceContainer.get<ILanguageServerActivator>(ILanguageServerActivator, activatorName);
             this.currentActivator = { jedi, activator };
-            await activator.activate();
+            await activator.activate(resource);
         }
     }
 
@@ -93,13 +99,30 @@ export class ExtensionActivationService implements IExtensionActivationService, 
         }
     }
 
+    protected onWorkspaceFoldersChanged() {
+        //If an activated workspace folder was removed, dispose its activator
+        const workspaceKeys = this.workspaceService.workspaceFolders!.map(workspaceFolder => this.getWorkspacePathKey(workspaceFolder.uri));
+        const activatedWkspcKeys = Array.from(this.lsActivatedWorkspaces.keys());
+        const activatedWkspcFoldersRemoved = activatedWkspcKeys.filter(item => workspaceKeys.indexOf(item) < 0);
+        if (activatedWkspcFoldersRemoved.length > 0) {
+            for (const folder of activatedWkspcFoldersRemoved) {
+                this.lsActivatedWorkspaces.get(folder)!.dispose();
+                this.lsActivatedWorkspaces!.delete(folder);
+            }
+        }
+    }
+
     private async logStartup(isJedi: boolean): Promise<void> {
-        const outputLine = isJedi ? 'Starting Jedi Python language engine.' : 'Starting Microsoft Python language server.';
+        const outputLine = isJedi
+            ? 'Starting Jedi Python language engine.'
+            : 'Starting Microsoft Python language server.';
         this.output.appendLine(outputLine);
     }
 
     private async onDidChangeConfiguration(event: ConfigurationChangeEvent) {
-        const workspacesUris: (Uri | undefined)[] = this.workspaceService.hasWorkspaceFolders ? this.workspaceService.workspaceFolders!.map(workspace => workspace.uri) : [undefined];
+        const workspacesUris: (Uri | undefined)[] = this.workspaceService.hasWorkspaceFolders
+            ? this.workspaceService.workspaceFolders!.map(workspace => workspace.uri)
+            : [undefined];
         if (workspacesUris.findIndex(uri => event.affectsConfiguration(`python.${jediEnabledSetting}`, uri)) === -1) {
             return;
         }
@@ -108,14 +131,19 @@ export class ExtensionActivationService implements IExtensionActivationService, 
             return;
         }
 
-        const item = await this.appShell.showInformationMessage('Please reload the window switching between language engines.', 'Reload');
+        const item = await this.appShell.showInformationMessage(
+            'Please reload the window switching between language engines.',
+            'Reload'
+        );
         if (item === 'Reload') {
             this.serviceContainer.get<ICommandManager>(ICommandManager).executeCommand('workbench.action.reloadWindow');
         }
     }
     private useJedi(): boolean {
-        const workspacesUris: (Uri | undefined)[] = this.workspaceService.hasWorkspaceFolders ? this.workspaceService.workspaceFolders!.map(item => item.uri) : [undefined];
-        const configuraionService = this.serviceContainer.get<IConfigurationService>(IConfigurationService);
-        return workspacesUris.filter(uri => configuraionService.getSettings(uri).jediEnabled).length > 0;
+        const configurationService = this.serviceContainer.get<IConfigurationService>(IConfigurationService);
+        return configurationService.getSettings(this.resource).jediEnabled;
+    }
+    private getWorkspacePathKey(resource: Resource): string {
+        return this.workspaceService.getWorkspaceFolderIdentifier(resource, workspacePathNameForGlobalWorkspaces);
     }
 }

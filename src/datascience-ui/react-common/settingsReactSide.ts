@@ -41,8 +41,14 @@ function load() {
             useDefaultConfigForJupyter: true,
             jupyterInterruptTimeout: 10000,
             searchForJupyter: true,
+            allowInput: true,
             showCellInputCode: true,
             collapseCellInputCodeByDefault: true,
+            maxOutputSize: 400,
+            errorBackgroundColor: '#FFFFFF',
+            sendSelectionToInteractiveWindow: false,
+            markdownRegularExpression: '^(#\\s*%%\\s*\\[markdown\\]|#\\s*\\<markdowncell\\>)',
+            codeRegularExpression: '^(#\\s*%%|#\\s*\\<codecell\\>|#\\s*In\\[\\d*?\\]|#\\s*In\\[ \\])',
             extraSettings: {
                 terminalCursor: 'block'
             }

@@ -3,16 +3,26 @@
 
 'use strict';
 
-import { DiagnosticSeverity, Disposable, DocumentSymbolProvider, Event, Location, TextDocument, Uri } from 'vscode';
-import { Product } from '../common/types';
+// tslint:disable-next-line:ordered-imports
+import {
+    DiagnosticSeverity, Disposable, DocumentSymbolProvider,
+    Event, Location, ProviderResult, TextDocument,
+    TreeDataProvider, TreeItem, Uri, WorkspaceFolder
+} from 'vscode';
+import { Product, Resource } from '../common/types';
 import { CommandSource } from './common/constants';
-import { FlattenedTestFunction, ITestManager, ITestResultsService, TestFile, TestFunction, TestRunOptions, Tests, TestStatus, TestsToRun, UnitTestProduct } from './common/types';
+import {
+    FlattenedTestFunction, ITestManager, ITestResultsService,
+    TestFile, TestFolder, TestFunction, TestRunOptions, Tests,
+    TestStatus, TestsToRun, TestSuite, UnitTestProduct
+} from './common/types';
 
 export const IUnitTestConfigurationService = Symbol('IUnitTestConfigurationService');
 export interface IUnitTestConfigurationService {
     displayTestFrameworkError(wkspace: Uri): Promise<void>;
     selectTestRunner(placeHolderMessage: string): Promise<UnitTestProduct | undefined>;
-    enableTest(wkspace: Uri, product: UnitTestProduct);
+    enableTest(wkspace: Uri, product: UnitTestProduct): Promise<void>;
+    promptToEnableAndConfigureTestFramework(wkspace: Uri): Promise<void>;
 }
 
 export const ITestResultDisplay = Symbol('ITestResultDisplay');
@@ -35,11 +45,11 @@ export interface ITestDisplay {
 
 export const IUnitTestManagementService = Symbol('IUnitTestManagementService');
 export interface IUnitTestManagementService {
-    activate(): Promise<void>;
-    activateCodeLenses(symboldProvider: DocumentSymbolProvider): Promise<void>;
+    readonly onDidStatusChange: Event<WorkspaceTestStatus>;
+    activate(symbolProvider: DocumentSymbolProvider): Promise<void>;
     getTestManager(displayTestNotConfiguredMessage: boolean, resource?: Uri): Promise<ITestManager | undefined | void>;
     discoverTestsForDocument(doc: TextDocument): Promise<void>;
-    autoDiscoverTests(): Promise<void>;
+    autoDiscoverTests(resource: Resource): Promise<void>;
     discoverTests(cmdSource: CommandSource, resource?: Uri, ignoreCache?: boolean, userInitiated?: boolean, quietMode?: boolean): Promise<void>;
     stopTests(resource: Uri): Promise<void>;
     displayStopUI(message: string): Promise<void>;
@@ -55,6 +65,13 @@ export interface IUnitTestManagementService {
     viewOutput(cmdSource: CommandSource): void;
 }
 
+export const ITestConfigSettingsService = Symbol('ITestConfigSettingsService');
+export interface ITestConfigSettingsService {
+    updateTestArgs(testDirectory: string | Uri, product: UnitTestProduct, args: string[]): Promise<void>;
+    enable(testDirectory: string | Uri, product: UnitTestProduct): Promise<void>;
+    disable(testDirectory: string | Uri, product: UnitTestProduct): Promise<void>;
+}
+
 export interface ITestConfigurationManager {
     requiresUserToConfigure(wkspace: Uri): Promise<boolean>;
     configure(wkspace: Uri): Promise<void>;
@@ -64,7 +81,7 @@ export interface ITestConfigurationManager {
 
 export const ITestConfigurationManagerFactory = Symbol('ITestConfigurationManagerFactory');
 export interface ITestConfigurationManagerFactory {
-    create(wkspace: Uri, product: Product): ITestConfigurationManager;
+    create(wkspace: Uri, product: Product, cfg?: ITestConfigSettingsService): ITestConfigurationManager;
 }
 
 export enum TestFilter {
@@ -104,18 +121,18 @@ export interface IUnitTestHelper {
 
 export const IUnitTestDiagnosticService = Symbol('IUnitTestDiagnosticService');
 export interface IUnitTestDiagnosticService {
-    getMessagePrefix(status: TestStatus): string;
-    getSeverity(unitTestSeverity: PythonUnitTestMessageSeverity): DiagnosticSeverity;
+    getMessagePrefix(status: TestStatus): string | undefined;
+    getSeverity(unitTestSeverity: PythonUnitTestMessageSeverity): DiagnosticSeverity | undefined;
 }
 
 export interface IPythonUnitTestMessage {
     code: string | undefined;
     message?: string;
     severity: PythonUnitTestMessageSeverity;
-    provider: string;
+    provider: string | undefined;
     traceback?: string;
     testTime: number;
-    status: TestStatus;
+    status?: TestStatus;
     locationStack?: ILocationStackFrameDetails[];
     testFilePath: string;
 }
@@ -135,4 +152,38 @@ export enum DiagnosticMessageType {
 export interface ILocationStackFrameDetails {
     location: Location;
     lineText: string;
+}
+
+export type WorkspaceTestStatus = { workspace: Uri; status: TestStatus };
+
+export type TestDataItem = TestWorkspaceFolder | TestFolder | TestFile | TestSuite | TestFunction;
+
+export class TestWorkspaceFolder {
+    public status?: TestStatus;
+    public time?: number;
+    public functionsPassed?: number;
+    public functionsFailed?: number;
+    public functionsDidNotRun?: number;
+    public passed?: boolean;
+    constructor(public readonly workspaceFolder: WorkspaceFolder) { }
+    public get resource(): Uri {
+        return this.workspaceFolder.uri;
+    }
+    public get name(): string {
+        return this.workspaceFolder.name;
+    }
+}
+
+export const ITestTreeViewProvider = Symbol('ITestTreeViewProvider');
+export interface ITestTreeViewProvider extends TreeDataProvider<TestDataItem> {
+    onDidChangeTreeData: Event<TestDataItem | undefined>;
+    getTreeItem(element: TestDataItem): Promise<TreeItem>;
+    getChildren(element?: TestDataItem): ProviderResult<TestDataItem[]>;
+    refresh(resource: Uri): void;
+}
+
+export const ITestDataItemResource = Symbol('ITestDataItemResource');
+
+export interface ITestDataItemResource {
+    getResource(testData: Readonly<TestDataItem>): Uri;
 }

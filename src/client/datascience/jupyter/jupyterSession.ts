@@ -16,7 +16,7 @@ import { Event, EventEmitter } from 'vscode';
 import { CancellationToken } from 'vscode-jsonrpc';
 
 import { Cancellation } from '../../common/cancellation';
-import { sleep } from '../../common/utils/async';
+import { callWithTimeout, sleep } from '../../common/utils/async';
 import * as localize from '../../common/utils/localize';
 import { noop } from '../../common/utils/misc';
 import { IConnection, IJupyterKernelSpec, IJupyterSession } from '../types';
@@ -68,8 +68,6 @@ export class JupyterSession implements IJupyterSession {
 
     public async waitForIdle() : Promise<void> {
         if (this.session && this.session.kernel) {
-            await this.session.kernel.ready;
-
             while (this.session.kernel.status !== 'idle') {
                 await sleep(0);
             }
@@ -77,11 +75,15 @@ export class JupyterSession implements IJupyterSession {
     }
 
     public restart() : Promise<void> {
-        return this.session && this.session.kernel ? this.session.kernel.restart() : Promise.resolve();
+        return this.session && this.session.kernel ?
+            this.waitForKernelPromise(this.session.kernel.restart(), localize.DataScience.restartingKernelFailed()) :
+            Promise.resolve();
     }
 
     public interrupt() : Promise<void> {
-        return this.session && this.session.kernel ? this.session.kernel.interrupt() : Promise.resolve();
+        return this.session && this.session.kernel ?
+            this.waitForKernelPromise(this.session.kernel.interrupt(), localize.DataScience.interruptingKernelFailed()) :
+            Promise.resolve();
     }
 
     public requestExecute(content: KernelMessage.IExecuteRequest, disposeOnDone?: boolean, metadata?: JSONObject) : Kernel.IFuture | undefined {
@@ -131,8 +133,26 @@ export class JupyterSession implements IJupyterSession {
         return this.connected;
     }
 
-    private onStatusChanged(s: Session.ISession, a: Kernel.Status) {
-        if (a === 'starting') {
+    private async waitForKernelPromise(kernelPromise: Promise<void>, errorMessage: string, secondTime?: boolean) : Promise<void> {
+        // Wait for five seconds for this kernel promise to happen
+        await Promise.race([kernelPromise, sleep(5000)]);
+
+        // If that didn't work, check status. Might have just not responded.
+        if (this.session && this.session.kernel && this.session.kernel.status === 'idle') {
+            return;
+        }
+
+        // Otherwise wait another 5 seconds and check again
+        if (!secondTime) {
+            return this.waitForKernelPromise(kernelPromise, errorMessage, true);
+        }
+
+        // If this is our second try, then show an error
+        throw new Error(errorMessage);
+    }
+
+    private onStatusChanged(_s: Session.ISession, a: Kernel.Status) {
+        if (a === 'starting' && this.onRestartedEvent) {
             this.onRestartedEvent.fire();
         }
     }
@@ -160,20 +180,23 @@ export class JupyterSession implements IJupyterSession {
                     this.statusHandler = undefined;
                 }
                 if (this.session) {
-                    // Shutdown may fail if the process has been killed
-                    await Promise.race([this.session.shutdown(), sleep(100)]);
-                    this.session.dispose();
+                    try {
+                        // Shutdown may fail if the process has been killed
+                        await Promise.race([this.session.shutdown(), sleep(100)]);
+                    } catch {
+                        noop();
+                    }
+                    // Dispose may not return. Wrap in a promise instead. Kernel futures can die if
+                    // process is already dead.
+                    if (this.session) {
+                        await callWithTimeout(this.session.dispose.bind(this.session), 100);
+                    }
                 }
                 if (this.sessionManager) {
-                    this.sessionManager.dispose();
+                    await callWithTimeout(this.sessionManager.dispose.bind(this.sessionManager), 100);
                 }
             } catch {
-                if (this.session) {
-                    this.session.dispose();
-                }
-                if (this.sessionManager) {
-                    this.sessionManager.dispose();
-                }
+                noop();
             }
             this.session = undefined;
             this.sessionManager = undefined;

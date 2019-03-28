@@ -1,9 +1,10 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
+
 'use strict';
 
 import * as React from 'react';
-// tslint:disable-next-line:import-name
+// tslint:disable-next-line:import-name match-default-export-name
 import InlineSVG from 'svg-inline-react';
 
 // This react component loads our svg files inline so that we can load them in vscode as it no longer
@@ -89,14 +90,14 @@ interface IImageProps {
 }
 
 export class Image extends React.Component<IImageProps> {
-    constructor(props) {
+    constructor(props: IImageProps) {
         super(props);
     }
 
     public render() {
         const key = (ImageName[this.props.image]).toString();
         const image = images.hasOwnProperty(key) ?
-            images[key] : images['Cancel']; // Default is cancel.
+            images[key] : images.Cancel; // Default is cancel.
         const source = this.props.baseTheme.includes('dark') ? image.dark : image.light;
         return (
             <InlineSVG className={this.props.class} src={source}/>

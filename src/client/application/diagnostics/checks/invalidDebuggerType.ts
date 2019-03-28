@@ -9,7 +9,7 @@ import { DiagnosticSeverity, WorkspaceFolder } from 'vscode';
 import { ICommandManager, IWorkspaceService } from '../../../common/application/types';
 import '../../../common/extensions';
 import { IFileSystem } from '../../../common/platform/types';
-import { Resource } from '../../../common/types';
+import { IDisposableRegistry, Resource } from '../../../common/types';
 import { IServiceContainer } from '../../../ioc/types';
 import { BaseDiagnostic, BaseDiagnosticsService } from '../base';
 import { IDiagnosticsCommandFactory } from '../commands/types';
@@ -29,7 +29,8 @@ export class InvalidDebuggerTypeDiagnostic extends BaseDiagnostic {
             message,
             DiagnosticSeverity.Error,
             DiagnosticScope.WorkspaceFolder,
-            resource
+            resource,
+            'always'
         );
     }
 }
@@ -42,8 +43,9 @@ const CommandName = 'python.debugger.replaceExperimental';
 export class InvalidDebuggerTypeDiagnosticsService extends BaseDiagnosticsService {
     protected readonly messageService: IDiagnosticHandlerService<MessageCommandPrompt>;
     protected readonly fs: IFileSystem;
-    constructor(@inject(IServiceContainer) serviceContainer: IServiceContainer) {
-        super([DiagnosticCodes.InvalidEnvironmentPathVariableDiagnostic], serviceContainer);
+    constructor(@inject(IServiceContainer) serviceContainer: IServiceContainer,
+        @inject(IDisposableRegistry) disposableRegistry: IDisposableRegistry) {
+        super([DiagnosticCodes.InvalidEnvironmentPathVariableDiagnostic], serviceContainer, disposableRegistry, true);
         this.messageService = serviceContainer.get<IDiagnosticHandlerService<MessageCommandPrompt>>(
             IDiagnosticHandlerService,
             DiagnosticCommandPromptHandlerServiceId

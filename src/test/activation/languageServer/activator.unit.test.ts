@@ -10,7 +10,12 @@ import { LanguageServerExtensionActivator } from '../../../client/activation/lan
 import { LanguageServerDownloader } from '../../../client/activation/languageServer/downloader';
 import { LanguageServerFolderService } from '../../../client/activation/languageServer/languageServerFolderService';
 import { LanguageServerManager } from '../../../client/activation/languageServer/manager';
-import { IExtensionActivator, ILanguageServerDownloader, ILanguageServerFolderService, ILanguageServerManager } from '../../../client/activation/types';
+import {
+    ILanguageServerActivator,
+    ILanguageServerDownloader,
+    ILanguageServerFolderService,
+    ILanguageServerManager
+} from '../../../client/activation/types';
 import { IWorkspaceService } from '../../../client/common/application/types';
 import { WorkspaceService } from '../../../client/common/application/workspace';
 import { PythonSettings } from '../../../client/common/configSettings';
@@ -25,7 +30,7 @@ import { sleep } from '../../core';
 // tslint:disable:max-func-body-length
 
 suite('Language Server - Activator', () => {
-    let activator: IExtensionActivator;
+    let activator: ILanguageServerActivator;
     let workspaceService: IWorkspaceService;
     let manager: ILanguageServerManager;
     let fs: IFileSystem;
@@ -42,17 +47,21 @@ suite('Language Server - Activator', () => {
         configuration = mock(ConfigurationService);
         settings = mock(PythonSettings);
         when(configuration.getSettings(anything())).thenReturn(instance(settings));
-        activator = new LanguageServerExtensionActivator(instance(manager),
-            instance(workspaceService), instance(fs),
-            instance(lsDownloader), instance(lsFolderService),
-            instance(configuration));
+        activator = new LanguageServerExtensionActivator(
+            instance(manager),
+            instance(workspaceService),
+            instance(fs),
+            instance(lsDownloader),
+            instance(lsFolderService),
+            instance(configuration)
+        );
     });
     test('Manager must be started without any workspace', async () => {
         when(workspaceService.hasWorkspaceFolders).thenReturn(false);
         when(manager.start(undefined)).thenResolve();
         when(settings.downloadLanguageServer).thenReturn(false);
 
-        await activator.activate();
+        await activator.activate(undefined);
 
         verify(manager.start(undefined)).once();
         verify(workspaceService.hasWorkspaceFolders).once();
@@ -67,7 +76,7 @@ suite('Language Server - Activator', () => {
         when(manager.start(undefined)).thenResolve();
         when(settings.downloadLanguageServer).thenReturn(false);
 
-        await activator.activate();
+        await activator.activate(undefined);
 
         verify(manager.start(undefined)).once();
         verify(workspaceService.hasWorkspaceFolders).once();
@@ -85,7 +94,7 @@ suite('Language Server - Activator', () => {
         when(lsFolderService.getLanguageServerFolderName()).thenResolve(languageServerFolder);
         when(fs.fileExists(mscorlib)).thenResolve(true);
 
-        await activator.activate();
+        await activator.activate(undefined);
 
         verify(manager.start(undefined)).once();
         verify(workspaceService.hasWorkspaceFolders).once();
@@ -105,7 +114,7 @@ suite('Language Server - Activator', () => {
         when(fs.fileExists(mscorlib)).thenResolve(false);
         when(lsDownloader.downloadLanguageServer(languageServerFolderPath)).thenReturn(deferred.promise);
 
-        const promise = activator.activate();
+        const promise = activator.activate(undefined);
         await sleep(1);
         verify(workspaceService.hasWorkspaceFolders).once();
         verify(lsFolderService.getLanguageServerFolderName()).once();
@@ -126,7 +135,7 @@ suite('Language Server - Activator', () => {
         when(manager.start(uri)).thenResolve();
         when(settings.downloadLanguageServer).thenReturn(false);
 
-        await activator.activate();
+        await activator.activate(undefined);
 
         verify(manager.start(uri)).once();
         verify(workspaceService.hasWorkspaceFolders).once();

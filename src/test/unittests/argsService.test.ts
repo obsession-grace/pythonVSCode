@@ -13,6 +13,7 @@ import { ILogger, Product } from '../../client/common/types';
 import { getNamesAndValues } from '../../client/common/utils/enum';
 import { IServiceContainer } from '../../client/ioc/types';
 import { ArgumentsHelper } from '../../client/unittests/common/argumentsHelper';
+import { UNIT_TEST_PRODUCTS } from '../../client/unittests/common/constants';
 import { ArgumentsService as NoseTestArgumentsService } from '../../client/unittests/nosetest/services/argsService';
 import { ArgumentsService as PyTestArgumentsService } from '../../client/unittests/pytest/services/argsService';
 import { IArgumentsHelper, IArgumentsService } from '../../client/unittests/types';
@@ -20,111 +21,110 @@ import { ArgumentsService as UnitTestArgumentsService } from '../../client/unitt
 import { PYTHON_PATH } from '../common';
 
 suite('ArgsService: Common', () => {
-    [Product.unittest, Product.nosetest, Product.pytest]
-        .forEach(product => {
-            const productNames = getNamesAndValues(Product);
-            const productName = productNames.find(item => item.value === product)!.name;
-            suite(productName, () => {
-                let argumentsService: IArgumentsService;
-                let moduleName = '';
-                let expectedWithArgs: string[] = [];
-                let expectedWithoutArgs: string[] = [];
+    UNIT_TEST_PRODUCTS.forEach(product => {
+        const productNames = getNamesAndValues(Product);
+        const productName = productNames.find(item => item.value === product)!.name;
+        suite(productName, () => {
+            let argumentsService: IArgumentsService;
+            let moduleName = '';
+            let expectedWithArgs: string[] = [];
+            let expectedWithoutArgs: string[] = [];
 
-                setup(function ()  {
-                    // Take the spawning of process into account.
-                    // tslint:disable-next-line:no-invalid-this
-                    this.timeout(5000);
-                    const serviceContainer = typeMoq.Mock.ofType<IServiceContainer>();
-                    const logger = typeMoq.Mock.ofType<ILogger>();
+            setup(function () {
+                // Take the spawning of process into account.
+                // tslint:disable-next-line:no-invalid-this
+                this.timeout(5000);
+                const serviceContainer = typeMoq.Mock.ofType<IServiceContainer>();
+                const logger = typeMoq.Mock.ofType<ILogger>();
 
-                    serviceContainer
-                        .setup(s => s.get(typeMoq.It.isValue(ILogger), typeMoq.It.isAny()))
-                        .returns(() => logger.object);
+                serviceContainer
+                    .setup(s => s.get(typeMoq.It.isValue(ILogger), typeMoq.It.isAny()))
+                    .returns(() => logger.object);
 
-                    const argsHelper = new ArgumentsHelper(serviceContainer.object);
+                const argsHelper = new ArgumentsHelper(serviceContainer.object);
 
-                    serviceContainer
-                        .setup(s => s.get(typeMoq.It.isValue(IArgumentsHelper), typeMoq.It.isAny()))
-                        .returns(() => argsHelper);
+                serviceContainer
+                    .setup(s => s.get(typeMoq.It.isValue(IArgumentsHelper), typeMoq.It.isAny()))
+                    .returns(() => argsHelper);
 
-                    switch (product) {
-                        case Product.unittest: {
-                            argumentsService = new UnitTestArgumentsService(serviceContainer.object);
-                            moduleName = 'unittest';
-                            break;
-                        }
-                        case Product.nosetest: {
-                            argumentsService = new NoseTestArgumentsService(serviceContainer.object);
-                            moduleName = 'nose';
-                            break;
-                        }
-                        case Product.pytest: {
-                            moduleName = 'pytest';
-                            argumentsService = new PyTestArgumentsService(serviceContainer.object);
-                            break;
-                        }
-                        default: {
-                            throw new Error('Unrecognized Test Framework');
-                        }
+                switch (product) {
+                    case Product.unittest: {
+                        argumentsService = new UnitTestArgumentsService(serviceContainer.object);
+                        moduleName = 'unittest';
+                        break;
                     }
-
-                    expectedWithArgs = getOptions(product, moduleName, true);
-                    expectedWithoutArgs = getOptions(product, moduleName, false);
-                });
-
-                test('Check for new/unrecognized options with values', () => {
-                    const options = argumentsService.getKnownOptions();
-                    const optionsNotFound = expectedWithArgs.filter(item => options.withArgs.indexOf(item) === -1);
-
-                    if (optionsNotFound.length > 0) {
-                        fail('', optionsNotFound.join(', '), 'Options not found');
+                    case Product.nosetest: {
+                        argumentsService = new NoseTestArgumentsService(serviceContainer.object);
+                        moduleName = 'nose';
+                        break;
                     }
-                });
-                test('Check for new/unrecognized options without values', () => {
-                    const options = argumentsService.getKnownOptions();
-                    const optionsNotFound = expectedWithoutArgs.filter(item => options.withoutArgs.indexOf(item) === -1);
+                    case Product.pytest: {
+                        moduleName = 'pytest';
+                        argumentsService = new PyTestArgumentsService(serviceContainer.object);
+                        break;
+                    }
+                    default: {
+                        throw new Error('Unrecognized Test Framework');
+                    }
+                }
 
-                    if (optionsNotFound.length > 0) {
-                        fail('', optionsNotFound.join(', '), 'Options not found');
-                    }
-                });
-                test('Test getting value for an option with a single value', () => {
-                    for (const option of expectedWithArgs) {
-                        const args = ['--some-option-with-a-value', '1234', '--another-value-with-inline=1234', option, 'abcd'];
-                        const value = argumentsService.getOptionValue(args, option);
-                        expect(value).to.equal('abcd');
-                    }
-                });
-                test('Test getting value for an option with a multiple value', () => {
-                    for (const option of expectedWithArgs) {
-                        const args = ['--some-option-with-a-value', '1234', '--another-value-with-inline=1234', option, 'abcd', option, 'xyz'];
-                        const value = argumentsService.getOptionValue(args, option);
-                        expect(value).to.deep.equal(['abcd', 'xyz']);
-                    }
-                });
-                test('Test filtering of arguments', () => {
-                    const args: string[] = [];
-                    const knownOptions = argumentsService.getKnownOptions();
-                    const argumentsToRemove: string[] = [];
-                    const expectedFilteredArgs: string[] = [];
-                    // Generate some random arguments.
-                    for (let i = 0; i < 5; i += 1) {
-                        args.push(knownOptions.withArgs[i], `Random Value ${i}`);
-                        args.push(knownOptions.withoutArgs[i]);
+                expectedWithArgs = getOptions(product, moduleName, true);
+                expectedWithoutArgs = getOptions(product, moduleName, false);
+            });
 
-                        if (i % 2 === 0) {
-                            argumentsToRemove.push(knownOptions.withArgs[i], knownOptions.withoutArgs[i]);
-                        } else {
-                            expectedFilteredArgs.push(knownOptions.withArgs[i], `Random Value ${i}`);
-                            expectedFilteredArgs.push(knownOptions.withoutArgs[i]);
-                        }
-                    }
+            test('Check for new/unrecognized options with values', () => {
+                const options = argumentsService.getKnownOptions();
+                const optionsNotFound = expectedWithArgs.filter(item => options.withArgs.indexOf(item) === -1);
 
-                    const filteredArgs = argumentsService.filterArguments(args, argumentsToRemove);
-                    expect(filteredArgs).to.be.deep.equal(expectedFilteredArgs);
-                });
+                if (optionsNotFound.length > 0) {
+                    fail('', optionsNotFound.join(', '), 'Options not found');
+                }
+            });
+            test('Check for new/unrecognized options without values', () => {
+                const options = argumentsService.getKnownOptions();
+                const optionsNotFound = expectedWithoutArgs.filter(item => options.withoutArgs.indexOf(item) === -1);
+
+                if (optionsNotFound.length > 0) {
+                    fail('', optionsNotFound.join(', '), 'Options not found');
+                }
+            });
+            test('Test getting value for an option with a single value', () => {
+                for (const option of expectedWithArgs) {
+                    const args = ['--some-option-with-a-value', '1234', '--another-value-with-inline=1234', option, 'abcd'];
+                    const value = argumentsService.getOptionValue(args, option);
+                    expect(value).to.equal('abcd');
+                }
+            });
+            test('Test getting value for an option with a multiple value', () => {
+                for (const option of expectedWithArgs) {
+                    const args = ['--some-option-with-a-value', '1234', '--another-value-with-inline=1234', option, 'abcd', option, 'xyz'];
+                    const value = argumentsService.getOptionValue(args, option);
+                    expect(value).to.deep.equal(['abcd', 'xyz']);
+                }
+            });
+            test('Test filtering of arguments', () => {
+                const args: string[] = [];
+                const knownOptions = argumentsService.getKnownOptions();
+                const argumentsToRemove: string[] = [];
+                const expectedFilteredArgs: string[] = [];
+                // Generate some random arguments.
+                for (let i = 0; i < 5; i += 1) {
+                    args.push(knownOptions.withArgs[i], `Random Value ${i}`);
+                    args.push(knownOptions.withoutArgs[i]);
+
+                    if (i % 2 === 0) {
+                        argumentsToRemove.push(knownOptions.withArgs[i], knownOptions.withoutArgs[i]);
+                    } else {
+                        expectedFilteredArgs.push(knownOptions.withArgs[i], `Random Value ${i}`);
+                        expectedFilteredArgs.push(knownOptions.withoutArgs[i]);
+                    }
+                }
+
+                const filteredArgs = argumentsService.filterArguments(args, argumentsToRemove);
+                expect(filteredArgs).to.be.deep.equal(expectedFilteredArgs);
             });
         });
+    });
 });
 
 function getOptions(product: Product, moduleName: string, withValues: boolean) {
@@ -160,7 +160,8 @@ function getOptionsWithArguments(output: string) {
     return getMatches('\\s{1,}(-{1,2}[A-Za-z0-9-]+)(?:=|\\s{0,1}[A-Z])', output);
 }
 
-function getMatches(pattern, str) {
+// tslint:disable-next-line:no-any
+function getMatches(pattern: any, str: string) {
     const matches: string[] = [];
     const regex = new RegExp(pattern, 'gm');
     let result: RegExpExecArray | null = regex.exec(str);

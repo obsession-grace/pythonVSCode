@@ -41,6 +41,7 @@ export class PythonSettings implements IPythonSettings {
     public venvFolders: string[] = [];
     public condaPath = '';
     public pipenvPath = '';
+    public poetryPath = '';
     public devOptions: string[] = [];
     public linting!: ILintingSettings;
     public formatting!: IFormattingSettings;
@@ -65,7 +66,7 @@ export class PythonSettings implements IPythonSettings {
         return this.changed.event;
     }
 
-    constructor(workspaceFolder: Uri | undefined, private readonly InterpreterAutoSelectionService: IInterpreterAutoSeletionProxyService,
+    constructor(workspaceFolder: Uri | undefined, private readonly interpreterAutoSelectionService: IInterpreterAutoSeletionProxyService,
         workspace?: IWorkspaceService) {
         this.workspace = workspace || new WorkspaceService();
         this.workspaceRoot = workspaceFolder ? workspaceFolder : Uri.file(__dirname);
@@ -129,9 +130,9 @@ export class PythonSettings implements IPythonSettings {
         this.pythonPath = systemVariables.resolveAny(pythonSettings.get<string>('pythonPath'))!;
         // If user has defined a custom value, use it else try to get the best interpreter ourselves.
         if (this.pythonPath.length === 0 || this.pythonPath === 'python') {
-            const autoSelectedPythonInterpreter = this.InterpreterAutoSelectionService.getAutoSelectedInterpreter(this.workspaceRoot);
+            const autoSelectedPythonInterpreter = this.interpreterAutoSelectionService.getAutoSelectedInterpreter(this.workspaceRoot);
             if (autoSelectedPythonInterpreter) {
-                this.InterpreterAutoSelectionService.setWorkspaceInterpreter(this.workspaceRoot, autoSelectedPythonInterpreter).ignoreErrors();
+                this.interpreterAutoSelectionService.setWorkspaceInterpreter(this.workspaceRoot, autoSelectedPythonInterpreter).ignoreErrors();
             }
             this.pythonPath = autoSelectedPythonInterpreter ? autoSelectedPythonInterpreter.path : this.pythonPath;
         }
@@ -143,6 +144,8 @@ export class PythonSettings implements IPythonSettings {
         this.condaPath = condaPath && condaPath.length > 0 ? getAbsolutePath(condaPath, workspaceRoot) : condaPath;
         const pipenvPath = systemVariables.resolveAny(pythonSettings.get<string>('pipenvPath'))!;
         this.pipenvPath = pipenvPath && pipenvPath.length > 0 ? getAbsolutePath(pipenvPath, workspaceRoot) : pipenvPath;
+        const poetryPath = systemVariables.resolveAny(pythonSettings.get<string>('poetryPath'))!;
+        this.poetryPath = poetryPath && poetryPath.length > 0 ? getAbsolutePath(poetryPath, workspaceRoot) : poetryPath;
 
         this.downloadLanguageServer = systemVariables.resolveAny(pythonSettings.get<boolean>('downloadLanguageServer', true))!;
         this.jediEnabled = systemVariables.resolveAny(pythonSettings.get<boolean>('jediEnabled', true))!;
@@ -373,6 +376,17 @@ export class PythonSettings implements IPythonSettings {
     protected getPythonExecutable(pythonPath: string) {
         return getPythonExecutable(pythonPath);
     }
+    protected onWorkspaceFoldersChanged() {
+        //If an activated workspace folder was removed, delete its key
+        const workspaceKeys = this.workspace.workspaceFolders!.map(workspaceFolder => workspaceFolder.uri.fsPath);
+        const activatedWkspcKeys = Array.from(PythonSettings.pythonSettings.keys());
+        const activatedWkspcFoldersRemoved = activatedWkspcKeys.filter(item => workspaceKeys.indexOf(item) < 0);
+        if (activatedWkspcFoldersRemoved.length > 0) {
+            for (const folder of activatedWkspcFoldersRemoved) {
+                PythonSettings.pythonSettings.delete(folder);
+            }
+        }
+    }
     protected initialize(): void {
         const onDidChange = () => {
             const currentConfig = this.workspace.getConfiguration('python', this.workspaceRoot);
@@ -382,7 +396,8 @@ export class PythonSettings implements IPythonSettings {
             // Let's defer the change notification.
             this.debounceChangeNotification();
         };
-        this.disposables.push(this.InterpreterAutoSelectionService.onDidChangeAutoSelectedInterpreter(onDidChange.bind(this)));
+        this.disposables.push(this.workspace.onDidChangeWorkspaceFolders(this.onWorkspaceFoldersChanged, this));
+        this.disposables.push(this.interpreterAutoSelectionService.onDidChangeAutoSelectedInterpreter(onDidChange.bind(this)));
         this.disposables.push(this.workspace.onDidChangeConfiguration((event: ConfigurationChangeEvent) => {
             if (event.affectsConfiguration('python')) {
                 onDidChange();

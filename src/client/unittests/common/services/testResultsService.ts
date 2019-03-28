@@ -1,5 +1,7 @@
 import { inject, injectable, named } from 'inversify';
-import { ITestResultsService, ITestVisitor, TestFile, TestFolder, Tests, TestStatus, TestSuite } from './../types';
+import { TestDataItem } from '../../types';
+import { getChildren, getTestType } from '../testUtils';
+import { ITestResultsService, ITestVisitor, Tests, TestStatus, TestType } from './../types';
 
 @injectable()
 export class TestResultsService implements ITestResultsService {
@@ -11,101 +13,68 @@ export class TestResultsService implements ITestResultsService {
         tests.testFiles.forEach(testFile => this.resultResetVisitor.visitTestFile(testFile));
     }
     public updateResults(tests: Tests): void {
-        tests.testFiles.forEach(test => this.updateTestFileResults(test));
-        tests.testFolders.forEach(folder => this.updateTestFolderResults(folder));
-    }
-    private updateTestSuiteResults(test: TestSuite): void {
-        this.updateTestSuiteAndFileResults(test);
-    }
-    private updateTestFileResults(test: TestFile): void {
-        this.updateTestSuiteAndFileResults(test);
-    }
-    private updateTestFolderResults(testFolder: TestFolder): void {
-        let allFilesPassed = true;
-        let allFilesRan = true;
+        // Update Test tree bottom to top
+        const testQueue: TestDataItem[] = [];
+        const testStack: TestDataItem[] = [];
+        tests.rootTestFolders.forEach(folder => testQueue.push(folder));
 
-        testFolder.testFiles.forEach(fl => {
-            if (allFilesPassed && typeof fl.passed === 'boolean') {
-                if (!fl.passed) {
-                    allFilesPassed = false;
-                }
-            } else {
-                allFilesRan = false;
+        while (testQueue.length > 0) {
+            const item = testQueue.shift();
+            if (!item) {
+                continue;
             }
-
-            testFolder.functionsFailed! += fl.functionsFailed!;
-            testFolder.functionsPassed! += fl.functionsPassed!;
-        });
-
-        let allFoldersPassed = true;
-        let allFoldersRan = true;
-
-        testFolder.folders.forEach(folder => {
-            this.updateTestFolderResults(folder);
-            if (allFoldersPassed && typeof folder.passed === 'boolean') {
-                if (!folder.passed) {
-                    allFoldersPassed = false;
-                }
-            } else {
-                allFoldersRan = false;
-            }
-
-            testFolder.functionsFailed! += folder.functionsFailed!;
-            testFolder.functionsPassed! += folder.functionsPassed!;
-        });
-
-        if (allFilesRan && allFoldersRan) {
-            testFolder.passed = allFilesPassed && allFoldersPassed;
-            testFolder.status = testFolder.passed ? TestStatus.Idle : TestStatus.Fail;
-        } else {
-            testFolder.passed = undefined;
-            testFolder.status = TestStatus.Unknown;
+            testStack.push(item);
+            const children = getChildren(item);
+            children.forEach(child => testQueue.push(child));
+        }
+        while (testStack.length > 0) {
+            const item = testStack.pop();
+            this.updateTestItem(item!);
         }
     }
-    private updateTestSuiteAndFileResults(test: TestSuite | TestFile): void {
-        let totalTime = 0;
-        let allFunctionsPassed = true;
-        let allFunctionsRan = true;
+    private updateTestItem(test: TestDataItem): void {
+        if (getTestType(test) === TestType.testFunction) {
+            return;
+        }
+        let allChildrenPassed = true;
+        let noChildrenRan = true;
+        test.time = test.functionsPassed = test.functionsFailed = test.functionsDidNotRun = 0;
 
-        test.functions.forEach(fn => {
-            totalTime += fn.time;
-            if (typeof fn.passed === 'boolean') {
-                if (fn.passed) {
-                    test.functionsPassed! += 1;
+        const children = getChildren(test);
+        children.forEach(child => {
+            if (child.time) {
+                test.time! += child.time;
+            }
+            if (getTestType(child) === TestType.testFunction) {
+                if (typeof child.passed === 'boolean') {
+                    noChildrenRan = false;
+                    if (child.passed) {
+                        test.functionsPassed! += 1;
+                    } else {
+                        test.functionsFailed! += 1;
+                        allChildrenPassed = false;
+                    }
                 } else {
-                    test.functionsFailed! += 1;
-                    allFunctionsPassed = false;
+                    test.functionsDidNotRun! += 1;
                 }
             } else {
-                allFunctionsRan = false;
-            }
-        });
-
-        let allSuitesPassed = true;
-        let allSuitesRan = true;
-
-        test.suites.forEach(suite => {
-            this.updateTestSuiteResults(suite);
-            totalTime += suite.time;
-            if (allSuitesRan && typeof suite.passed === 'boolean') {
-                if (!suite.passed) {
-                    allSuitesPassed = false;
+                if (typeof child.passed === 'boolean') {
+                    noChildrenRan = false;
+                    if (!child.passed) {
+                        allChildrenPassed = false;
+                    }
                 }
-            } else {
-                allSuitesRan = false;
+                test.functionsFailed! += child.functionsFailed!;
+                test.functionsPassed! += child.functionsPassed!;
+                test.functionsDidNotRun! += child.functionsDidNotRun!;
             }
-
-            test.functionsFailed! += suite.functionsFailed!;
-            test.functionsPassed! += suite.functionsPassed!;
         });
-
-        test.time = totalTime;
-        if (allSuitesRan && allFunctionsRan) {
-            test.passed = allFunctionsPassed && allSuitesPassed;
-            test.status = test.passed ? TestStatus.Idle : TestStatus.Error;
-        } else {
+        if (noChildrenRan) {
             test.passed = undefined;
             test.status = TestStatus.Unknown;
+        } else {
+            test.passed = allChildrenPassed;
+            test.status = test.passed ? TestStatus.Pass : TestStatus.Fail;
         }
     }
 }

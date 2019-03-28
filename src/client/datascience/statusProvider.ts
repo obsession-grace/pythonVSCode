@@ -6,7 +6,7 @@ import { Disposable, ProgressLocation, ProgressOptions } from 'vscode';
 
 import { IApplicationShell } from '../common/application/types';
 import { createDeferred, Deferred } from '../common/utils/async';
-import { HistoryMessages } from './constants';
+import { HistoryMessages } from './history/historyTypes';
 import { IHistoryProvider, IStatusProvider } from './types';
 
 class StatusItem implements Disposable {
@@ -16,7 +16,7 @@ class StatusItem implements Disposable {
     private timeout: NodeJS.Timer | undefined;
     private disposeCallback: () => void;
 
-    constructor(title: string, disposeCallback: () => void, timeout?: number) {
+    constructor(_title: string, disposeCallback: () => void, timeout?: number) {
         this.deferred = createDeferred<void>();
         this.disposeCallback = disposeCallback;
 
@@ -60,12 +60,12 @@ export class StatusProvider implements IStatusProvider {
         @inject(IHistoryProvider) private historyProvider: IHistoryProvider) {
     }
 
-    public set(message: string, timeout?: number, cancel?: () => void) : Disposable {
+    public set(message: string, timeout?: number, cancel?: () => void, skipHistory?: boolean) : Disposable {
         // Start our progress
-        this.incrementCount();
+        this.incrementCount(skipHistory);
 
         // Create a StatusItem that will return our promise
-        const statusItem = new StatusItem(message, () => this.decrementCount(), timeout);
+        const statusItem = new StatusItem(message, () => this.decrementCount(skipHistory), timeout);
 
         const progressOptions: ProgressOptions = {
             location: cancel ? ProgressLocation.Notification : ProgressLocation.Window,
@@ -76,7 +76,7 @@ export class StatusProvider implements IStatusProvider {
         // Set our application shell status with a busy icon
         this.applicationShell.withProgress(
             progressOptions,
-            (p, c) =>
+            (_p, c) =>
             {
                 if (c && cancel) {
                     c.onCancellationRequested(() => {
@@ -91,9 +91,9 @@ export class StatusProvider implements IStatusProvider {
         return statusItem;
     }
 
-    public async waitWithStatus<T>(promise: () => Promise<T>, message: string, timeout?: number, cancel?: () => void) : Promise<T> {
+    public async waitWithStatus<T>(promise: () => Promise<T>, message: string, timeout?: number, cancel?: () => void, skipHistory?: boolean) : Promise<T> {
         // Create a status item and wait for our promise to either finish or reject
-        const status = this.set(message, timeout, cancel);
+        const status = this.set(message, timeout, cancel, skipHistory);
         let result : T;
         try {
             result = await promise();
@@ -103,21 +103,21 @@ export class StatusProvider implements IStatusProvider {
         return result;
     }
 
-    private incrementCount = () => {
+    private incrementCount = (skipHistory?: boolean) => {
         if (this.statusCount === 0) {
             const history = this.historyProvider.getActive();
-            if (history) {
+            if (history && !skipHistory) {
                 history.postMessage(HistoryMessages.StartProgress);
             }
         }
         this.statusCount += 1;
     }
 
-    private decrementCount = () => {
+    private decrementCount = (skipHistory?: boolean) => {
         const updatedCount = this.statusCount - 1;
         if (updatedCount === 0) {
             const history = this.historyProvider.getActive();
-            if (history) {
+            if (history && !skipHistory) {
                 history.postMessage(HistoryMessages.StopProgress);
             }
         }

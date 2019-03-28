@@ -47,7 +47,7 @@ export class TestFileCodeLensProvider implements CodeLensProvider {
         return this.getCodeLenses(document, cancelTokenSrc.token, this.symbolProvider);
     }
 
-    public resolveCodeLens(codeLens: CodeLens, token: CancellationToken): CodeLens | Thenable<CodeLens> {
+    public resolveCodeLens(codeLens: CodeLens, _token: CancellationToken): CodeLens | Thenable<CodeLens> {
         codeLens.command = { command: 'python.runtests', title: 'Test' };
         return Promise.resolve(codeLens);
     }
@@ -203,20 +203,6 @@ function getFunctionCodeLens(file: Uri, functionsAndSuites: FunctionsAndSuites,
     if (functions.length === 0) {
         return [];
     }
-    if (functions.length === 0) {
-        return [
-            new CodeLens(range, {
-                title: constants.Text.CodeLensRunUnitTest,
-                command: constants.Commands.Tests_Run,
-                arguments: [undefined, CommandSource.codelens, file, <TestsToRun>{ testFunction: functions }]
-            }),
-            new CodeLens(range, {
-                title: constants.Text.CodeLensDebugUnitTest,
-                command: constants.Commands.Tests_Debug,
-                arguments: [undefined, CommandSource.codelens, file, <TestsToRun>{ testFunction: functions }]
-            })
-        ];
-    }
 
     // Find all flattened functions.
     return [
@@ -235,7 +221,7 @@ function getFunctionCodeLens(file: Uri, functionsAndSuites: FunctionsAndSuites,
 
 function getAllTestSuitesAndFunctionsPerFile(testFile: TestFile): FunctionsAndSuites {
     // tslint:disable-next-line:prefer-type-cast
-    const all = { functions: testFile.functions, suites: [] as TestSuite[] };
+    const all = { functions: [...testFile.functions], suites: [] as TestSuite[] };
     testFile.suites.forEach(suite => {
         all.suites.push(suite);
 

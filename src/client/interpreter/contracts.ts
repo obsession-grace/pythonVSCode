@@ -83,6 +83,7 @@ export type WorkspacePythonPath = {
 export const IInterpreterService = Symbol('IInterpreterService');
 export interface IInterpreterService {
     onDidChangeInterpreter: Event<void>;
+    onDidChangeInterpreterInformation: Event<PythonInterpreter>;
     hasInterpreters: Promise<boolean>;
     getInterpreters(resource?: Uri): Promise<PythonInterpreter[]>;
     getActiveInterpreter(resource?: Uri): Promise<PythonInterpreter | undefined>;
@@ -119,7 +120,7 @@ export interface IPipEnvService {
 
 export const IInterpreterLocatorHelper = Symbol('IInterpreterLocatorHelper');
 export interface IInterpreterLocatorHelper {
-    mergeInterpreters(interpreters: PythonInterpreter[]): PythonInterpreter[];
+    mergeInterpreters(interpreters: PythonInterpreter[]): Promise<PythonInterpreter[]>;
 }
 
 export const IInterpreterWatcher = Symbol('IInterpreterWatcher');

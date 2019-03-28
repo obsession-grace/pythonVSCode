@@ -45,6 +45,10 @@ import {
     WorkspaceFolderPickOptions,
     WorkspaceFoldersChangeEvent
 } from 'vscode';
+import * as vsls from 'vsls/vscode';
+
+import { IAsyncDisposable, Resource } from '../types';
+import { ICommandNameArgumentTypeMapping } from './commands';
 
 // tslint:disable:no-any unified-signatures
 
@@ -345,7 +349,7 @@ export interface ICommandManager {
      * @param thisArg The `this` context used when invoking the handler function.
      * @return Disposable which unregisters this command on disposal.
      */
-    registerCommand(command: string, callback: (...args: any[]) => any, thisArg?: any): Disposable;
+    registerCommand<E extends keyof ICommandNameArgumentTypeMapping, U extends ICommandNameArgumentTypeMapping[E]>(command: E, callback: (...args: U) => any, thisArg?: any): Disposable;
 
     /**
      * Registers a text editor command that can be invoked via a keyboard shortcut,
@@ -377,7 +381,7 @@ export interface ICommandManager {
      * @return A thenable that resolves to the returned value of the given command. `undefined` when
      * the command handler function doesn't return anything.
      */
-    executeCommand<T>(command: string, ...rest: any[]): Thenable<T | undefined>;
+    executeCommand<T, E extends keyof ICommandNameArgumentTypeMapping, U extends ICommandNameArgumentTypeMapping[E]>(command: E, ...rest: U): Thenable<T | undefined>;
 
     /**
      * Retrieve the list of all available commands. Commands starting an underscore are
@@ -578,7 +582,7 @@ export interface IWorkspaceService {
      * @param uri An uri.
      * @return A workspace folder or `undefined`
      */
-    getWorkspaceFolder(uri: Uri): WorkspaceFolder | undefined;
+    getWorkspaceFolder(uri: Resource): WorkspaceFolder | undefined;
 
     /**
      * Generate a key that's unique to the workspace folder (could be fsPath).
@@ -586,7 +590,7 @@ export interface IWorkspaceService {
      * @returns {string}
      * @memberof IWorkspaceService
      */
-    getWorkspaceFolderIdentifier(resource: Uri | undefined): string;
+    getWorkspaceFolderIdentifier(resource: Uri | undefined, defaultValue?: string): string;
     /**
      * Returns a path that is relative to the workspace folder or folders.
      *
@@ -808,7 +812,7 @@ export interface IApplicationEnvironment {
 }
 
 export const IWebPanelMessageListener = Symbol('IWebPanelMessageListener');
-export interface IWebPanelMessageListener extends Disposable {
+export interface IWebPanelMessageListener extends IAsyncDisposable {
     /**
      * Listens to web panel messages
      * @param message: the message being sent
@@ -816,6 +820,10 @@ export interface IWebPanelMessageListener extends Disposable {
      * @return A IWebPanel that can be used to show html pages.
      */
     onMessage(message: string, payload: any): void;
+    /**
+     * Listens to web panel state changes
+     */
+    onChangeViewState(panel: IWebPanel): void;
 }
 
 export type WebPanelMessage = {
@@ -837,7 +845,7 @@ export interface IWebPanel {
      * Makes the webpanel show up.
      * @return A Promise that can be waited on
      */
-    show(): Promise<void>;
+    show(preserveFocus: boolean): Promise<void>;
 
     /**
      * Indicates if this web panel is visible or not.
@@ -848,6 +856,15 @@ export interface IWebPanel {
      * Sends a message to the hosted html page
      */
     postMessage(message: WebPanelMessage): void;
+
+    /**
+     * Attempts to close the panel if it's visible
+     */
+    close(): void;
+    /**
+     * Indicates if the webview has the focus or not.
+     */
+    isActive(): boolean;
 }
 
 // Wraps the VS Code api for creating a web panel
@@ -860,5 +877,20 @@ export interface IWebPanelProvider {
      * @param: mainScriptPath: full path in the output folder to the script
      * @return A IWebPanel that can be used to show html pages.
      */
-    create(listener: IWebPanelMessageListener, title: string, mainScriptPath: string, embeddedCss?: string, settings?: any): IWebPanel;
+    create(viewColumn: ViewColumn, listener: IWebPanelMessageListener, title: string, mainScriptPath: string, embeddedCss?: string, settings?: any): IWebPanel;
+}
+
+// Wraps the vsls liveshare API
+export const ILiveShareApi = Symbol('ILiveShareApi');
+export interface ILiveShareApi {
+    getApi(): Promise<vsls.LiveShare | null>;
+}
+
+// Wraps the liveshare api for testing
+export const ILiveShareTestingApi = Symbol('ILiveShareTestingApi');
+export interface ILiveShareTestingApi extends ILiveShareApi {
+    isSessionStarted: boolean;
+    forceRole(role: vsls.Role): void;
+    startSession(): Promise<void>;
+    stopSession(): Promise<void>;
 }

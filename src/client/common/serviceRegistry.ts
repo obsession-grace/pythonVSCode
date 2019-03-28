@@ -2,6 +2,8 @@
 // Licensed under the MIT License.
 import { IHttpClient } from '../activation/types';
 import { IServiceManager } from '../ioc/types';
+import { ImportTracker } from '../telemetry/importTracker';
+import { IImportTracker } from '../telemetry/types';
 import { ApplicationEnvironment } from './application/applicationEnvironment';
 import { ApplicationShell } from './application/applicationShell';
 import { CommandManager } from './application/commandManager';
@@ -15,6 +17,7 @@ import {
     ICommandManager,
     IDebugService,
     IDocumentManager,
+    ILiveShareApi,
     ITerminalManager,
     IWorkspaceService
 } from './application/types';
@@ -24,6 +27,7 @@ import { ConfigurationService } from './configuration/service';
 import { EditorUtils } from './editor';
 import { FeatureDeprecationManager } from './featureDeprecationManager';
 import { ProductInstaller } from './installer/productInstaller';
+import { LiveShareApi } from './liveshare/liveshare';
 import { Logger } from './logger';
 import { BrowserService } from './net/browser';
 import { HttpClient } from './net/httpClient';
@@ -93,6 +97,7 @@ export function registerTypes(serviceManager: IServiceManager) {
     serviceManager.addSingleton<INugetService>(INugetService, NugetService);
     serviceManager.addSingleton<ITerminalActivator>(ITerminalActivator, TerminalActivator);
     serviceManager.addSingleton<ITerminalActivationHandler>(ITerminalActivationHandler, PowershellTerminalActivationFailedHandler);
+    serviceManager.addSingleton<ILiveShareApi>(ILiveShareApi, LiveShareApi);
 
     serviceManager.addSingleton<ITerminalHelper>(ITerminalHelper, TerminalHelper);
     serviceManager.addSingleton<ITerminalActivationCommandProvider>(
@@ -109,4 +114,5 @@ export function registerTypes(serviceManager: IServiceManager) {
 
     serviceManager.addSingleton<IAsyncDisposableRegistry>(IAsyncDisposableRegistry, AsyncDisposableRegistry);
     serviceManager.addSingleton<IMultiStepInputFactory>(IMultiStepInputFactory, MultiStepInputFactory);
+    serviceManager.addSingleton<IImportTracker>(IImportTracker, ImportTracker);
 }

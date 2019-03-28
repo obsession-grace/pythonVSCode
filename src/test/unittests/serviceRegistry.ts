@@ -5,11 +5,11 @@ import { Uri } from 'vscode';
 
 import { IProcessServiceFactory } from '../../client/common/process/types';
 import { CodeCssGenerator } from '../../client/datascience/codeCssGenerator';
-import { History } from '../../client/datascience/history';
-import { HistoryProvider } from '../../client/datascience/historyProvider';
-import { JupyterExecution } from '../../client/datascience/jupyter/jupyterExecution';
+import { History } from '../../client/datascience/history/history';
+import { HistoryProvider } from '../../client/datascience/history/historyProvider';
+import { JupyterExecutionFactory } from '../../client/datascience/jupyter/jupyterExecutionFactory';
 import { JupyterImporter } from '../../client/datascience/jupyter/jupyterImporter';
-import { JupyterServer } from '../../client/datascience/jupyter/jupyterServer';
+import { JupyterServerFactory } from '../../client/datascience/jupyter/jupyterServerFactory';
 import {
     ICodeCssGenerator,
     IHistory,
@@ -20,16 +20,18 @@ import {
 } from '../../client/datascience/types';
 import { IServiceContainer } from '../../client/ioc/types';
 import { NOSETEST_PROVIDER, PYTEST_PROVIDER, UNITTEST_PROVIDER } from '../../client/unittests/common/constants';
+import { TestContextService } from '../../client/unittests/common/services/contextService';
 import { TestCollectionStorageService } from '../../client/unittests/common/services/storageService';
 import { TestManagerService } from '../../client/unittests/common/services/testManagerService';
 import { TestResultsService } from '../../client/unittests/common/services/testResultsService';
+import { TestsStatusUpdaterService } from '../../client/unittests/common/services/testsStatusService';
 import { UnitTestDiagnosticService } from '../../client/unittests/common/services/unitTestDiagnosticService';
 import { TestsHelper } from '../../client/unittests/common/testUtils';
 import { TestFlatteningVisitor } from '../../client/unittests/common/testVisitors/flatteningVisitor';
-import { TestFolderGenerationVisitor } from '../../client/unittests/common/testVisitors/folderGenerationVisitor';
 import { TestResultResetVisitor } from '../../client/unittests/common/testVisitors/resultResetVisitor';
 import {
     ITestCollectionStorageService,
+    ITestContextService,
     ITestDiscoveryService,
     ITestManager,
     ITestManagerFactory,
@@ -38,6 +40,7 @@ import {
     ITestResultsService,
     ITestsHelper,
     ITestsParser,
+    ITestsStatusUpdaterService,
     ITestVisitor,
     IUnitTestSocketServer,
     TestProvider
@@ -75,8 +78,9 @@ export class UnitTestIocContainer extends IocContainer {
 
     public registerTestVisitors() {
         this.serviceManager.add<ITestVisitor>(ITestVisitor, TestFlatteningVisitor, 'TestFlatteningVisitor');
-        this.serviceManager.add<ITestVisitor>(ITestVisitor, TestFolderGenerationVisitor, 'TestFolderGenerationVisitor');
         this.serviceManager.add<ITestVisitor>(ITestVisitor, TestResultResetVisitor, 'TestResultResetVisitor');
+        this.serviceManager.addSingleton<ITestsStatusUpdaterService>(ITestsStatusUpdaterService, TestsStatusUpdaterService);
+        this.serviceManager.addSingleton<ITestContextService>(ITestContextService, TestContextService);
     }
 
     public registerTestStorage() {
@@ -145,11 +149,11 @@ export class UnitTestIocContainer extends IocContainer {
     }
 
     public registerDataScienceTypes() {
-        this.serviceManager.addSingleton<IJupyterExecution>(IJupyterExecution, JupyterExecution);
+        this.serviceManager.addSingleton<IJupyterExecution>(IJupyterExecution, JupyterExecutionFactory);
         this.serviceManager.addSingleton<IHistoryProvider>(IHistoryProvider, HistoryProvider);
         this.serviceManager.add<IHistory>(IHistory, History);
         this.serviceManager.add<INotebookImporter>(INotebookImporter, JupyterImporter);
-        this.serviceManager.add<INotebookServer>(INotebookServer, JupyterServer);
+        this.serviceManager.add<INotebookServer>(INotebookServer, JupyterServerFactory);
         this.serviceManager.addSingleton<ICodeCssGenerator>(ICodeCssGenerator, CodeCssGenerator);
     }
 }

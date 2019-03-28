@@ -3,7 +3,7 @@
 import { inject, injectable } from 'inversify';
 import * as path from 'path';
 import { EXTENSION_ROOT_DIR } from '../../common/constants';
-import { ILogger } from '../../common/types';
+import { IDisposableRegistry, ILogger } from '../../common/types';
 import { createDeferred, Deferred } from '../../common/utils/async';
 import { noop } from '../../common/utils/misc';
 import { IServiceContainer } from '../../ioc/types';
@@ -49,6 +49,7 @@ export class TestManagerRunner implements ITestManagerRunner {
         this.server = this.serviceContainer.get<IUnitTestSocketServer>(IUnitTestSocketServer);
         this.logger = this.serviceContainer.get<ILogger>(ILogger);
         this.helper = this.serviceContainer.get<IUnitTestHelper>(IUnitTestHelper);
+        this.serviceContainer.get<IDisposableRegistry>(IDisposableRegistry).push(this.server);
     }
 
     // tslint:disable-next-line:max-func-body-length
@@ -73,6 +74,20 @@ export class TestManagerRunner implements ITestManagerRunner {
             const statusDetails = outcomeMapping.get(data.outcome)!;
             if (test) {
                 test.testFunction.status = statusDetails.status;
+                switch (test.testFunction.status) {
+                    case TestStatus.Error:
+                    case TestStatus.Fail: {
+                        test.testFunction.passed = false;
+                        break;
+                    }
+                    case TestStatus.Pass: {
+                        test.testFunction.passed = true;
+                        break;
+                    }
+                    default: {
+                        test.testFunction.passed = undefined;
+                    }
+                }
                 test.testFunction.message = data.message;
                 test.testFunction.traceback = data.traceback;
                 options.tests.summary[statusDetails.summaryProperty] += 1;
@@ -126,28 +141,33 @@ export class TestManagerRunner implements ITestManagerRunner {
         if (testPaths.length === 0) {
             await this.removeListenersAfter(runTestInternal());
         } else {
-            let promise = Promise.resolve<void>(undefined);
             // Ok, the test runner can only work with one test at a time.
             if (options.testsToRun) {
                 if (Array.isArray(options.testsToRun.testFile)) {
-                    options.testsToRun.testFile.forEach(testFile => {
-                        promise = promise.then(() => runTestInternal(testFile.fullPath, testFile.nameToRun));
-                    });
+                    for (const testFile of options.testsToRun.testFile) {
+                        await runTestInternal(testFile.fullPath, testFile.nameToRun);
+                    }
                 }
                 if (Array.isArray(options.testsToRun.testSuite)) {
-                    options.testsToRun.testSuite.forEach(testSuite => {
-                        const testFileName = options.tests.testSuites.find(t => t.testSuite === testSuite)!.parentTestFile.fullPath;
-                        promise = promise.then(() => runTestInternal(testFileName, testSuite.nameToRun));
-                    });
+                    for (const testSuite of options.testsToRun.testSuite) {
+                        const item = options.tests.testSuites.find(t => t.testSuite === testSuite);
+                        if (item) {
+                            const testFileName = item.parentTestFile.fullPath;
+                            await runTestInternal(testFileName, testSuite.nameToRun);
+                        }
+                    }
                 }
                 if (Array.isArray(options.testsToRun.testFunction)) {
-                    options.testsToRun.testFunction.forEach(testFn => {
-                        const testFileName = options.tests.testFunctions.find(t => t.testFunction === testFn)!.parentTestFile.fullPath;
-                        promise = promise.then(() => runTestInternal(testFileName, testFn.nameToRun));
-                    });
+                    for (const testFn of options.testsToRun.testFunction) {
+                        const item = options.tests.testFunctions.find(t => t.testFunction === testFn);
+                        if (item) {
+                            const testFileName = item.parentTestFile.fullPath;
+                            await runTestInternal(testFileName, testFn.nameToRun);
+                        }
+                    }
                 }
 
-                await this.removeListenersAfter(promise);
+                await this.removeListenersAfter(Promise.resolve());
             }
 
         }
@@ -163,11 +183,11 @@ export class TestManagerRunner implements ITestManagerRunner {
     // tslint:disable-next-line:no-any
     private async removeListenersAfter(after: Promise<any>): Promise<any> {
         return after
-                .then(() => this.server.removeAllListeners())
-                .catch((err) => {
-                    this.server.removeAllListeners();
-                    throw err; // keep propagating this downward
-                });
+            .then(() => this.server.removeAllListeners())
+            .catch((err) => {
+                this.server.removeAllListeners();
+                throw err; // keep propagating this downward
+            });
     }
 
     private buildTestArgs(args: string[]): string[] {

@@ -3,9 +3,12 @@
 
 import { inject, injectable } from 'inversify';
 import * as path from 'path';
-import { ITestsHelper, ITestsParser, TestFile,
+import { Uri } from 'vscode';
+import {
+    ITestsHelper, ITestsParser, TestFile,
     TestFunction, Tests, TestStatus,
-    UnitTestParserOptions } from '../../common/types';
+    UnitTestParserOptions
+} from '../../common/types';
 
 @injectable()
 export class TestsParser implements ITestsParser {
@@ -16,7 +19,7 @@ export class TestsParser implements ITestsParser {
         if (options.startDirectory.length > 1) {
             testsDirectory = path.isAbsolute(options.startDirectory) ? options.startDirectory : path.resolve(options.cwd, options.startDirectory);
         }
-        return this.parseTestIds(testsDirectory, testIds);
+        return this.parseTestIds(options.cwd, testsDirectory, testIds);
     }
     private getTestIds(content: string): string[] {
         let startedCollecting = false;
@@ -32,11 +35,11 @@ export class TestsParser implements ITestsParser {
             })
             .filter(line => line.length > 0);
     }
-    private parseTestIds(rootDirectory: string, testIds: string[]): Tests {
+    private parseTestIds(workspaceDirectory: string, testsDirectory: string, testIds: string[]): Tests {
         const testFiles: TestFile[] = [];
-        testIds.forEach(testId => this.addTestId(rootDirectory, testId, testFiles));
+        testIds.forEach(testId => this.addTestId(testsDirectory, testId, testFiles));
 
-        return this.testsHelper.flattenTestFiles(testFiles);
+        return this.testsHelper.flattenTestFiles(testFiles, workspaceDirectory);
     }
 
     /**
@@ -62,11 +65,13 @@ export class TestsParser implements ITestsParser {
         const functionName = testIdParts.pop()!;
         const suiteToRun = testIdParts.join('.');
         const className = testIdParts.pop()!;
+        const resource = Uri.file(rootDirectory);
 
         // Check if we already have this test file
         let testFile = testFiles.find(test => test.fullPath === filePath);
         if (!testFile) {
             testFile = {
+                resource,
                 name: path.basename(filePath),
                 fullPath: filePath,
                 functions: [],
@@ -84,6 +89,7 @@ export class TestsParser implements ITestsParser {
         let testSuite = testFile.suites.find(cls => cls.nameToRun === suiteToRun);
         if (!testSuite) {
             testSuite = {
+                resource,
                 name: className,
                 functions: [],
                 suites: [],
@@ -98,6 +104,7 @@ export class TestsParser implements ITestsParser {
         }
 
         const testFunction: TestFunction = {
+            resource,
             name: functionName,
             nameToRun: testId,
             status: TestStatus.Idle,

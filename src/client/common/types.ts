@@ -3,11 +3,13 @@
 'use strict';
 
 import { Socket } from 'net';
-import { ConfigurationTarget, DiagnosticSeverity, Disposable, Event, Extension, ExtensionContext, OutputChannel, Uri, WorkspaceEdit } from 'vscode';
+import { ConfigurationTarget, DiagnosticSeverity, Disposable, DocumentSymbolProvider, Event, Extension, ExtensionContext, OutputChannel, Uri, WorkspaceEdit } from 'vscode';
+import { CommandsWithoutArgs } from './application/commands';
 import { EnvironmentVariables } from './variables/types';
 export const IOutputChannel = Symbol('IOutputChannel');
 export interface IOutputChannel extends OutputChannel { }
 export const IDocumentSymbolProvider = Symbol('IDocumentSymbolProvider');
+export interface IDocumentSymbolProvider extends DocumentSymbolProvider { }
 export const IsWindows = Symbol('IS_WINDOWS');
 export const IDisposableRegistry = Symbol('IDiposableRegistry');
 export type IDisposableRegistry = { push(disposable: Disposable): void };
@@ -142,6 +144,7 @@ export interface IPythonSettings {
     readonly venvFolders: string[];
     readonly condaPath: string;
     readonly pipenvPath: string;
+    readonly poetryPath: string;
     readonly downloadLanguageServer: boolean;
     readonly jediEnabled: boolean;
     readonly jediPath: string;
@@ -289,10 +292,16 @@ export interface IDataScienceSettings {
     changeDirOnImportExport: boolean;
     useDefaultConfigForJupyter: boolean;
     searchForJupyter: boolean;
-    allowInput?: boolean;
+    allowInput: boolean;
     showCellInputCode: boolean;
     collapseCellInputCodeByDefault: boolean;
-    maxOutputSize? : number;
+    maxOutputSize: number;
+    sendSelectionToInteractiveWindow: boolean;
+    markdownRegularExpression: string;
+    codeRegularExpression: string;
+    allowLiveShare?: boolean;
+    errorBackgroundColor: string;
+    ignoreVscodeTheme?: boolean;
 }
 
 export const IConfigurationService = Symbol('IConfigurationService');
@@ -351,6 +360,7 @@ export interface IPythonExtensionBanner {
 export const BANNER_NAME_LS_SURVEY: string = 'LSSurveyBanner';
 export const BANNER_NAME_PROPOSE_LS: string = 'ProposeLS';
 export const BANNER_NAME_DS_SURVEY: string = 'DSSurveyBanner';
+export const BANNER_NAME_INTERACTIVE_SHIFTENTER: string = 'InteractiveShiftEnterBanner';
 
 export type DeprecatedSettingAndValue = {
     setting: string;
@@ -361,7 +371,7 @@ export type DeprecatedFeatureInfo = {
     doNotDisplayPromptStateKey: string;
     message: string;
     moreInfoUrl: string;
-    commands?: string[];
+    commands?: CommandsWithoutArgs[];
     setting?: DeprecatedSettingAndValue;
 };
 
