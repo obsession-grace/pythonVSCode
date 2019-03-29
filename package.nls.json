@@ -182,7 +182,7 @@
     "Common.loadingPythonExtension": "Python extension loading...",
     "debug.selectConfigurationTitle": "Select a debug configuration",
     "debug.selectConfigurationPlaceholder": "Debug Configuration",
-    "debug.launchJsonConfigurationsCompletionLabel": "* Python",
+    "debug.launchJsonConfigurationsCompletionLabel": "Python",
     "debug.launchJsonConfigurationsCompletionDescription": "Select Python Launch Configuration",
     "debug.debugFileConfigurationLabel": "Python File",
     "debug.debugFileConfigurationDescription": "Debug Python file",
