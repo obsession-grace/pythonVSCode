@@ -44,6 +44,12 @@ export class PythonDebugConfigurationService implements IDebugConfigurationServi
         } else if (debugConfiguration.request === 'test') {
             throw Error('Please use the command \'Python: Debug Unit Tests\'');
         } else {
+            if (Object.keys(debugConfiguration).length === 0) {
+                const configs = await this.provideDebugConfigurations(folder, token);
+                if (Array.isArray(configs) && configs.length === 1) {
+                    debugConfiguration = configs[0];
+                }
+            }
             return this.launchResolver.resolveDebugConfiguration(folder, debugConfiguration as LaunchRequestArguments, token);
         }
     }
