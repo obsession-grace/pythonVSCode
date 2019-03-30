@@ -7,6 +7,7 @@ import time
 import behave
 
 import uitests.vscode.debugger
+import uitests.tools
 
 
 @behave.then("the debugger starts")
@@ -30,20 +31,11 @@ def add_breakpoint(context, line, file):
 
 
 @behave.then('the current stack frame is at line {line_number:Number} in "{file_name}"')
+@uitests.tools.retry(AssertionError)
 def current_stack_is(context, line_number, file_name):
-    start_time = time.time()
-    while time.time() - start_time < 50:
-        try:
-            uitests.vscode.documents.is_file_open(context, file_name)
-            current_position = uitests.vscode.documents.get_current_position(context)
-            assert current_position[0] == line_number
-            return
-        except AssertionError:
-            time.sleep(0.1)
-    else:
-        raise TimeoutError(
-            f"Timeout waiting for debugger to stop at line {line_number} in {file_name}"
-        )
+    uitests.vscode.documents.is_file_open(context, file_name)
+    current_position = uitests.vscode.documents.get_current_position(context)
+    assert current_position[0] == line_number
 
 
 # @behave.then(

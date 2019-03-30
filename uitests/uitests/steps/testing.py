@@ -6,6 +6,7 @@ import time
 import behave
 
 import uitests.vscode.testing
+import uitests.tools
 
 node_status_icon_mapping = {
     "UNKNOWN": "status-unknown.svg",
@@ -62,19 +63,25 @@ def all_unknown(context):
 
 
 @behave.then('the node number {number:Number} has a status of "{status}"')
+@uitests.tools.retry(AssertionError)
 def node_status(context, number, status):
     icon = uitests.vscode.testing.get_node_icon(context, number)
-    start_time = time.time()
-    while time.time() - start_time < 5:
-        try:
-            assert node_status_icon_mapping.get(
-                status.upper(), ""
-            ) in icon.get_attribute("style")
-            return
-        except AssertionError:
-            time.sleep(0.1)
-    else:
-        raise SystemError(f"Status of node {number} is not {status}")
+    assert node_status_icon_mapping.get(
+        status.upper(), ""
+    ) in icon.get_attribute("style")
+
+    # icon = uitests.vscode.testing.get_node_icon(context, number)
+    # start_time = time.time()
+    # while time.time() - start_time < 5:
+    #     try:
+    #         assert node_status_icon_mapping.get(
+    #             status.upper(), ""
+    #         ) in icon.get_attribute("style")
+    #         return
+    #     except AssertionError:
+    #         time.sleep(0.1)
+    # else:
+    #     raise SystemError(f"Status of node {number} is not {status}")
 
 
 @behave.then('{number:Number} nodes have a status of "{status}"')
