@@ -51,7 +51,7 @@ class TestExplorerCaptureRefresh implements IDisposable {
 }
 
 // tslint:disable:max-func-body-length
-suite('xUnit Tests Test Explorer TestTreeViewProvider', () => {
+suite('Unit Tests Test Explorer TestTreeViewProvider', () => {
     const testResource: Uri = Uri.parse('anything');
     let disposables: IDisposable[] = [];
 
