@@ -279,7 +279,7 @@ suite('Common Utils - Decorators', () => {
         one.run().catch(() => errored = true);
         one.run().catch(() => errored = true);
         await waitForCalls(one.timestamps, 2);
-        const delay = one.timestamps[0] - start;
+        const delay = one.timestamps[1] - start;
 
         expect(delay).to.be.at.least(wait);
         expect(one.calls).to.deep.equal(['run', 'run']);
