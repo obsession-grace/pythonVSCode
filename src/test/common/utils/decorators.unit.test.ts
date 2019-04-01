@@ -12,8 +12,6 @@ import {
 } from '../../../client/common/utils/decorators';
 import { sleep } from '../../core';
 
-import '../../../client/common/extensions';
-
 // tslint:disable:no-any max-func-body-length no-unnecessary-class
 suite('Common Utils - Decorators', () => {
     teardown(() => {
@@ -165,13 +163,15 @@ suite('Common Utils - Decorators', () => {
         const one = new One();
 
         const start = Date.now();
-        one.run().ignoreErrors();
+        let errored = false;
+        one.run().catch(() => errored = true);
         await waitForCalls(one.timestamps, 1);
         const delay = one.timestamps[0] - start;
 
         expect(delay).to.be.at.least(wait);
         expect(one.calls).to.deep.equal(['run']);
         expect(one.timestamps).to.have.lengthOf(one.calls.length);
+        expect(errored).to.be.equal(false, 'Exception raised when there shouldn\'t have been any');
     });
     test('Debounce: one async call', async () => {
         const wait = 100;
@@ -228,16 +228,18 @@ suite('Common Utils - Decorators', () => {
         const one = new One();
 
         const start = Date.now();
-        one.run().ignoreErrors();
-        one.run().ignoreErrors();
-        one.run().ignoreErrors();
-        one.run().ignoreErrors();
+        let errored = false;
+        one.run().catch(() => errored = true);
+        one.run().catch(() => errored = true);
+        one.run().catch(() => errored = true);
+        one.run().catch(() => errored = true);
         await waitForCalls(one.timestamps, 1);
         const delay = one.timestamps[0] - start;
 
         expect(delay).to.be.at.least(wait);
         expect(one.calls).to.deep.equal(['run']);
         expect(one.timestamps).to.have.lengthOf(one.calls.length);
+        expect(errored).to.be.equal(false, 'Exception raised when there shouldn\'t have been any');
     });
     test('Debounce: multiple async calls when awaiting on all', async () => {
         const wait = 100;
@@ -271,16 +273,18 @@ suite('Common Utils - Decorators', () => {
         const one = new One();
 
         const start = Date.now();
-        one.run().ignoreErrors();
+        let errored = false;
+        one.run().catch(() => errored = true);
         await one.run();
-        one.run().ignoreErrors();
-        one.run().ignoreErrors();
+        one.run().catch(() => errored = true);
+        one.run().catch(() => errored = true);
         await waitForCalls(one.timestamps, 2);
         const delay = one.timestamps[0] - start;
 
         expect(delay).to.be.at.least(wait);
         expect(one.calls).to.deep.equal(['run', 'run']);
         expect(one.timestamps).to.have.lengthOf(one.calls.length);
+        expect(errored).to.be.equal(false, 'Exception raised when there shouldn\'t have been any');
     });
     test('Debounce: multiple calls grouped', async () => {
         const wait = 100;
