@@ -193,6 +193,29 @@ suite('Common Utils - Decorators', () => {
         expect(one.calls).to.deep.equal(['run']);
         expect(one.timestamps).to.have.lengthOf(one.calls.length);
     });
+    test('Debounce: one async call and ensure exceptions are re-thrown', async () => {
+        const wait = 100;
+        // tslint:disable-next-line:max-classes-per-file
+        class One extends Base {
+            @makeDebounceAsyncDecorator(wait)
+            public async run(): Promise<void> {
+                this._addCall('run');
+                throw new Error('Kaboom');
+            }
+        }
+        const one = new One();
+
+        const start = Date.now();
+        let capturedEx: Error | undefined;
+        await one.run().catch(ex => capturedEx = ex);
+        await waitForCalls(one.timestamps, 1);
+        const delay = one.timestamps[0] - start;
+
+        expect(delay).to.be.at.least(wait);
+        expect(one.calls).to.deep.equal(['run']);
+        expect(one.timestamps).to.have.lengthOf(one.calls.length);
+        expect(capturedEx).to.not.be.equal(undefined, 'Exception not re-thrown');
+    });
     test('Debounce: multiple async calls', async () => {
         const wait = 100;
         // tslint:disable-next-line:max-classes-per-file
