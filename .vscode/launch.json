@@ -183,6 +183,21 @@
             ],
             "debugStdLib": true,
             "console": "none"
+        },
+        {
+            "name": "Behave",
+            "type": "python",
+            "request": "launch",
+            "module": "behave",
+            "console": "integratedTerminal",
+            "args": [
+                "uitests/uitests"
+            ],
+            "env": {
+                "PYTHONPATH": "./uitests"
+            },
+            "stopOnEntry": true,
+            "debugStdLib": true
         }
     ],
     "compounds": [

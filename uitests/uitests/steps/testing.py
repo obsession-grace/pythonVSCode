@@ -66,9 +66,9 @@ def all_unknown(context):
 @uitests.tools.retry(AssertionError)
 def node_status(context, number, status):
     icon = uitests.vscode.testing.get_node_icon(context, number)
-    assert node_status_icon_mapping.get(
-        status.upper(), ""
-    ) in icon.get_attribute("style")
+    assert node_status_icon_mapping.get(status.upper(), "") in icon.get_attribute(
+        "style"
+    )
 
     # icon = uitests.vscode.testing.get_node_icon(context, number)
     # start_time = time.time()
