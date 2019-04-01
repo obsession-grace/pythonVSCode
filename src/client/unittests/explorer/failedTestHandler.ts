@@ -31,12 +31,10 @@ export class FailedTestHandler implements IExtensionActivationService, IDisposab
         this.storage.onDidChange(this.onDidChangeTestData, this, this.disposables);
     }
     public onDidChangeTestData(args: { uri: Uri; data?: TestDataItem }): void {
-        if (args.data && (args.data.status === TestStatus.Error || args.data.status === TestStatus.Fail)) {
-            const type = getTestType(args.data);
-            if (type === TestType.testFunction || type === TestType.testSuite) {
-                this.failedItems.push(args.data);
-                this.revealFailedNodes().ignoreErrors();
-            }
+        if (args.data && (args.data.status === TestStatus.Error || args.data.status === TestStatus.Fail) &&
+            getTestType(args.data) === TestType.testFunction) {
+            this.failedItems.push(args.data);
+            this.revealFailedNodes().ignoreErrors();
         }
     }
 

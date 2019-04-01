@@ -41,11 +41,11 @@ suite('Unit Tests Test Explorer Tree View', () => {
     });
     test('Activation will add command handlers (without a resource)', async () => {
         await treeViewService.activate(undefined);
-        verify(commandManager.registerCommand(Commands.Test_Reveal_Test_Item, treeViewService.onRevalTestItem, treeViewService)).once();
+        verify(commandManager.registerCommand(Commands.Test_Reveal_Test_Item, treeViewService.onRevealTestItem, treeViewService)).once();
     });
     test('Activation will add command handlers (with a resource)', async () => {
         await treeViewService.activate(Uri.file(__filename));
-        verify(commandManager.registerCommand(Commands.Test_Reveal_Test_Item, treeViewService.onRevalTestItem, treeViewService)).once();
+        verify(commandManager.registerCommand(Commands.Test_Reveal_Test_Item, treeViewService.onRevealTestItem, treeViewService)).once();
     });
     test('Invoking the command handler will reveal the node in the tree', async () => {
         const data = {} as any;
@@ -56,7 +56,7 @@ suite('Unit Tests Test Explorer Tree View', () => {
         when(appShell.createTreeView('python_tests', anything())).thenReturn(treeView.object);
 
         await treeViewService.activate(undefined);
-        await treeViewService.onRevalTestItem(data);
+        await treeViewService.onRevealTestItem(data);
 
         treeView.verifyAll();
     });
