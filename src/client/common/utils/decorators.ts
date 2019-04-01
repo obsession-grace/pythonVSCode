@@ -27,7 +27,8 @@ type AsyncVoidFunction = () => Promise<any>;
  */
 export function debounceSync(wait?: number) {
     if (isTestExecution()) {
-        // If running tests, lets debounce until next tick (so tests run fast).
+        // If running tests, lets debounce until the next cycle in the event loop.
+        // Same as `setTimeout(()=> {}, 0);` with a value of `0`.
         wait = undefined;
     }
     return makeDebounceDecorator(wait);
@@ -46,7 +47,8 @@ export function debounceSync(wait?: number) {
  */
 export function debounceAsync(wait?: number) {
     if (isTestExecution()) {
-        // If running tests, lets debounce until next tick (so tests run fast).
+        // If running tests, lets debounce until the next cycle in the event loop.
+        // Same as `setTimeout(()=> {}, 0);` with a value of `0`.
         wait = undefined;
     }
     return makeDebounceAsyncDecorator(wait);
