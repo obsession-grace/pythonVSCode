@@ -8,12 +8,14 @@ import { Uri } from 'vscode';
 import { Resource } from '../../../client/common/types';
 import { clearCache } from '../../../client/common/utils/cacheUtils';
 import {
-    cacheResourceSpecificInterpreterData, makeDebounceDecorator
+    cacheResourceSpecificInterpreterData, makeDebounceAsyncDecorator, makeDebounceDecorator
 } from '../../../client/common/utils/decorators';
 import { sleep } from '../../core';
 
+import '../../../client/common/extensions';
+
 // tslint:disable:no-any max-func-body-length no-unnecessary-class
-suite('Common Utils - Decorators', () => {
+suite('Unit Common Utils - Decorators', () => {
     teardown(() => {
         clearCache();
     });
@@ -155,7 +157,7 @@ suite('Common Utils - Decorators', () => {
         const wait = 100;
         // tslint:disable-next-line:max-classes-per-file
         class One extends Base {
-            @makeDebounceDecorator(wait)
+            @makeDebounceAsyncDecorator(wait)
             public async run(): Promise<void> {
                 this._addCall('run');
             }
@@ -169,6 +171,52 @@ suite('Common Utils - Decorators', () => {
 
         expect(delay).to.be.at.least(wait);
         expect(one.calls).to.deep.equal(['run']);
+        expect(one.timestamps).to.have.lengthOf(one.calls.length);
+    });
+    test('Debounce: multiple async call', async () => {
+        const wait = 100;
+        // tslint:disable-next-line:max-classes-per-file
+        class One extends Base {
+            @makeDebounceAsyncDecorator(wait)
+            public async run(): Promise<void> {
+                this._addCall('run');
+            }
+        }
+        const one = new One();
+
+        const start = Date.now();
+        one.run().ignoreErrors();
+        one.run().ignoreErrors();
+        one.run().ignoreErrors();
+        one.run().ignoreErrors();
+        await waitForCalls(one.timestamps, 1);
+        const delay = one.timestamps[0] - start;
+
+        expect(delay).to.be.at.least(wait);
+        expect(one.calls).to.deep.equal(['run']);
+        expect(one.timestamps).to.have.lengthOf(one.calls.length);
+    });
+    test('Debounce: multiple async calls & wait on some', async () => {
+        const wait = 100;
+        // tslint:disable-next-line:max-classes-per-file
+        class One extends Base {
+            @makeDebounceAsyncDecorator(wait)
+            public async run(): Promise<void> {
+                this._addCall('run');
+            }
+        }
+        const one = new One();
+
+        const start = Date.now();
+        one.run().ignoreErrors();
+        await one.run();
+        one.run().ignoreErrors();
+        one.run().ignoreErrors();
+        await waitForCalls(one.timestamps, 2);
+        const delay = one.timestamps[0] - start;
+
+        expect(delay).to.be.at.least(wait);
+        expect(one.calls).to.deep.equal(['run', 'run']);
         expect(one.timestamps).to.have.lengthOf(one.calls.length);
     });
     test('Debounce: multiple calls grouped', async () => {
