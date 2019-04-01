@@ -34,17 +34,16 @@ export class ExitReporter {
                         log();
                         wtf();
                         process.exit(stats.failures === 0 ? 0 : 1);
-                    }, 10000);
+                        try {
+                            // Lets just close VSC, hopefully that'll be sufficient (more graceful).
+                            const vscode = require('vscode');
+                            vscode.commands.executeCommand('workbench.action.closeWindow');
+                        } catch (ex) {
+                            // Do nothing.
+                        }
+                    }, 30000);
                 }
                 die();
-                try {
-                    // Lets just close VSC, hopefully that'll be sufficient (more graceful).
-                    const vscode = require('vscode');
-                    vscode.commands.executeCommand('workbench.action.closeWindow').then(die, die);
-                } catch (ex) {
-                    // Worse case scenario, just kill the process.
-                    die();
-                }
             });
     }
 }
