@@ -15,7 +15,7 @@ import { sleep } from '../../core';
 import '../../../client/common/extensions';
 
 // tslint:disable:no-any max-func-body-length no-unnecessary-class
-suite('Unit Common Utils - Decorators', () => {
+suite('Common Utils - Decorators', () => {
     teardown(() => {
         clearCache();
     });
