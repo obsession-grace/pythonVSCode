@@ -153,6 +153,26 @@ suite('Common Utils - Decorators', () => {
         expect(one.calls).to.deep.equal(['run']);
         expect(one.timestamps).to.have.lengthOf(one.calls.length);
     });
+    test('Debounce: one async call & no wait', async () => {
+        const wait = 100;
+        // tslint:disable-next-line:max-classes-per-file
+        class One extends Base {
+            @makeDebounceAsyncDecorator(wait)
+            public async run(): Promise<void> {
+                this._addCall('run');
+            }
+        }
+        const one = new One();
+
+        const start = Date.now();
+        one.run().ignoreErrors();
+        await waitForCalls(one.timestamps, 1);
+        const delay = one.timestamps[0] - start;
+
+        expect(delay).to.be.at.least(wait);
+        expect(one.calls).to.deep.equal(['run']);
+        expect(one.timestamps).to.have.lengthOf(one.calls.length);
+    });
     test('Debounce: one async call', async () => {
         const wait = 100;
         // tslint:disable-next-line:max-classes-per-file
@@ -173,7 +193,7 @@ suite('Common Utils - Decorators', () => {
         expect(one.calls).to.deep.equal(['run']);
         expect(one.timestamps).to.have.lengthOf(one.calls.length);
     });
-    test('Debounce: multiple async call', async () => {
+    test('Debounce: multiple async calls', async () => {
         const wait = 100;
         // tslint:disable-next-line:max-classes-per-file
         class One extends Base {
@@ -189,6 +209,26 @@ suite('Common Utils - Decorators', () => {
         one.run().ignoreErrors();
         one.run().ignoreErrors();
         one.run().ignoreErrors();
+        await waitForCalls(one.timestamps, 1);
+        const delay = one.timestamps[0] - start;
+
+        expect(delay).to.be.at.least(wait);
+        expect(one.calls).to.deep.equal(['run']);
+        expect(one.timestamps).to.have.lengthOf(one.calls.length);
+    });
+    test('Debounce: multiple async calls when awaiting on all', async () => {
+        const wait = 100;
+        // tslint:disable-next-line:max-classes-per-file
+        class One extends Base {
+            @makeDebounceAsyncDecorator(wait)
+            public async run(): Promise<void> {
+                this._addCall('run');
+            }
+        }
+        const one = new One();
+
+        const start = Date.now();
+        await Promise.all([one.run(), one.run(), one.run(), one.run()]);
         await waitForCalls(one.timestamps, 1);
         const delay = one.timestamps[0] - start;
 

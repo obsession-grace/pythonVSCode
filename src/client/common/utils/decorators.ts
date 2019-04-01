@@ -25,7 +25,7 @@ type AsyncVoidFunction = () => Promise<any>;
  * the debounced function, debouncing resets after the "wait" interval
  * has elapsed.
  */
-export function debounce(wait?: number) {
+export function debounceSync(wait?: number) {
     if (isTestExecution()) {
         // If running tests, lets debounce until next tick (so tests run fast).
         wait = undefined;
@@ -54,7 +54,7 @@ export function debounceAsync(wait?: number) {
 
 export function makeDebounceDecorator(wait?: number) {
     // tslint:disable-next-line:no-any no-function-expression
-    return function (_target: any, _propertyName: string, descriptor: TypedPropertyDescriptor<VoidFunction> | TypedPropertyDescriptor<AsyncVoidFunction>) {
+    return function (_target: any, _propertyName: string, descriptor: TypedPropertyDescriptor<VoidFunction>) {
         // We could also make use of _debounce() options.  For instance,
         // the following causes the original method to be called
         // immediately:
@@ -94,7 +94,8 @@ export function makeDebounceAsyncDecorator(wait?: number) {
             }
 
             // Clear previous timer.
-            const deferred = state.deferred = createDeferred<any>();
+            const existingDeferredCompleted = (existingDeferred && existingDeferred.completed);
+            const deferred = state.deferred = (!existingDeferred || existingDeferredCompleted) ? createDeferred<any>() : existingDeferred;
             if (state.timer) {
                 clearTimeout(state.timer);
             }
