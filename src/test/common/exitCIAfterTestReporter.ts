@@ -24,11 +24,10 @@ export class ExitReporter {
                 console.info('Will Exit from custom PVSC Mocha Reporter.');
                 log();
                 wtf();
-                // // NodeJs generally waits for pending timeouts, however the process running Mocha
-                // // (generally this is an instance of Vnpm i @types/mochaSC), does not exit, hence CI timeouts.
-                // // No idea why it times, out. Once again, this is a hack.
-                // // Solution (i.e. hack), lets add a timeout with a delay of 10 seconds,
-                // // & if this process doesn't die, lets kill it.
+                // NodeJs generally waits for pending timeouts, however the process running Mocha
+                // No idea why it times, out. Once again, this is a hack.
+                // Solution (i.e. hack), lets add a timeout with a delay of 10 seconds,
+                // & if this process doesn't die, lets kill it.
                 function die() {
                     setTimeout(() => {
                         console.info('Exiting from custom PVSC Mocha Reporter.');
