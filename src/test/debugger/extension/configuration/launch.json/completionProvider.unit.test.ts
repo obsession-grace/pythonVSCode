@@ -51,7 +51,7 @@ suite('Debugging - launch.json Completion Provider', () => {
 }`;
         testCanProvideCompletions(position, 1, config as any, false);
     });
-    test('Cannot provide completions when position is not in configurations array', () => {
+    test('Cannot provide completions when cursor position is not in configurations array', () => {
         const position = new Position(0, 0);
         const json = `{
     "version": "0.1.0",
@@ -59,7 +59,7 @@ suite('Debugging - launch.json Completion Provider', () => {
 }`;
         testCanProvideCompletions(position, 10, json, false);
     });
-    test('Cannot provide completions when position is not in configurations array', () => {
+    test('Cannot provide completions when cursor position is in an empty configurations array', () => {
         const position = new Position(0, 0);
         const json = `{
     "version": "0.1.0",

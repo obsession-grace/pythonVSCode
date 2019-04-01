@@ -5,6 +5,7 @@
 
 import { inject, injectable } from 'inversify';
 import { getLocation } from 'jsonc-parser';
+import * as path from 'path';
 import { CancellationToken, CompletionItem, CompletionItemKind, CompletionItemProvider, Position, SnippetString, TextDocument } from 'vscode';
 import { IExtensionActivationService } from '../../../../activation/types';
 import { ILanguageService } from '../../../../common/application/types';
@@ -47,7 +48,7 @@ export class LaunchJsonCompletionProvider implements CompletionItemProvider, IEx
         ];
     }
     public canProvideCompletions(document: TextDocument, position: Position) {
-        if (!document.uri.fsPath.toLowerCase().endsWith('launch.json')) {
+        if (path.basename(document.uri.fsPath) !== 'launch.json') {
             return false;
         }
         const location = getLocation(document.getText(), document.offsetAt(position));
