@@ -42,7 +42,8 @@ export class LaunchJsonCompletionCommandHandler implements IExtensionActivationS
             const folder = this.workspace.getWorkspaceFolder(document.uri);
             const configs = await this.configurationProvider.provideDebugConfigurations!(folder, token);
 
-            if (!token.isCancellationRequested && Array.isArray(configs) && configs.length === 0) {
+            if (!token.isCancellationRequested && Array.isArray(configs) && configs.length > 0) {
+                // Always use the first available debug configuration.
                 await this.insertDebugConfiguration(document, position, configs[0]);
             }
         }
