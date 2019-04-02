@@ -222,7 +222,13 @@ steps:
   - task: PublishBuildArtifacts@1
     inputs:
       pathtoPublish: $(Build.ArtifactStagingDirectory)
-      artifactName: UITestResults
+      artifactName: ${Agent.JobName}
+      condition: contains(variables['TestsToRun'], 'UITests')
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathtoPublish: $(Build.ArtifactStagingDirectory)
+      artifactName: ${AGENT_JOBNAME}
       condition: contains(variables['TestsToRun'], 'UITests')
 
   # Run the Python unit tests in our codebase. Produces a JUnit-style log file that
