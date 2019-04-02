@@ -15,7 +15,7 @@ const { EVENT_RUN_BEGIN, EVENT_RUN_END } = mocha.Runner.constants;
 
 export class ExitReporter {
     constructor(runner: any) {
-        const stats = runner.stats;
+        // const stats = runner.stats;
         runner
             .once(EVENT_RUN_BEGIN, () => {
                 console.info('Start form custom PVSC Mocha Reporter.');
@@ -33,14 +33,14 @@ export class ExitReporter {
                         console.info('Exiting from custom PVSC Mocha Reporter.');
                         log();
                         wtf();
-                        process.exit(stats.failures === 0 ? 0 : 1);
-                        try {
-                            // Lets just close VSC, hopefully that'll be sufficient (more graceful).
-                            const vscode = require('vscode');
-                            vscode.commands.executeCommand('workbench.action.closeWindow');
-                        } catch (ex) {
-                            // Do nothing.
-                        }
+                        // process.exit(stats.failures === 0 ? 0 : 1);
+                        // try {
+                        //     // Lets just close VSC, hopefully that'll be sufficient (more graceful).
+                        //     const vscode = require('vscode');
+                        //     vscode.commands.executeCommand('workbench.action.closeWindow');
+                        // } catch (ex) {
+                        //     // Do nothing.
+                        // }
                     }, 30000);
                 }
                 die();
