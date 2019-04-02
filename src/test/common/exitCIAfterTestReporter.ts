@@ -12,20 +12,18 @@ const log = require('why-is-node-running');
 const wtf = require('wtfnode');
 const mochaTests: any = require('mocha');
 const { EVENT_RUN_BEGIN, EVENT_RUN_END } = mochaTests.Runner.constants;
-console.log(EVENT_RUN_BEGIN);
-console.log(EVENT_RUN_END);
 class ExitReporter {
     constructor(runner: any) {
-        console.log('Initialize Reporter');
+        console.log('Initialize Exit Reporter for Mocha (PVSC).');
         const stats = runner.stats;
         runner
             .once(EVENT_RUN_BEGIN, () => {
-                console.info('Start form custom PVSC Mocha Reporter.');
+                console.info('Start Exit Reporter for Mocha.');
             })
             .once(EVENT_RUN_END, () => {
                 process.stdout.cork();
-                console.info('Will Exit from custom PVSC Mocha Reporter.');
-                process.stdout.write('Start Logging');
+                console.info('End Exit Reporter for Mocha.');
+                process.stdout.write('If process does not die in 30s, then log and kill.');
                 process.stdout.uncork();
                 // NodeJs generally waits for pending timeouts, however the process running Mocha
                 // No idea why it times, out. Once again, this is a hack.
