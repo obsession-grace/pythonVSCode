@@ -1,4 +1,4 @@
-@test
+@test @debug
 @https://github.com/DonJayamanne/pyvscSmokeTesting.git
 Feature: Test Explorer Discovering icons and stop discovery
 

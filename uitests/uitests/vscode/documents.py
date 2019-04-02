@@ -44,6 +44,7 @@ def go_to_line(context, line_number):
     quick_open.select_command(context, "Go to Line...")
     quick_open.select_value(context, str(line_number))
 
+
 def get_current_position(context):
     selector = "a.editor-status-selection"
     element = core.wait_for_element(context.driver, selector)
