@@ -7,13 +7,13 @@
 // This is a hack, however for some reason the process running the tests do not exit.
 // The hack is to force it to die when tests are done, if this doesn't work we've got a bigger problem on our hands.
 
-// tslint:disable:no-var-requires no-require-imports no-any no-console no-unnecessary-class
+// tslint:disable:no-var-requires no-require-imports no-any no-console no-unnecessary-class no-default-export
 const log = require('why-is-node-running');
 const wtf = require('wtfnode');
-const mocha: any = require('mocha');
-const { EVENT_RUN_BEGIN, EVENT_RUN_END } = mocha.Runner.constants;
+const mochaTests: any = require('mocha');
+const { EVENT_RUN_BEGIN, EVENT_RUN_END } = mochaTests.Runner.constants;
 
-export class ExitReporter {
+class ExitReporter {
     constructor(runner: any) {
         // const stats = runner.stats;
         runner
@@ -47,3 +47,5 @@ export class ExitReporter {
             });
     }
 }
+
+module.exports = ExitReporter;
