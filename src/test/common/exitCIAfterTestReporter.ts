@@ -9,7 +9,7 @@
 
 // tslint:disable:no-var-requires no-require-imports no-any no-console no-unnecessary-class no-default-export
 const log = require('why-is-node-running');
-const wtf = require('wtfnode');
+// const wtf = require('wtfnode');
 const mochaTests: any = require('mocha');
 const { EVENT_RUN_BEGIN, EVENT_RUN_END } = mochaTests.Runner.constants;
 console.log(EVENT_RUN_BEGIN);
@@ -24,7 +24,7 @@ class ExitReporter {
             })
             .once(EVENT_RUN_END, () => {
                 console.info('Will Exit from custom PVSC Mocha Reporter.');
-                // log();
+                log();
                 // wtf();
                 // // NodeJs generally waits for pending timeouts, however the process running Mocha
                 // // No idea why it times, out. Once again, this is a hack.
