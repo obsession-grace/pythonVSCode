@@ -12,9 +12,11 @@ const log = require('why-is-node-running');
 const wtf = require('wtfnode');
 const mochaTests: any = require('mocha');
 const { EVENT_RUN_BEGIN, EVENT_RUN_END } = mochaTests.Runner.constants;
-
+console.log(EVENT_RUN_BEGIN);
+console.log(EVENT_RUN_END);
 class ExitReporter {
     constructor(runner: any) {
+        console.log('Initialize Reporter');
         // const stats = runner.stats;
         runner
             .once(EVENT_RUN_BEGIN, () => {
