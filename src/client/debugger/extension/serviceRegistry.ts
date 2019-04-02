@@ -9,8 +9,8 @@ import { AttachRequestArguments, LaunchRequestArguments } from '../types';
 import { DebuggerBanner } from './banner';
 import { ConfigurationProviderUtils } from './configuration/configurationProviderUtils';
 import { PythonDebugConfigurationService } from './configuration/debugConfigurationService';
-import { LaunchJsonCompletionCommandHandler } from './configuration/launch.json/commandHandler';
 import { LaunchJsonCompletionProvider } from './configuration/launch.json/completionProvider';
+import { LaunchJsonUpdaterService } from './configuration/launch.json/updaterService';
 import { DjangoLaunchDebugConfigurationProvider } from './configuration/providers/djangoLaunch';
 import { FileLaunchDebugConfigurationProvider } from './configuration/providers/fileLaunch';
 import { FlaskLaunchDebugConfigurationProvider } from './configuration/providers/flaskLaunch';
@@ -20,7 +20,7 @@ import { PyramidLaunchDebugConfigurationProvider } from './configuration/provide
 import { RemoteAttachDebugConfigurationProvider } from './configuration/providers/remoteAttach';
 import { AttachConfigurationResolver } from './configuration/resolvers/attach';
 import { LaunchConfigurationResolver } from './configuration/resolvers/launch';
-import { IConfigurationProviderUtils, IDebugConfigurationProviderFactory, IDebugConfigurationResolver } from './configuration/types';
+import { IConfigurationProviderUtils, IDebugConfigurationProviderFactory, IDebugConfigurationResolver, ILaunchJsonUpdaterService } from './configuration/types';
 import { ChildProcessAttachEventHandler } from './hooks/childProcessAttachHandler';
 import { ChildProcessAttachService } from './hooks/childProcessAttachService';
 import { IChildProcessAttachService, IDebugSessionEventHandlers } from './hooks/types';
@@ -28,7 +28,7 @@ import { DebugConfigurationType, IDebugConfigurationProvider, IDebugConfiguratio
 
 export function registerTypes(serviceManager: IServiceManager) {
     serviceManager.addSingleton<IExtensionActivationService>(IExtensionActivationService, LaunchJsonCompletionProvider);
-    serviceManager.addSingleton<IExtensionActivationService>(IExtensionActivationService, LaunchJsonCompletionCommandHandler);
+    serviceManager.addSingleton<ILaunchJsonUpdaterService>(ILaunchJsonUpdaterService, LaunchJsonUpdaterService);
     serviceManager.addSingleton<IDebugConfigurationService>(IDebugConfigurationService, PythonDebugConfigurationService);
     serviceManager.addSingleton<IConfigurationProviderUtils>(IConfigurationProviderUtils, ConfigurationProviderUtils);
     serviceManager.addSingleton<IDebuggerBanner>(IDebuggerBanner, DebuggerBanner);

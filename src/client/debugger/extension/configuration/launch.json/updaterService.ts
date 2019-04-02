@@ -6,27 +6,21 @@
 import { inject, injectable } from 'inversify';
 import { createScanner, parse, SyntaxKind } from 'jsonc-parser';
 import { CancellationToken, DebugConfiguration, Position, TextDocument, WorkspaceEdit } from 'vscode';
-import { IExtensionActivationService } from '../../../../activation/types';
 import { ICommandManager, IDocumentManager, IWorkspaceService } from '../../../../common/application/types';
-import { IDisposableRegistry, Resource } from '../../../../common/types';
 import { noop } from '../../../../common/utils/misc';
 import { captureTelemetry } from '../../../../telemetry';
 import { EventName } from '../../../../telemetry/constants';
 import { IDebugConfigurationService } from '../../types';
+import { ILaunchJsonUpdaterService } from '../types';
 
 type PositionOfCursor = 'InsideEmptyArray' | 'BeforeItem' | 'AfterItem';
 
 @injectable()
-export class LaunchJsonCompletionCommandHandler implements IExtensionActivationService {
-    constructor(@inject(IDisposableRegistry) private readonly disposableRegistry: IDisposableRegistry,
-        @inject(ICommandManager) private readonly commandManager: ICommandManager,
+export class LaunchJsonUpdaterService implements ILaunchJsonUpdaterService {
+    constructor(@inject(ICommandManager) private readonly commandManager: ICommandManager,
         @inject(IWorkspaceService) private readonly workspace: IWorkspaceService,
         @inject(IDocumentManager) private readonly documentManager: IDocumentManager,
         @inject(IDebugConfigurationService) private readonly configurationProvider: IDebugConfigurationService) { }
-    public async activate(_resource: Resource): Promise<void> {
-        this.disposableRegistry.push(this.commandManager.registerCommand('python.SelectAndInsertDebugConfiguration',
-            this.onSelectAndInsertDebugConfig, this));
-    }
     /**
      * Command callback
      *
@@ -37,7 +31,7 @@ export class LaunchJsonCompletionCommandHandler implements IExtensionActivationS
      * @memberof LaunchJsonCompletionCommandHandler
      */
     @captureTelemetry(EventName.DEBUGGER_CONFIGURATION_PROMPTS_IN_LAUNCH_JSON)
-    public async onSelectAndInsertDebugConfig(document: TextDocument, position: Position, token: CancellationToken): Promise<void> {
+    public async selectAndInsertDebugConfig(document: TextDocument, position: Position, token: CancellationToken): Promise<void> {
         if (this.documentManager.activeTextEditor && this.documentManager.activeTextEditor.document === document) {
             const folder = this.workspace.getWorkspaceFolder(document.uri);
             const configs = await this.configurationProvider.provideDebugConfigurations!(folder, token);
