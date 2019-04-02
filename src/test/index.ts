@@ -3,7 +3,7 @@
 'use strict';
 // tslint:disable:no-require-imports no-var-requires no-any
 // Always place at the top, to ensure other modules are imported first.
-// require('./common/exitCIAfterTestReporter');
+require('./common/exitCIAfterTestReporter');
 
 if ((Reflect as any).metadata === undefined) {
     require('reflect-metadata');
