@@ -24,28 +24,28 @@ class ExitReporter {
             })
             .once(EVENT_RUN_END, () => {
                 console.info('Will Exit from custom PVSC Mocha Reporter.');
-                log();
-                wtf();
-                // NodeJs generally waits for pending timeouts, however the process running Mocha
-                // No idea why it times, out. Once again, this is a hack.
-                // Solution (i.e. hack), lets add a timeout with a delay of 10 seconds,
-                // & if this process doesn't die, lets kill it.
-                function die() {
-                    setTimeout(() => {
-                        console.info('Exiting from custom PVSC Mocha Reporter.');
-                        log();
-                        wtf();
-                        // process.exit(stats.failures === 0 ? 0 : 1);
-                        // try {
-                        //     // Lets just close VSC, hopefully that'll be sufficient (more graceful).
-                        //     const vscode = require('vscode');
-                        //     vscode.commands.executeCommand('workbench.action.closeWindow');
-                        // } catch (ex) {
-                        //     // Do nothing.
-                        // }
-                    }, 30000);
-                }
-                die();
+                // log();
+                // wtf();
+                // // NodeJs generally waits for pending timeouts, however the process running Mocha
+                // // No idea why it times, out. Once again, this is a hack.
+                // // Solution (i.e. hack), lets add a timeout with a delay of 10 seconds,
+                // // & if this process doesn't die, lets kill it.
+                // function die() {
+                //     setTimeout(() => {
+                //         console.info('Exiting from custom PVSC Mocha Reporter.');
+                //         log();
+                //         wtf();
+                //         // process.exit(stats.failures === 0 ? 0 : 1);
+                //         // try {
+                //         //     // Lets just close VSC, hopefully that'll be sufficient (more graceful).
+                //         //     const vscode = require('vscode');
+                //         //     vscode.commands.executeCommand('workbench.action.closeWindow');
+                //         // } catch (ex) {
+                //         //     // Do nothing.
+                //         // }
+                //     }, 30000);
+                // }
+                // die();
             });
     }
 }
