@@ -69,9 +69,19 @@ suite('Debugging - launch.json Completion Provider', () => {
 }`;
         testCanProvideCompletions(position, json.indexOf('# Cursor Position'), json, true);
     });
-    test('No Completions', async () => {
+    test('No Completions for non launch.json', async () => {
         const document = typemoq.Mock.ofType<TextDocument>();
         document.setup(doc => doc.uri).returns(() => Uri.file('settings.json'));
+        const token = new CancellationTokenSource().token;
+        const position = new Position(0, 0);
+
+        const completions = await completionProvider.provideCompletionItems(document.object, position, token);
+
+        assert.equal(completions.length, 0);
+    });
+    test('No Completions for files ending with launch.json', async () => {
+        const document = typemoq.Mock.ofType<TextDocument>();
+        document.setup(doc => doc.uri).returns(() => Uri.file('x-launch.json'));
         const token = new CancellationTokenSource().token;
         const position = new Position(0, 0);
 

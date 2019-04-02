@@ -40,7 +40,7 @@ suite('Debugging - launch.json Completion Command Handler Provider', () => {
         await commandHandler.activate(undefined);
         verify(commandManager.registerCommand('python.SelectAndInsertDebugConfiguration', commandHandler.onSelectAndInsertDebugConfig, commandHandler));
     });
-    test('Configuration Array is empty', async () => {
+    test('Configuration Array is detected as being empty', async () => {
         const document = typemoq.Mock.ofType<TextDocument>();
         const config: LaunchJsonSchema = {
             version: '',
