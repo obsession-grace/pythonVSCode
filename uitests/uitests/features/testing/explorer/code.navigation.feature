@@ -1,5 +1,5 @@
 @test @wip
-@https://github.com/DonJayamanne/pyvscSmokeTesting.git
+@git://github.com/DonJayamanne/pyvscSmokeTesting.git
 Feature: Test Explorer Discovering icons and stop discovery
 
     Scenario: When navigating to a test file, suite & test, then open the file and set the cursor at the right line (unitest)

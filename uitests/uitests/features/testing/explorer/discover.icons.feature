@@ -1,5 +1,5 @@
 @test
-@https://github.com/DonJayamanne/pyvscSmokeTesting.git
+@git://github.com/DonJayamanne/pyvscSmokeTesting.git
 Feature: Test Explorer Discovering icons and stop discovery
 
     Scenario: When discovering tests, the nodes will have the progress icon and clicking stop will stop discovery (unitest)

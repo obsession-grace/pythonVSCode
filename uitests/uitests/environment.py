@@ -36,7 +36,7 @@ def after_all(context):
 
 def before_feature(context, feature):
     context.driver = uitests.vscode.startup.CONTEXT["driver"]
-    repo = [tag for tag in feature.tags if tag.startswith("https://github.com/")]
+    repo = [tag for tag in feature.tags if tag.startswith("git://github.com/")]
     uitests.tools.empty_directory(context.options.workspace_folder)
     if repo:
         context.workspace_repo = repo[0]
