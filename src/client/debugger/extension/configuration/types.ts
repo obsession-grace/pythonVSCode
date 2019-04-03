@@ -3,7 +3,7 @@
 
 'use strict';
 
-import { CancellationToken, DebugConfiguration, Position, TextDocument, Uri, WorkspaceFolder } from 'vscode';
+import { CancellationToken, DebugConfiguration, Uri, WorkspaceFolder } from 'vscode';
 import { DebugConfigurationType, IDebugConfigurationProvider } from '../types';
 
 export const IConfigurationProviderUtils = Symbol('IConfigurationProviderUtils');
@@ -20,9 +20,4 @@ export interface IDebugConfigurationResolver<T extends DebugConfiguration> {
 export const IDebugConfigurationProviderFactory = Symbol('IDebugConfigurationProviderFactory');
 export interface IDebugConfigurationProviderFactory {
     create(configurationType: DebugConfigurationType): IDebugConfigurationProvider;
-}
-
-export const ILaunchJsonUpdaterService = Symbol('ILaunchJsonUpdaterService');
-export interface ILaunchJsonUpdaterService {
-    selectAndInsertDebugConfig(document: TextDocument, position: Position, token: CancellationToken): Promise<void>;
 }

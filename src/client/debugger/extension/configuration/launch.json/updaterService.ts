@@ -6,30 +6,21 @@
 import { inject, injectable } from 'inversify';
 import { createScanner, parse, SyntaxKind } from 'jsonc-parser';
 import { CancellationToken, DebugConfiguration, Position, TextDocument, WorkspaceEdit } from 'vscode';
+import { IExtensionActivationService } from '../../../../activation/types';
 import { ICommandManager, IDocumentManager, IWorkspaceService } from '../../../../common/application/types';
+import { IDisposableRegistry, Resource } from '../../../../common/types';
 import { noop } from '../../../../common/utils/misc';
 import { captureTelemetry } from '../../../../telemetry';
 import { EventName } from '../../../../telemetry/constants';
 import { IDebugConfigurationService } from '../../types';
-import { ILaunchJsonUpdaterService } from '../types';
 
 type PositionOfCursor = 'InsideEmptyArray' | 'BeforeItem' | 'AfterItem';
 
-@injectable()
-export class LaunchJsonUpdaterService implements ILaunchJsonUpdaterService {
-    constructor(@inject(ICommandManager) private readonly commandManager: ICommandManager,
-        @inject(IWorkspaceService) private readonly workspace: IWorkspaceService,
-        @inject(IDocumentManager) private readonly documentManager: IDocumentManager,
-        @inject(IDebugConfigurationService) private readonly configurationProvider: IDebugConfigurationService) { }
-    /**
-     * Command callback
-     *
-     * @param {TextDocument} document
-     * @param {Position} position
-     * @param {CancellationToken} token
-     * @returns {Promise<void>}
-     * @memberof LaunchJsonCompletionCommandHandler
-     */
+export class LaunchJsonUpdaterServiceHelper {
+    constructor(private readonly commandManager: ICommandManager,
+        private readonly workspace: IWorkspaceService,
+        private readonly documentManager: IDocumentManager,
+        private readonly configurationProvider: IDebugConfigurationService) { }
     @captureTelemetry(EventName.DEBUGGER_CONFIGURATION_PROMPTS_IN_LAUNCH_JSON)
     public async selectAndInsertDebugConfig(document: TextDocument, position: Position, token: CancellationToken): Promise<void> {
         if (this.documentManager.activeTextEditor && this.documentManager.activeTextEditor.document === document) {
@@ -98,5 +89,18 @@ export class LaunchJsonUpdaterService implements ILaunchJsonUpdaterService {
     public isConfigurationArrayEmpty(document: TextDocument): boolean {
         const configuration = parse(document.getText(), [], { allowTrailingComma: true, disallowComments: false }) as { configurations: [] };
         return (!configuration || !Array.isArray(configuration.configurations) || configuration.configurations.length === 0);
+    }
+}
+
+@injectable()
+export class LaunchJsonUpdaterService implements IExtensionActivationService {
+    constructor(@inject(ICommandManager) private readonly commandManager: ICommandManager,
+        @inject(IDisposableRegistry) private readonly disposableRegistry: IDisposableRegistry,
+        @inject(IWorkspaceService) private readonly workspace: IWorkspaceService,
+        @inject(IDocumentManager) private readonly documentManager: IDocumentManager,
+        @inject(IDebugConfigurationService) private readonly configurationProvider: IDebugConfigurationService) { }
+    public async activate(_resource: Resource): Promise<void> {
+        const handler = new LaunchJsonUpdaterServiceHelper(this.commandManager, this.workspace, this.documentManager, this.configurationProvider);
+        this.disposableRegistry.push(this.commandManager.registerCommand('python.SelectAndInsertDebugConfiguration', handler.selectAndInsertDebugConfig, handler));
     }
 }
