@@ -201,7 +201,7 @@ steps:
 
     # Run the UI Tests
     - bash: |
-          python uitests test -- --tags=~windows
+          python uitests test -- --tags=wip --tags=~windows
       displayName: "UI Tests (Exclude PipEnv & Windows)"
       condition: and(succeeded(), contains(variables['TestsToRun'], 'UITests'))
 

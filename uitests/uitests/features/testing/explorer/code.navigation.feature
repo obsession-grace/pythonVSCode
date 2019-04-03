@@ -1,7 +1,7 @@
-@test @wip
+@test
 @git://github.com/DonJayamanne/pyvscSmokeTesting.git
 Feature: Test Explorer Discovering icons and stop discovery
-
+    @wip
     Scenario: When navigating to a test file, suite & test, then open the file and set the cursor at the right line (unitest)
         Given the workspace setting "python.unitTest.pyTestEnabled" is disabled
         And the workspace setting "python.unitTest.unittestEnabled" is enabled

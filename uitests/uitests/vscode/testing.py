@@ -96,38 +96,42 @@ def expand_nodes(context):
 
 
 def _expand_nodes(context):
+    uitests.vscode.application.capture_screen(context)
     tree = uitests.vscode.core.wait_for_element(
         context.driver, ".monaco-tree.monaco-tree-instance-2"
     )
     tree.click()
     tree.send_keys(Keys.DOWN)
+    uitests.vscode.application.capture_screen(context)
     # for i in range(2, 20):
-    i = 2
+    i = 1
     total_tries = 0
     while True:
-        total_tries = total_tries + 1
-        if total_tries > 100:
-            raise SystemError("Failed to expand all nodes")
-        tree.send_keys(Keys.RIGHT)
-        time.sleep(0.2)
-        tree.send_keys(Keys.DOWN)
         selector = (
             f"div[id='workbench.view.extension.test'] .monaco-tree-row:nth-child({i})"
         )
-        try:
-            parent_selector = f"div[id='workbench.view.extension.test'] .monaco-tree-row:nth-child({i-1})"
-            parent_element = context.driver.find_element_by_css_selector(
-                parent_selector
-            )
-            css_class = parent_element.get_attribute("class")
-            if "has-children" in css_class and "expanded" not in css_class:
+        element = context.driver.find_element_by_css_selector(selector)
+        css_class = element.get_attribute("class")
+        total_tries = total_tries + 1
+        if total_tries > 100:
+            raise SystemError("Failed to expand all nodes")
+
+        if "has-children" in css_class and "expanded" not in css_class:
+            tree.send_keys(Keys.RIGHT)
+            time.sleep(0.2)
+            css_class = element.get_attribute("class")
+            uitests.vscode.application.capture_screen(context)
+
+            if "expanded" not in css_class:
                 tree.click()
                 tree.send_keys(Keys.DOWN)
-                i = 2
+                i = 1
+                uitests.vscode.application.capture_screen(context)
                 continue
-        except Exception:
-            return
+
+        tree.send_keys(Keys.DOWN)
         try:
+            selector = f"div[id='workbench.view.extension.test'] .monaco-tree-row:nth-child({i+1})"
             element = context.driver.find_element_by_css_selector(selector)
             i = i + 1
         except Exception:
