@@ -59,16 +59,17 @@ def run_command(command, *, cwd=None, silent=False, progress_message=None, env=N
 
     if progress_message is not None:
         logging.info(progress_message)
-    shell = command[0] == "git"
+    is_git = command[0] == "git"
+    shell = is_git
     command[0] = shutil.which(command[0])
     out = subprocess.PIPE if silent else None
-    # proc = subprocess.run(
-    #     command, cwd=cwd, shell=shell, env=env, stdout=out, stderr=out
-    # )
-    # proc.check_returncode()
-    p = subprocess.Popen(
-        command, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False
-    )
+    if not is_git:
+        proc = subprocess.run(
+            command, cwd=cwd, shell=shell, env=env, stdout=out, stderr=out
+        )
+        proc.check_returncode()
+        return
+    p = subprocess.Popen(command, cwd=cwd, stdout=out, stderr=out, shell=False)
     out, err = p.communicate()
     # print("out")
     # print(out)
