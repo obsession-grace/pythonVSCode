@@ -70,16 +70,12 @@ def run_command(command, *, cwd=None, silent=False, progress_message=None, env=N
         proc.check_returncode()
         return
     p = subprocess.Popen(command, cwd=cwd, stdout=out, stderr=out, shell=False)
-    out, err = p.communicate()
-    # print("out")
-    # print(out)
-    print("err")
-    print(err)
-    print("p.returncode")
-    print(p.returncode)
+    _, err = p.communicate()
 
     if p.returncode != 0:
-        raise SystemError(f"Exit code is not 0, {p.returncode} for command {command}")
+        raise SystemError(
+            f"Exit code is not 0, {p.returncode} for command {command}, with an error: {err}"
+        )
     # return (p.returncode, out, err)
 
     # Note, we'll need some output to tell CI servers that process is still active.
