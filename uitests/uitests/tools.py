@@ -59,13 +59,21 @@ def run_command(command, *, cwd=None, silent=False, progress_message=None, env=N
 
     if progress_message is not None:
         logging.info(progress_message)
+    shell = command[0] == "git"
     command[0] = shutil.which(command[0])
-    shell = command == "git"
     out = subprocess.PIPE if silent else None
-    proc = subprocess.run(
-        command, cwd=cwd, shell=shell, env=env, stdout=out, stderr=out
-    )
-    proc.check_returncode()
+    # proc = subprocess.run(
+    #     command, cwd=cwd, shell=shell, env=env, stdout=out, stderr=out
+    # )
+    # proc.check_returncode()
+    p = subprocess.Popen(command, stdout=out, stderr=out, shell=True)
+    out, err = p.communicate()
+    print(out)
+    print(err)
+    if p.returncode != 0:
+        raise SystemError(f"Exit code is not 0, {p.returncode} for command {command}")
+    # return (p.returncode, out, err)
+
     # Note, we'll need some output to tell CI servers that process is still active.
     # if progress_message:
     #     progress = Spinner(progress_message)
