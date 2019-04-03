@@ -60,10 +60,10 @@ def run_command(command, *, cwd=None, silent=False, progress_message=None, env=N
     if progress_message is not None:
         logging.info(progress_message)
     command[0] = shutil.which(command[0])
-
+    shell = command == "git"
     out = subprocess.PIPE if silent else None
     proc = subprocess.run(
-        command, cwd=cwd, shell=False, env=env, stdout=out, stderr=out
+        command, cwd=cwd, shell=shell, env=env, stdout=out, stderr=out
     )
     proc.check_returncode()
     # Note, we'll need some output to tell CI servers that process is still active.
