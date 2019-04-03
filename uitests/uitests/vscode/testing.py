@@ -121,7 +121,9 @@ def _expand_nodes(context):
             )
             css_class = parent_element.get_attribute("class")
             if "has-children" in css_class and "expanded" not in css_class:
-                i = 0
+                tree.click()
+                tree.send_keys(Keys.DOWN)
+                i = 2
                 continue
         except Exception:
             return
