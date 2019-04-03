@@ -103,6 +103,7 @@ def _expand_nodes(context):
     tree.send_keys(Keys.DOWN)
     for i in range(2, 20):
         tree.send_keys(Keys.RIGHT)
+        time.sleep(0.2)
         tree.send_keys(Keys.DOWN)
         selector = (
             f"div[id='workbench.view.extension.test'] .monaco-tree-row:nth-child({i})"
