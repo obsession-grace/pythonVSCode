@@ -104,9 +104,7 @@ def _expand_nodes(context):
         context.driver, ".monaco-tree.monaco-tree-instance-2"
     )
     tree.click()
-    i = 0
-    while True:
-        i += 1
+    for i in range(1, 5000):
         selector = (
             f"div[id='workbench.view.extension.test'] .monaco-tree-row:nth-child({i})"
         )
