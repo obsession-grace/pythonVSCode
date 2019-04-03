@@ -4,6 +4,7 @@
 import time
 
 import behave
+from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys
 
 import uitests.vscode.core
@@ -57,18 +58,21 @@ def _select_node(context, number):
         context.driver, ".monaco-tree.monaco-tree-instance-2"
     )
     tree.click()
-    for _ in range(number):
-        tree.send_keys(Keys.DOWN)
+    selector = (
+        f"div[id='workbench.view.extension.test'] .monaco-tree-row:nth-child({number})"
+    )
+    element = context.driver.find_element_by_css_selector(selector)
+    action = ActionChains(context.driver)
+    action.context_click(element)
+    action.perform()
+    find = lambda ele: "focused" in ele.get_attribute("class")
+    uitests.vscode.core.wait_for_element(context.driver, selector, find)
+    return element
 
 
 def click_node(context, number):
-    tree = uitests.vscode.core.wait_for_element(
-        context.driver, ".monaco-tree.monaco-tree-instance-2"
-    )
-    tree.click()
-    for _ in range(number):
-        tree.send_keys(Keys.DOWN)
-        tree.send_keys(Keys.ENTER)
+    element = _select_node(context, number)
+    element.click()
 
 
 def click_node_action_item(context, number, tooltip):
@@ -96,46 +100,32 @@ def expand_nodes(context):
 
 
 def _expand_nodes(context):
-    uitests.vscode.application.capture_screen(context)
     tree = uitests.vscode.core.wait_for_element(
         context.driver, ".monaco-tree.monaco-tree-instance-2"
     )
     tree.click()
-    tree.send_keys(Keys.DOWN)
-    time.sleep(0.2)
-    uitests.vscode.application.capture_screen(context)
-    # for i in range(2, 20):
-    i = 1
-    total_tries = 0
+    i = 0
     while True:
+        i += 1
         selector = (
             f"div[id='workbench.view.extension.test'] .monaco-tree-row:nth-child({i})"
         )
         element = context.driver.find_element_by_css_selector(selector)
+        action = ActionChains(context.driver)
+        action.context_click(element)
+        action.perform()
+        find = lambda ele: "focused" in ele.get_attribute("class")
+        uitests.vscode.core.wait_for_element(context.driver, selector, find)
         css_class = element.get_attribute("class")
-        total_tries = total_tries + 1
-        if total_tries > 100:
-            raise SystemError("Failed to expand all nodes")
 
         if "has-children" in css_class and "expanded" not in css_class:
             tree.send_keys(Keys.RIGHT)
-            time.sleep(0.2)
-            css_class = element.get_attribute("class")
-            uitests.vscode.application.capture_screen(context)
+            find = lambda ele: "expanded" in ele.get_attribute("class")
+            uitests.vscode.core.wait_for_element(context.driver, selector, find)
 
-            if "expanded" not in css_class:
-                tree.click()
-                tree.send_keys(Keys.DOWN)
-                i = 1
-                uitests.vscode.application.capture_screen(context)
-                continue
-
-        tree.send_keys(Keys.DOWN)
-        time.sleep(0.2)
         try:
             selector = f"div[id='workbench.view.extension.test'] .monaco-tree-row:nth-child({i+1})"
             element = context.driver.find_element_by_css_selector(selector)
-            i = i + 1
         except Exception:
             return
 
