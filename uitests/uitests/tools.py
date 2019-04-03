@@ -77,6 +77,7 @@ def run_command(command, *, cwd=None, silent=False, progress_message=None, env=N
     print(err)
     print("p.returncode")
     print(p.returncode)
+
     if p.returncode != 0:
         raise SystemError(f"Exit code is not 0, {p.returncode} for command {command}")
     # return (p.returncode, out, err)
