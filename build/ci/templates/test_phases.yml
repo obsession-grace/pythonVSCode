@@ -221,13 +221,13 @@ steps:
     - task: PublishBuildArtifacts@1
       inputs:
           pathtoPublish: $(Build.ArtifactStagingDirectory)
-          artifactName: ${Agent.JobName}
+          artifactName: $(Agent.JobName)
       condition: contains(variables['TestsToRun'], 'UITests')
 
     - task: PublishBuildArtifacts@1
       inputs:
           pathtoPublish: $(Build.ArtifactStagingDirectory)
-          artifactName: ${AGENT_JOBNAME}
+          artifactName: $(AGENT_JOBNAME)
       condition: contains(variables['TestsToRun'], 'UITests')
 
     - task: PublishBuildArtifacts@1
