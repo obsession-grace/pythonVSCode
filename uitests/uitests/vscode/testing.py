@@ -102,6 +102,7 @@ def _expand_nodes(context):
     )
     tree.click()
     tree.send_keys(Keys.DOWN)
+    time.sleep(0.2)
     uitests.vscode.application.capture_screen(context)
     # for i in range(2, 20):
     i = 1
@@ -130,6 +131,7 @@ def _expand_nodes(context):
                 continue
 
         tree.send_keys(Keys.DOWN)
+        time.sleep(0.2)
         try:
             selector = f"div[id='workbench.view.extension.test'] .monaco-tree-row:nth-child({i+1})"
             element = context.driver.find_element_by_css_selector(selector)
