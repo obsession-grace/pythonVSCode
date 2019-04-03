@@ -70,8 +70,8 @@ def run_command(command, *, cwd=None, silent=False, progress_message=None, env=N
         command, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False
     )
     out, err = p.communicate()
-    print("out")
-    print(out)
+    # print("out")
+    # print(out)
     print("err")
     print(err)
     print("p.returncode")
