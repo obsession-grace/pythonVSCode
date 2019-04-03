@@ -66,10 +66,16 @@ def run_command(command, *, cwd=None, silent=False, progress_message=None, env=N
     #     command, cwd=cwd, shell=shell, env=env, stdout=out, stderr=out
     # )
     # proc.check_returncode()
-    p = subprocess.Popen(command, stdout=out, stderr=out, shell=True)
+    p = subprocess.Popen(
+        command, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False
+    )
     out, err = p.communicate()
+    print("out")
     print(out)
+    print("err")
     print(err)
+    print("p.returncode")
+    print(p.returncode)
     if p.returncode != 0:
         raise SystemError(f"Exit code is not 0, {p.returncode} for command {command}")
     # return (p.returncode, out, err)
