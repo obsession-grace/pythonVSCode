@@ -93,6 +93,9 @@ def test(
         "uitests.report:PrettyCucumberJSONFormatter",
         "-o",
         os.path.join(destination, "reports", "report.json"),
+        "--junit",
+        "--junit-directory",
+        os.path.join(destination, "reports"),
         "--define",
         f"embed_screenshots={embed_screenshots}",
     ]

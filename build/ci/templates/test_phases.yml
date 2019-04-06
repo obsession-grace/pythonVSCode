@@ -100,7 +100,7 @@ steps:
       displayName: "gulp prePublishNonBundle"
       inputs:
           targets: "prePublishNonBundle"
-      condition: not(contains(variables['TestsToRun'], 'UITests'))
+      condition: and(not(contains(variables['TestsToRun'], 'UITests')), not(eq(variables['Build'], 'true')))
     # Run tslint on the project source to ensure that the added code adheres
     # to the # code standards we are trying to maintain.
     # Example command line (windows pwsh):
@@ -118,7 +118,7 @@ steps:
     - bash: |
           npm run cover:enable
       displayName: "Enable coverage reporting"
-      condition: not(contains(variables['TestsToRun'], 'UITests'))
+      condition: and(not(contains(variables['TestsToRun'], 'UITests')), not(eq(variables['Build'], 'true')))
 
     # Run the typescript unit tests.
     #
@@ -154,7 +154,7 @@ steps:
           python -m pip install -U pip
           python -m pip --disable-pip-version-check install -t ./pythonFiles/lib/python --no-cache-dir --implementation py --no-deps --upgrade -r requirements.txt
       displayName: "pip install requirements"
-      condition: and(succeeded(), contains(variables['TestsToRun'], 'UITests'))
+      condition: and(succeeded(), or(contains(variables['TestsToRun'], 'UITests'), eq(variables['Build'], 'true')))
 
     # Install the requirements for functional tests.
     #
@@ -184,8 +184,8 @@ steps:
           npm run clean
           npm run updateBuildNumber -- --buildNumber $BUILD_BUILDID
           npm run package
-      displayName: "UI Tests (build VSIX package)"
-      condition: and(succeeded(), contains(variables['TestsToRun'], 'UITests'))
+      displayName: "Build VSIX"
+      condition: and(succeeded(), or(contains(variables['TestsToRun'], 'UITests'), eq(variables['Build'], 'true')))
 
     # Run the UI Tests
     - bash: |
@@ -201,7 +201,7 @@ steps:
 
     # Run the UI Tests
     - bash: |
-          python uitests test -- --tags=~windows
+          python uitests test -- --tags=wip --tags=~windows
       displayName: "UI Tests (Exclude PipEnv & Windows)"
       condition: and(succeeded(), contains(variables['TestsToRun'], 'UITests'))
 
@@ -222,6 +222,20 @@ steps:
           pathtoPublish: $(Build.ArtifactStagingDirectory)
           artifactName: $(Agent.JobName)
       condition: contains(variables['TestsToRun'], 'UITests')
+
+    - task: CopyFiles@2
+      inputs:
+          contents: "*.vsix"
+          targetFolder: $(Build.ArtifactStagingDirectory)
+      displayName: "Copy VSIX"
+      condition: eq(variables['Build'], 'true')
+
+    - task: PublishBuildArtifacts@1
+      inputs:
+          pathtoPublish: $(Build.ArtifactStagingDirectory)
+          artifactName: VSIX
+      displayName: "Publish VSIX to Arifacts"
+      condition: eq(variables['Build'], 'true')
 
     # Run the Python unit tests in our codebase. Produces a JUnit-style log file that
     # will be uploaded after all tests are complete.
@@ -409,7 +423,7 @@ steps:
               from __future__ import print_function
               import sys
               print('##vso[task.setvariable variable=CI_PYTHON_PATH;]{}'.format(sys.executable))
-
+      condition: not(eq(variables['Build'], 'true'))
     # Run the functional tests.
     #
     # This task only runs if the string 'testFunctional' exists in variable `TestsToRun`.
